@@ -1,4 +1,4 @@
-#include "../cpp_reachability/include/reachability_analysis/reachability_core.h"
+#include "../cpp_reachability/include/reachability/reachability_core.h"
 
 #include <pybind11/stl.h>
 
