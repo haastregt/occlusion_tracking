@@ -1,7 +1,8 @@
 from CGAL.CGAL_Polyhedron_3 import Polyhedron_3 as Polyhedron
+from CGAL.CGAL_Polygon_mesh_processing import do_intersect
 from CGAL.CGAL_Kernel import Polygon_2 as Polygon
 from commonroad.scenario.scenario import Lanelet
-from utilities import LaneletToCGALPolygon
+from utilities import LaneletToCGALPolygon, ReachabilityBounds
 
 class Shadow:
     polyhedron: Polyhedron
@@ -44,7 +45,7 @@ class Shadow:
         #   expand(dt, polyhedron)
         #   projected = xy_project(polyhedron)
         #   occupancy_set.append(projected)
-        
+
         pass
 
 class OcclusionTracker:

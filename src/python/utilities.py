@@ -1,12 +1,25 @@
 import numpy as np
+from dataclasses import dataclass
 
 from shapely.geometry import Polygon as ShapelyPolygon
 from shapely.geometry import MultiPolygon as ShapelyMultiPolygon
 from shapely.geometry import GeometryCollection as ShapelyGeometryCollection
+from shapely.geometry import MultiPoint
 from commonroad.geometry.shape import Polygon as CommonRoadPolygon
+from commonroad.scenario.scenario import Lanelet
 
 from CGAL.CGAL_Kernel import Polygon_2 as Polygon
 
+@dataclass
+class ReachabilityBounds:
+    """"
+    Import this to access all bounds for the reachability analysis without
+    needing to pass them in as function parameters or defining them everywhere
+    """
+    VXMAX: float = 30
+    VYMAX: float = 1
+    AMAX: float = 8
+    AMIN: float = -8
 
 def ShapelyPolygon2Polygon(shapely_polygon):
     assert isinstance(shapely_polygon, ShapelyPolygon)
@@ -47,6 +60,22 @@ def filter_polygons(input):
                     assert element.is_valid
                     polygon_list.append(element)
     return polygon_list
+
+def Lanelet2ShapelyPolygon(lanelet):
+    assert isinstance(lanelet, Lanelet)
+    right = lanelet.right_vertices
+    left = np.flip(lanelet.left_vertices, axis=0)
+    lanelet_boundary = np.concatenate((right, left, np.array([right[0]])))
+
+    lanelet_shapely = ShapelyPolygon(lanelet_boundary)
+    if not lanelet_shapely.is_valid:
+        lanelet_shapely = lanelet_shapely.buffer(0)
+        if not lanelet_shapely.is_valid:
+            print("Note: Shape of lanelet", lanelet.lanelet_id,
+                  "is not valid, creating valid shape with convex hull of lane boundary.")
+            lanelet_shapely = MultiPoint(lanelet_boundary).convex_hull
+            assert lanelet_shapely.is_valid, "Failed to convert lanelet to polygon"
+    return lanelet_shapely
 
 def LaneletToCGALPolygon(lanelet):
     cgal_polygon: Polygon
