@@ -4,6 +4,12 @@ from CGAL.CGAL_Kernel import Polygon_2 as Polygon
 from commonroad.scenario.scenario import Lanelet
 from utilities import LaneletToCGALPolygon, ReachabilityBounds
 
+import reachability
+
+c = reachability.Motorcycle("Yamaha")
+print("Made a bike called: %s" % c.get_name())
+c.ride("mullholland")
+
 class Shadow:
     polyhedron: Polyhedron
     driving_corridor: Lanelet

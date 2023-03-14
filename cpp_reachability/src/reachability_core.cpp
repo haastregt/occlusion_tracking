@@ -1,3 +1,25 @@
+#include "../include/reachability_analysis/reachability_core.h"
+
+#include <iostream>
+
+namespace vehicles {
+
+Motorcycle::Motorcycle(std::string name) {
+    _name = name;
+}
+
+std::string Motorcycle::get_name() const {
+    return _name;
+}
+
+void Motorcycle::ride(std::string road) const {
+    std::cout << "Zoom Zoom on road: " << road << std::endl;
+}
+
+}
+
+/*
+#include "reachability.h"
 #include <iostream>
 #include <CGAL/Simple_cartesian.h>
 
@@ -32,3 +54,4 @@ int main()
   std::cout << " midpoint(p,q) = " << CGAL::midpoint(p,q) << std::endl;
   return 0;
 }
+*/

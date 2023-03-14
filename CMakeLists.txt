@@ -1,47 +1,40 @@
-# Created by the script cgal_create_CMakeLists
-# This is the CMake script for compiling a set of CGAL applications.
+cmake_minimum_required(VERSION 3.1)
 
-cmake_minimum_required(VERSION 3.1...3.23)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-project( CGAL_Reachability )
-
-# Make sure VSCode can find the includes
 set(-DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
 
-# CGAL and its components
-find_package( CGAL QUIET COMPONENTS  )
-
-if ( NOT CGAL_FOUND )
-
-  message(STATUS "This project requires the CGAL library, and will not be compiled.")
-  return()  
-
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
 endif()
 
+set(CMAKE_CXX_FLAGS "-O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-# Boost and its components
-find_package( Boost REQUIRED )
+project(reachability)
 
-if ( NOT Boost_FOUND )
+include_directories("${CMAKE_SOURCE_DIR}/cpp_reachability/include/reachability_analysis")
+include_directories("${CMAKE_SOURCE_DIR}/python")
 
-  message(STATUS "This project requires the Boost library, and will not be compiled.")
+file (GLOB SOURCE_FILES "cpp_reachability/src/*.cpp")
+file (GLOB HEADER_FILES "cpp_reachability/include/reachability_analysis/*.h")
+file (GLOB PYTHON_FILES "python/*.cpp" "python/*.h")
 
-  return()  
+# Set up such that XCode organizes the files
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES} ${HEADER_FILES} ${PYTHON_FILES} )
 
-endif()
+find_package(pybind11 REQUIRED)
+pybind11_add_module(reachability 
+    ${SOURCE_FILES}
+    ${HEADER_FILES}
+    ${PYTHON_FILES}
+)
 
-# include for local directory
+target_link_libraries(reachability PUBLIC)
 
-# include for local package
-
-
-# Creating entries for target: src/test_file
-# ############################
-
-add_executable(${PROJECT_NAME}_main src/playground.cpp  )
-
-add_to_cached_list( CGAL_EXECUTABLE_TARGETS ${PROJECT_NAME}_main  )
-
-# Link the executable to CGAL and third-party libraries
-target_link_libraries(${PROJECT_NAME}_main  PRIVATE CGAL::CGAL )
-
+install(TARGETS reachability 
+  COMPONENT python 
+  LIBRARY DESTINATION "${PYTHON_LIBRARY_DIR}"
+  )
