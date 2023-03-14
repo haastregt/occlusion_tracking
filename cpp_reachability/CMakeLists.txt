@@ -45,7 +45,7 @@ AUX_SOURCE_DIRECTORY(src SRC_FILES)
 
 # Headers
 set(PROJECT_SOURCE_DIR "src")
-set(PROJECT_INCLUDE_DIR "include/reachability_analysis")
+set(PROJECT_INCLUDE_DIR "include/reachability")
 
 # Source files
 set(SOURCE_FILES
@@ -60,7 +60,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
 add_library(reachability SHARED ${SOURCE_FILES})
 
 # Include directories
-target_include_directories(reachability PRIVATE include/reachability_analysis)
+target_include_directories(reachability PRIVATE include/reachability)
 target_link_libraries(reachability CGAL::CGAL)
 
 
@@ -68,7 +68,7 @@ target_link_libraries(reachability CGAL::CGAL)
 install(TARGETS reachability DESTINATION lib)
 
 # Install the headers
-install(FILES include/reachability DESTINATION include)
+install(FILES include/reachability.h DESTINATION include)
 
 # Create base directory
-install(DIRECTORY include/reachability_analysis DESTINATION include)
+install(DIRECTORY include/reachability DESTINATION include)

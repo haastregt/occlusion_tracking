@@ -15,12 +15,12 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 project(reachability)
 
-include_directories("${CMAKE_SOURCE_DIR}/cpp_reachability/include/reachability_analysis")
+include_directories("${CMAKE_SOURCE_DIR}/cpp_reachability/include/reachability")
 include_directories("${CMAKE_SOURCE_DIR}/python")
 
 file (GLOB SOURCE_FILES "cpp_reachability/src/*.cpp")
-file (GLOB HEADER_FILES "cpp_reachability/include/reachability_analysis/*.h")
-file (GLOB PYTHON_FILES "python/*.cpp" "python/*.h")
+file (GLOB HEADER_FILES "cpp_reachability/include/reachability/*.h")
+file (GLOB PYTHON_FILES "python/cpp_wrappers/*.cpp" "python/cpp_wrappers/*.h")
 
 # Set up such that XCode organizes the files
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES} ${HEADER_FILES} ${PYTHON_FILES} )

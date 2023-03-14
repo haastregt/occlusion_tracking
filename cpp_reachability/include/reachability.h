@@ -1,6 +1,6 @@
 #ifndef REACHABILITY_LIBRARY_H
 #define REACHABILITY_LIBRARY_H
 
-#include "reachability_analysis/reachability_core.h"
+#include "reachability/reachability_core.h"
 
 #endif
