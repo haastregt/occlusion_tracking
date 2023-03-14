@@ -1,4 +1,5 @@
 #include <string>
+#include <CGAL/Simple_cartesian.h>
 
 #ifndef REACHABILITY_CORE_H
 #define REACHABILITY_CORE_H

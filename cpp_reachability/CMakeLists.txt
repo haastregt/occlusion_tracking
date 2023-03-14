@@ -8,6 +8,35 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+
+###########################
+# CGAL and its components #
+###########################
+find_package( CGAL QUIET COMPONENTS  )
+
+if ( NOT CGAL_FOUND )
+
+  message(STATUS "This project requires the CGAL library, and will not be compiled.")
+  return()  
+
+endif()
+
+
+# Boost and its components
+find_package( Boost REQUIRED )
+
+if ( NOT Boost_FOUND )
+
+  message(STATUS "This project requires the Boost library, and will not be compiled.")
+
+  return()  
+
+endif()
+
+#############
+# Own stuff #
+#############
+
 # Include dir
 include_directories(/usr/local/include)
 
@@ -32,6 +61,7 @@ add_library(reachability SHARED ${SOURCE_FILES})
 
 # Include directories
 target_include_directories(reachability PRIVATE include/reachability_analysis)
+target_link_libraries(reachability CGAL::CGAL)
 
 
 # Install
