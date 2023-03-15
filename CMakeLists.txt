@@ -13,28 +13,26 @@ endif()
 set(CMAKE_CXX_FLAGS "-O3")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-project(reachability)
+project(cpp_occlusions)
 
-include_directories("${CMAKE_SOURCE_DIR}/cpp_reachability/include/reachability")
+include_directories("${CMAKE_SOURCE_DIR}/cpp_occlusions/include/cpp_occlusions")
 include_directories("${CMAKE_SOURCE_DIR}/python")
 
-file (GLOB SOURCE_FILES "cpp_reachability/src/*.cpp")
-file (GLOB HEADER_FILES "cpp_reachability/include/reachability/*.h")
-file (GLOB PYTHON_FILES "python/cpp_wrappers/*.cpp" "python/cpp_wrappers/*.h")
+file (GLOB SOURCE_FILES "cpp_occlusions/src/*.cpp")
+file (GLOB HEADER_FILES "cpp_occlusions/include/cpp_occlusions/*.h")
+file (GLOB PYTHON_FILES "python/cpp_bindings.cpp")
 
 # Set up such that XCode organizes the files
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES} ${HEADER_FILES} ${PYTHON_FILES} )
 
 find_package(pybind11 REQUIRED)
-pybind11_add_module(reachability 
+pybind11_add_module(cpp_occlusions 
     ${SOURCE_FILES}
     ${HEADER_FILES}
     ${PYTHON_FILES}
 )
 
-target_link_libraries(reachability PUBLIC)
-
-install(TARGETS reachability 
+install(TARGETS cpp_occlusions 
   COMPONENT python 
   LIBRARY DESTINATION "${PYTHON_LIBRARY_DIR}"
   )

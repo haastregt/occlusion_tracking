@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(reachability VERSION 0.1.0)
+project(cpp_occlusions VERSION 0.1.0)
 
 # Make sure VSCode can find the includes
 set(-DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
@@ -45,30 +45,30 @@ AUX_SOURCE_DIRECTORY(src SRC_FILES)
 
 # Headers
 set(PROJECT_SOURCE_DIR "src")
-set(PROJECT_INCLUDE_DIR "include/reachability")
+set(PROJECT_INCLUDE_DIR "include/cpp_occlusions")
 
 # Source files
 set(SOURCE_FILES
-    ${PROJECT_INCLUDE_DIR}/reachability_core.h
-    ${PROJECT_SOURCE_DIR}/reachability_core.cpp
+    ${PROJECT_INCLUDE_DIR}/occluded_volume.h
+    ${PROJECT_SOURCE_DIR}/occluded_volume.cpp
+
+    ${PROJECT_INCLUDE_DIR}/occlusion_handler.h
+    ${PROJECT_SOURCE_DIR}/occlusion_handler.cpp
 )
 
 # Set up such that XCode organizes the files correctly
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
 
 # Add library
-add_library(reachability SHARED ${SOURCE_FILES})
+add_library(cpp_occlusions SHARED ${SOURCE_FILES})
 
 # Include directories
-target_include_directories(reachability PRIVATE include/reachability)
-target_link_libraries(reachability CGAL::CGAL)
+target_include_directories(cpp_occlusions PRIVATE include/cpp_occlusions)
+target_link_libraries(cpp_occlusions CGAL::CGAL)
 
 
 # Install
-install(TARGETS reachability DESTINATION lib)
-
-# Install the headers
-install(FILES include/reachability.h DESTINATION include)
+install(TARGETS cpp_occlusions DESTINATION lib)
 
 # Create base directory
-install(DIRECTORY include/reachability DESTINATION include)
+install(DIRECTORY include/cpp_occlusions DESTINATION include)

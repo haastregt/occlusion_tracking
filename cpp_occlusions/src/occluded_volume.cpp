@@ -1,19 +1,29 @@
-#include "../include/reachability/reachability_core.h"
+#include "../include/cpp_occlusions/occluded_volume.h"
 
-#include <iostream>
+namespace cpp_occlusions {
 
-namespace vehicles {
-
-Motorcycle::Motorcycle(std::string name) {
-    _name = name;
+OccludedVolume::OccludedVolume(Polyhedron initial_polyhedron, Polygon road_polygon) 
+{
+    _shadow_polyhedron = initial_polyhedron;
+    //_road_polyhedron = extrude(road_polygon);
 }
 
-std::string Motorcycle::get_name() const {
-    return _name;
+OccludedVolume::~OccludedVolume() {}
+
+void OccludedVolume::Propagate(float dt) 
+{
+
 }
 
-void Motorcycle::ride(std::string road) const {
-    std::cout << "Zoom Zoom on road: " << road << std::endl;
+void OccludedVolume::Propagate(float dt, Polyhedron &polyhedron)
+{
+
+}
+
+std::vector<Polygon> OccludedVolume::ComputeFutureOccupancies(float dt, int prediction_horizon)
+{
+  std::vector<Polygon> placeholder(prediction_horizon);
+  return placeholder;
 }
 
 }
