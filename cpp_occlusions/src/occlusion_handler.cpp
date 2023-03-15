@@ -4,20 +4,24 @@
 
 namespace cpp_occlusions {
 
-OcclusionHandler::OcclusionHandler(std::vector<Polygon> driving_corridor_polygons, Polygon initial_sensor_view, int init_time_step, ReachabilityParams params)
+OcclusionHandler::OcclusionHandler(PolygonListBinding driving_corridor_polygons, PolygonBinding initial_sensor_view, int init_time_step, ReachabilityParams params)
 {
     
 }
 
 OcclusionHandler::~OcclusionHandler() {}
 
-void OcclusionHandler::Update(Polygon sensor_view)
+void OcclusionHandler::Update(PolygonBinding sensor_view)
 {
 
 }
 
-void OcclusionHandler::GetReachableSets()
+std::list<PolygonListBinding> OcclusionHandler::GetReachableSets()
 {
+    // First element should be shadow shape (occupancy t=0), the rest the occupancies of future time steps
     std::cout << "This works! \n";
+    std::list<PolygonListBinding> temp;
+    return temp;
 }
+
 }

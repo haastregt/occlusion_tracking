@@ -7,10 +7,10 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(cpp_occlusions, m) {
     // Optional docstring
-    m.doc() = "Library to find cpp_occlusions of hidden traffic";
+    m.doc() = "Library to find bounds on states of hidden traffic and predict their future occupancies";
     
     py::class_<cpp_occlusions::OcclusionHandler>(m, "OcclusionHandler")
-        .def(py::init<std::vector<Polygon>, Polygon, int, cpp_occlusions::ReachabilityParams>())
+        .def(py::init<PolygonListBinding, PolygonBinding, int, cpp_occlusions::ReachabilityParams>())
         .def("update", &cpp_occlusions::OcclusionHandler::Update)
         .def("get_reachable_sets", &cpp_occlusions::OcclusionHandler::GetReachableSets);
 
