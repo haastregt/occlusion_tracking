@@ -1,7 +1,5 @@
 #include "../include/cpp_occlusions/occlusion_handler.h"
 
-#include <iostream>
-
 namespace cpp_occlusions {
 
 OcclusionHandler::OcclusionHandler(PolygonListBinding driving_corridor_polygons, PolygonBinding initial_sensor_view, int init_time_step, ReachabilityParams params)
@@ -11,9 +9,10 @@ OcclusionHandler::OcclusionHandler(PolygonListBinding driving_corridor_polygons,
 
 OcclusionHandler::~OcclusionHandler() {}
 
-void OcclusionHandler::Update(PolygonBinding sensor_view)
+Polygon OcclusionHandler::Update(Polygon sensor_view)
 {
-
+    CGAL::draw(sensor_view);
+    return sensor_view;
 }
 
 std::list<PolygonListBinding> OcclusionHandler::GetReachableSets()

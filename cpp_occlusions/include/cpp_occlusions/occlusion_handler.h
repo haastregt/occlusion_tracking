@@ -1,6 +1,7 @@
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Polyhedron_3.h>
+#include <CGAL/draw_polygon_2.h>
 
 #include "occluded_volume.h"
 
@@ -28,8 +29,12 @@ class OcclusionHandler {
 
         ~OcclusionHandler();
 
-        void Update(PolygonBinding sensorview);
+        /// Update the occlusions with new sensor view
+        /// @param sensorview Polygon of the new FOV
+        Polygon Update(Polygon sensorview);
 
+        /// Get the reachable sets for future time intervals
+        /// @return List of Polygon arrays for occupancy of each time interval
         std::list<PolygonListBinding> GetReachableSets();
 
 };

@@ -1,19 +1,41 @@
-from CGAL.CGAL_Polyhedron_3 import Polyhedron_3 as Polyhedron
-from CGAL.CGAL_Polygon_mesh_processing import do_intersect
-from CGAL.CGAL_Kernel import Polygon_2 as Polygon
+#from CGAL.CGAL_Polyhedron_3 import Polyhedron_3 as Polyhedron
+#from CGAL.CGAL_Polygon_mesh_processing import do_intersect
 from commonroad.scenario.scenario import Lanelet
 from utilities import LaneletToCGALPolygon, ReachabilityBounds
 
-import reachability
+from cpp_occlusions import ReachabilityParams, OcclusionHandler
+from shapely.geometry import Polygon
 
-c = reachability.Motorcycle("Yamaha")
-print("Made a bike called: %s" % c.get_name())
-c.ride("mullholland")
+one = 1
+zero = 0
+point1 = [0, 1]
+point2 = [1, 1]
+point3 = [1, 0]
+point4 = [0, 0]
+polybinding1 = [point1, point2, point3]
+polybinding2 = [point1, point3, point4]
+type(polybinding1)
+
+polylistbinding = [polybinding1, polybinding2]
+type(polylistbinding)
+
+params = ReachabilityParams()
+
+occtest = OcclusionHandler(polylistbinding, polybinding1, 0, params)
+
+testconversionin = Polygon([point1, point2, point3, point4])
+print(testconversionin.exterior.coords)
+print(testconversionin.exterior.coords.__dict__)
+
+print(type(testconversionin))
+testconversionout = occtest.update(testconversionin)
+print(type(testconversionout))
+print("Wow, we didn't get any errors")
 
 class Shadow:
-    polyhedron: Polyhedron
-    driving_corridor: Lanelet
-    driving_corridor_extruded: Polyhedron
+    #polyhedron: Polyhedron
+    #driving_corridor: Lanelet
+    #driving_corridor_extruded: Polyhedron
 
     def __init__(self, polyhedron, driving_corridor):
         self.polyhedron = polyhedron

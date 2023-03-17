@@ -6,6 +6,7 @@
 #define REACHABILITY_CORE_H
 
 typedef CGAL::Simple_cartesian<float>       Kernel;
+typedef CGAL::Point_2<Kernel>               Point2;
 typedef CGAL::Polygon_2<Kernel>             Polygon;
 typedef CGAL::Polyhedron_3<Kernel>          Polyhedron;
 
@@ -44,9 +45,10 @@ class OccludedVolume {
 
         /// Propagate the reachable set
         /// @param dt Time in s with which the set is propagated
-        /// @param polyhedron The polyhedron to propagate. If not specified, 
-        /// self._shadow_polyhedron will be propagated
         void Propagate(float dt);
+        /// Propagate the reachable set
+        /// @param dt Time in s with which the set is propagated
+        /// @param polyhedron The polyhedron to propagate.
         void Propagate(float dt, Polyhedron &polyhedron);
 
         /// Generate occupancies for future time intervals

@@ -8,17 +8,19 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+include_directories(/usr/include)
 
 ###########################
 # CGAL and its components #
 ###########################
-find_package( CGAL QUIET COMPONENTS  )
+#find_package(Qt5 COMPONENTS Xml)
+find_package( CGAL REQUIRED COMPONENTS Core Qt5 )
+add_definitions(-DCGAL_USE_BASIC_VIEWER)
 
 if ( NOT CGAL_FOUND )
 
   message(STATUS "This project requires the CGAL library, and will not be compiled.")
   return()  
-
 endif()
 
 
@@ -36,9 +38,6 @@ endif()
 #############
 # Own stuff #
 #############
-
-# Include dir
-include_directories(/usr/local/include)
 
 # Src
 AUX_SOURCE_DIRECTORY(src SRC_FILES)
@@ -64,7 +63,12 @@ add_library(cpp_occlusions SHARED ${SOURCE_FILES})
 
 # Include directories
 target_include_directories(cpp_occlusions PRIVATE include/cpp_occlusions)
-target_link_libraries(cpp_occlusions CGAL::CGAL)
+if(CGAL_Qt5_FOUND)
+  message(STATUS "Found")
+else()
+  message(STATUS "Not Found")
+endif()
+target_link_libraries(cpp_occlusions CGAL::CGAL CGAL::CGAL_Core CGAL::CGAL_Qt5)
 
 
 # Install
