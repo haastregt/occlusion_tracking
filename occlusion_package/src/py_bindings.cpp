@@ -1,11 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-//#include <CGAL/Polygon_2.h>
-//#include <cpp_occlusions/occlusion_handler.h>
-#include <../cpp_occlusions/include/cpp_occlusions/occlusion_handler.h>
-
-#include <iostream>
+#include "../include/cpp_occlusions/occlusion_handler.h"
 
 namespace py = pybind11;
 

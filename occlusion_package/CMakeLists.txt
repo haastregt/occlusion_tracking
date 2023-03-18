@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(cpp_occlusions VERSION 0.0.1)
+project(occlusion_package VERSION 0.0.1)
 
 # Make sure VSCode can find the includes
 set(CMAKE_EXPORT_COMPILE_COMMANDS=ON)
@@ -31,21 +31,19 @@ endif()
 # Own Package with PyBind11 #
 #############################
 
-file (GLOB SOURCE_FILES "cpp_occlusions/src/*.cpp")
-file (GLOB HEADER_FILES "cpp_occlusions/include/cpp_occlusions/*.h")
-file (GLOB PYTHON_FILES "python/cpp_bindings.cpp")
+file (GLOB SOURCE_FILES "src/*.cpp")
+file (GLOB HEADER_FILES "include/cpp_occlusions/*.h")
 
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES} ${HEADER_FILES} ${PYTHON_FILES} )
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES} ${HEADER_FILES})
 
 
 find_package(pybind11 REQUIRED)
 pybind11_add_module(py_occlusions 
     ${SOURCE_FILES}
     ${HEADER_FILES}
-    ${PYTHON_FILES}
 )
 
-target_include_directories(py_occlusions PRIVATE cpp_occlusions/include/cpp_occlusions)
+target_include_directories(py_occlusions PRIVATE include/cpp_occlusions)
 
 add_definitions(-DCGAL_USE_BASIC_VIEWER -DQT_NO_KEYWORDS)
 
