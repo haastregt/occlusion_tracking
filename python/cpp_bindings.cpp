@@ -2,7 +2,6 @@
 #include <pybind11/stl.h>
 
 //#include <CGAL/Polygon_2.h>
-
 #include <cpp_occlusions/occlusion_handler.h>
 
 #include <iostream>

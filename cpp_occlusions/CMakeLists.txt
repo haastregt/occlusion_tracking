@@ -2,20 +2,12 @@ cmake_minimum_required(VERSION 3.0.0)
 project(cpp_occlusions VERSION 0.1.0)
 
 # Make sure VSCode can find the includes
-set(-DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-include_directories(/usr/include)
+set(CMAKE_EXPORT_COMPILE_COMMANDS=ON)
 
 ###########################
 # CGAL and its components #
 ###########################
-#find_package(Qt5 COMPONENTS Xml)
 find_package( CGAL REQUIRED COMPONENTS Core Qt5 )
-add_definitions(-DCGAL_USE_BASIC_VIEWER)
 
 if ( NOT CGAL_FOUND )
 
@@ -64,15 +56,16 @@ add_library(cpp_occlusions SHARED ${SOURCE_FILES})
 # Include directories
 target_include_directories(cpp_occlusions PRIVATE include/cpp_occlusions)
 if(CGAL_Qt5_FOUND)
-  message(STATUS "Found")
+  message(STATUS "Found CGAL_Qt5")
+  add_definitions(-DCGAL_USE_BASIC_VIEWER -DQT_NO_KEYWORDS)
 else()
   message(STATUS "Not Found")
 endif()
-target_link_libraries(cpp_occlusions CGAL::CGAL CGAL::CGAL_Core CGAL::CGAL_Qt5)
+target_link_libraries(cpp_occlusions PUBLIC CGAL::CGAL CGAL::CGAL_Core CGAL::CGAL_Qt5)
 
 
 # Install
 install(TARGETS cpp_occlusions DESTINATION lib)
 
 # Create base directory
-install(DIRECTORY include/cpp_occlusions DESTINATION include)
+install(DIRECTORY include/cpp_occlusions DESTINATION /usr/include)
