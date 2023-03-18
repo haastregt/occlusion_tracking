@@ -2,4 +2,3 @@
 build/
 tests/
 python/__pycache__
-*.sh
