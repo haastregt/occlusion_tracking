@@ -28,11 +28,8 @@ if ( NOT Boost_FOUND )
 endif()
 
 #############################
-#  Link c++ code with CGAL  #
+# Own Package with PyBind11 #
 #############################
-
-# Src
-#AUX_SOURCE_DIRECTORY(src SRC_FILES)
 
 file (GLOB SOURCE_FILES "cpp_occlusions/src/*.cpp")
 file (GLOB HEADER_FILES "cpp_occlusions/include/cpp_occlusions/*.h")
@@ -41,33 +38,20 @@ file (GLOB PYTHON_FILES "python/cpp_bindings.cpp")
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES} ${HEADER_FILES} ${PYTHON_FILES} )
 
 
-# Add library
-#add_library(occlusions SHARED ${SOURCE_FILES} ${HEADER_FILES})
-
-
-
-add_definitions(-DCGAL_USE_BASIC_VIEWER -DQT_NO_KEYWORDS)
-# Not sure if this is needed
-#include_directories("${CMAKE_SOURCE_DIR}/cpp_occlusions/include/cpp_occlusions")
-#include_directories("${CMAKE_SOURCE_DIR}/python")
-
-#############################
-# Own Package with PyBind11 #
-#############################
 find_package(pybind11 REQUIRED)
-pybind11_add_module(cpp_occlusions 
+pybind11_add_module(py_occlusions 
     ${SOURCE_FILES}
     ${HEADER_FILES}
     ${PYTHON_FILES}
 )
 
-# Include directories
-target_include_directories(cpp_occlusions PRIVATE cpp_occlusions/include/cpp_occlusions)
+target_include_directories(py_occlusions PRIVATE cpp_occlusions/include/cpp_occlusions)
 
 add_definitions(-DCGAL_USE_BASIC_VIEWER -DQT_NO_KEYWORDS)
-target_link_libraries(cpp_occlusions PUBLIC CGAL::CGAL CGAL::CGAL_Core CGAL::CGAL_Qt5)
 
-install(TARGETS cpp_occlusions 
+target_link_libraries(py_occlusions PUBLIC CGAL::CGAL CGAL::CGAL_Core CGAL::CGAL_Qt5)
+
+install(TARGETS py_occlusions 
   COMPONENT python 
   LIBRARY DESTINATION "${PYTHON_LIBRARY_DIR}"
   )

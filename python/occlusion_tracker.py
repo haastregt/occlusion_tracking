@@ -1,9 +1,8 @@
 #from CGAL.CGAL_Polyhedron_3 import Polyhedron_3 as Polyhedron
 #from CGAL.CGAL_Polygon_mesh_processing import do_intersect
-from commonroad.scenario.scenario import Lanelet
-from utilities import LaneletToCGALPolygon, ReachabilityBounds
-
-from cpp_occlusions import ReachabilityParams, OcclusionHandler
+#from commonroad.scenario.scenario import Lanelet
+#from utilities import LaneletToCGALPolygon, ReachabilityBounds
+from py_occlusions import ReachabilityParams, OcclusionHandler
 from shapely.geometry import Polygon
 
 one = 1
@@ -32,6 +31,7 @@ testconversionout = occtest.update(testconversionin)
 print(type(testconversionout))
 print("Wow, we didn't get any errors")
 
+"""
 class Shadow:
     #polyhedron: Polyhedron
     #driving_corridor: Lanelet
@@ -44,9 +44,9 @@ class Shadow:
         # Extrude driving corridor to [0, v_max]
 
     def expand(self, dt, polyhedron = None):
-        """
-        This function expands the shadow polyhedron using reachability
-        """
+        
+        #This function expands the shadow polyhedron using reachability
+        
         if not polyhedron: polyhedron = self.polyhedron
 
         # Note that this proposed expansion algorithm is an over-approximation. The proper
@@ -63,10 +63,10 @@ class Shadow:
         # Maybe the extrusions can be done by taking a minkowsky sum with a vector
 
     def get_cr_occupancy_set(self, time_step, dt, prediction_horizon):
-        """
-        This function performs the reachability of the shadow over a prediction horizon and
-        returns the occupancy set for a dynamic obstacle in CommonRoad
-        """
+        
+        #This function performs the reachability of the shadow over a prediction horizon and
+        #returns the occupancy set for a dynamic obstacle in CommonRoad
+        
         # polyhedron = self.polyhedron # Make a copy
         # occupancy_set = []
         # for i in range(prediction_horizon):
@@ -90,9 +90,9 @@ class OcclusionTracker:
         pass
 
     def update(self, sensor_view, new_time_step):
-        """
-        This function updates the occlusion polyhedrons for the whole scene
-        """
+        
+        #This function updates the occlusion polyhedrons for the whole scene
+        
         # t = new_time_step - self.time_step
         # self.time_step = new_time_step
         # 
@@ -106,10 +106,11 @@ class OcclusionTracker:
         pass
 
     def get_cr_dynamic_obstacles(self, scenario):
-        """
-        This function returns the shadows as dynamic obstacles to be used in CommonRoad
-        """
+        
+        #This function returns the shadows as dynamic obstacles to be used in CommonRoad
+        
         # For each shadow in shadowlist:
         #   occupancy_set = shadow.get_cr_occupancy_set(time_step, dt, prediction_horizon)
         #   Use this occupancy set to set up dynamic obstacle
         pass
+"""
