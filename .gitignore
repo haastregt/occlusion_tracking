@@ -3,6 +3,9 @@
 !*/
 ### Above combination will ignore all files without extension ###
 
+!Dockerfile
+
+.qglviewer.xml
 .vscode/
 build/
 test.cpp
