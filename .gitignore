@@ -1,4 +1,9 @@
+*
+!*.*
+!*/
+### Above combination will ignore all files without extension ###
+
 .vscode/
 build/
-tests/
-python/__pycache__
+test.cpp
+__pycache__/
