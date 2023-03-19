@@ -5,27 +5,24 @@
 from py_occlusions import ReachabilityParams, OcclusionHandler
 from shapely.geometry import Polygon
 
-one = 1
-zero = 0
 point1 = [0, 1]
 point2 = [1, 1]
 point3 = [1, 0]
 point4 = [0, 0]
-polybinding1 = [point1, point2, point3]
-polybinding2 = [point1, point3, point4]
+poly1 = Polygon([point1, point2, point3])
+poly2 = Polygon([point1, point3, point4])
 
-polylistbinding = [polybinding1, polybinding2]
+polylist = [poly1, poly2]
 
 params = ReachabilityParams()
 
-occtest = OcclusionHandler(polylistbinding, polybinding1, 0, params)
+occtest = OcclusionHandler(polylist, poly1, 0, params)
 
-testconversionin = Polygon([point1, point2, point3, point4])
-print(type(testconversionin))
+occtest.update(poly2)
 
-testconversionout = occtest.update(testconversionin)
-print(type(testconversionout))
-print(testconversionout.exterior.coords.xy)
+output = occtest.get_reachable_sets()
+print(output)
+
 print("Wow, we didn't get any errors")
 
 """

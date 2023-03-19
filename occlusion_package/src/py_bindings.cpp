@@ -10,8 +10,8 @@ PYBIND11_MODULE(py_occlusions, m) {
     m.doc() = "Library to find bounds on states of hidden traffic and predict their future occupancies";
     
     py::class_<cpp_occlusions::OcclusionHandler>(m, "OcclusionHandler")
-        .def(py::init<PolygonListBinding, PolygonBinding, int, cpp_occlusions::ReachabilityParams>())
-        .def("update", &cpp_occlusions::OcclusionHandler::Update, py::return_value_policy::copy)
+        .def(py::init<std::list<Polygon>, Polygon, int, cpp_occlusions::ReachabilityParams>())
+        .def("update", &cpp_occlusions::OcclusionHandler::Update)
         .def("get_reachable_sets", &cpp_occlusions::OcclusionHandler::GetReachableSets, py::return_value_policy::copy);
 
     py::class_<cpp_occlusions::ReachabilityParams>(m, "ReachabilityParams")

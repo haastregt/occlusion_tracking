@@ -2,14 +2,16 @@
 
 namespace cpp_occlusions {
 
-OcclusionHandler::OcclusionHandler(PolygonListBinding driving_corridor_polygons, PolygonBinding initial_sensor_view, int init_time_step, ReachabilityParams params)
+OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons, Polygon initial_sensor_view, int init_time_step, ReachabilityParams params)
 {
-    
+    for(auto it = driving_corridor_polygons.begin(); it!= driving_corridor_polygons.end(); ++it){
+        CGAL::draw(*it);
+    }
 }
 
 OcclusionHandler::~OcclusionHandler() {}
 
-Polygon OcclusionHandler::Update(Polygon sensor_view)
+void OcclusionHandler::Update(Polygon sensor_view)
 {
 
     for(auto it = sensor_view.vertices_begin(); it!= sensor_view.vertices_end(); ++it){
@@ -24,14 +26,38 @@ Polygon OcclusionHandler::Update(Polygon sensor_view)
         (sensor_view.is_convex() ? "" : "not ") << "convex." << "\n";
 
     CGAL::draw(sensor_view);
-    return sensor_view;
 }
 
-std::list<PolygonListBinding> OcclusionHandler::GetReachableSets()
+std::list<std::list<Polygon>> OcclusionHandler::GetReachableSets()
 {
     // First element should be shadow shape (occupancy t=0), the rest the occupancies of future time steps
+    
+    Polygon p1;
+    p1.push_back(Point2(0,0));
+    p1.push_back(Point2(4,0));
+    p1.push_back(Point2(4,4));
+    p1.push_back(Point2(2,2));
+    p1.push_back(Point2(0,4));
+
+    Polygon p2;
+    p2.push_back(Point2(4,0));
+    p2.push_back(Point2(4,4));
+    p2.push_back(Point2(2,2));
+
+    Polygon p3;
+    p3.push_back(Point2(2,2));
+    p3.push_back(Point2(0,0));
+    p3.push_back(Point2(4,0));
+
+    std::list<Polygon> between;
+    between.push_back(p1);
+    between.push_back(p2);
+    between.push_back(p3);
+    std::list<std::list<Polygon>> temp;
+    temp.push_back(between);
+    temp.push_back(between);
+
     std::cout << "This works! \n";
-    std::list<PolygonListBinding> temp;
     return temp;
 }
 
