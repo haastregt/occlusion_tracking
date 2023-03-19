@@ -12,7 +12,7 @@ PYBIND11_MODULE(py_occlusions, m) {
     py::class_<cpp_occlusions::OcclusionHandler>(m, "OcclusionHandler")
         .def(py::init<PolygonListBinding, PolygonBinding, int, cpp_occlusions::ReachabilityParams>())
         .def("update", &cpp_occlusions::OcclusionHandler::Update, py::return_value_policy::copy)
-        .def("get_reachable_sets", &cpp_occlusions::OcclusionHandler::GetReachableSets);
+        .def("get_reachable_sets", &cpp_occlusions::OcclusionHandler::GetReachableSets, py::return_value_policy::copy);
 
     py::class_<cpp_occlusions::ReachabilityParams>(m, "ReachabilityParams")
         .def(py::init<>())
@@ -45,11 +45,13 @@ namespace PYBIND11_NAMESPACE { namespace detail {
             PyObject* xitem;
             PyObject* yitem;
 
+            n = PyObject_Length(x_coords);
+
             for(i = 0; i < n-1; ++i) {
                 index = PyLong_FromLong(i);
                 xitem = PyObject_GetItem(x_coords, index);
                 yitem = PyObject_GetItem(y_coords, index);
-
+                
                 cgal_polygon.push_back(Point2(PyFloat_AsDouble(xitem),PyFloat_AsDouble(yitem)));
             }
 
@@ -66,24 +68,14 @@ namespace PYBIND11_NAMESPACE { namespace detail {
     
         PYBIND11_TYPE_CASTER(Polygon, const_name("CGALPolygon"));
 
-        /**
-         * Conversion part 1 (Python->C++): convert a PyObject into a inty
-         * instance or return false upon failure. The second argument
-         * indicates whether implicit conversions should be applied.
-         */
+        // Conversion part 1 (Python->C++)
         bool load(handle src, bool) {
             PyObject *source = src.ptr();
             value = ShapelyToCGAL(source);
             return !PyErr_Occurred();
         }
 
-        /**
-         * Conversion part 2 (C++ -> Python): convert an inty instance into
-         * a Python object. The second and third arguments are used to
-         * indicate the return value policy and parent object (for
-         * ``return_value_policy::reference_internal``) and are generally
-         * ignored by implicit casters.
-         */
+        // Conversion part 2 (C++ -> Python)
         static handle cast(Polygon src, return_value_policy, handle /* parent */) {
             return CGALToShapely(src);
         }
