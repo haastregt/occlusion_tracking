@@ -3,6 +3,8 @@
 #include <CGAL/Polyhedron_3.h>
 #include <CGAL/draw_polygon_2.h>
 
+#include <iostream>
+
 #include "occluded_volume.h"
 
 #ifndef OCCLUSION_HANDLER_H

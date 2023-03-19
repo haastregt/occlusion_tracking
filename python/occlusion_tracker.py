@@ -13,22 +13,19 @@ point3 = [1, 0]
 point4 = [0, 0]
 polybinding1 = [point1, point2, point3]
 polybinding2 = [point1, point3, point4]
-type(polybinding1)
 
 polylistbinding = [polybinding1, polybinding2]
-type(polylistbinding)
 
 params = ReachabilityParams()
 
 occtest = OcclusionHandler(polylistbinding, polybinding1, 0, params)
 
 testconversionin = Polygon([point1, point2, point3, point4])
-print(testconversionin.exterior.coords)
-print(testconversionin.exterior.coords.__dict__)
-
 print(type(testconversionin))
+
 testconversionout = occtest.update(testconversionin)
 print(type(testconversionout))
+print(testconversionout.exterior.coords.xy)
 print("Wow, we didn't get any errors")
 
 """

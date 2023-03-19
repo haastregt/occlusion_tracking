@@ -11,6 +11,18 @@ OcclusionHandler::~OcclusionHandler() {}
 
 Polygon OcclusionHandler::Update(Polygon sensor_view)
 {
+
+    for(auto it = sensor_view.vertices_begin(); it!= sensor_view.vertices_end(); ++it){
+        std::cout << *it << std::endl;
+    }
+
+    // check if the polygon is simple.
+    std::cout << "The polygon is " <<
+        (sensor_view.is_simple() ? "" : "not ") << "simple." << "\n";
+    // check if the polygon is convex
+    std::cout << "The polygon is " <<
+        (sensor_view.is_convex() ? "" : "not ") << "convex." << "\n";
+
     CGAL::draw(sensor_view);
     return sensor_view;
 }

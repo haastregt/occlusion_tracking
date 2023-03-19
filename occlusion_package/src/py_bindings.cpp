@@ -3,6 +3,8 @@
 
 #include "../include/cpp_occlusions/occlusion_handler.h"
 
+#include <iostream>
+
 namespace py = pybind11;
 
 PYBIND11_MODULE(py_occlusions, m) {
@@ -59,9 +61,41 @@ namespace PYBIND11_NAMESPACE { namespace detail {
         }
 
         static py::object CGALToShapely(Polygon cgal_polygon) {
-            py::object shapely_polygon = py::module_::import("shapely").attr("geometry").attr("Polygon");
-            //py::object shapely_polygon;
-            return shapely_polygon;
+            py::object ShapelyPolygon = py::module_::import("shapely").attr("geometry").attr("Polygon");
+
+            Py_ssize_t i, n;
+            Py_ssize_t x = 0;
+            Py_ssize_t y = 1;
+
+            n = cgal_polygon.size();
+
+            PyObject* coords = PyList_New(n+1);
+            PyObject* coord = PyList_New(2);
+
+            PyObject* xitem;
+            PyObject* yitem;
+
+            for(i = 0; i < n; i++) {
+                xitem = PyFloat_FromDouble((double) cgal_polygon.vertex(i).x());
+                yitem = PyFloat_FromDouble((double) cgal_polygon.vertex(i).y());
+                PyList_SetItem(coord, x, xitem);
+                PyList_SetItem(coord, y, yitem);
+                PyList_SetItem(coords, i, coord);
+            }
+
+            // ShapelyPolygons have the first point added as last point to close the loop
+            xitem = PyFloat_FromDouble((double) handle(shapely)cgal_polygon.vertex(0).x());
+            yitem = PyFloat_FromDouble((double) cgal_polygon.vertex(0).y());
+            PyList_SetItem(coord, x, xitem);
+            PyList_SetItem(coord, y, yitem);
+            PyList_SetItem(coords, n, coord);
+
+            py::object xy_coords = reinterpret_steal<py::object>(coords);
+            std::cout << "Retrieved xy_coords: " << xy_coords << std::endl;
+
+            py::object shapely = ShapelyPolygon(xy_coords);
+            std::cout << "CGALToShapely function complete, converted object: " << shapely << "\n";
+            return shapely;
         }
 
     public:
@@ -77,7 +111,11 @@ namespace PYBIND11_NAMESPACE { namespace detail {
 
         // Conversion part 2 (C++ -> Python)
         static handle cast(Polygon src, return_value_policy, handle /* parent */) {
-            return CGALToShapely(src);
+            std::cout << "We are in the cast method with source" << src << "\n";
+            py::object shapely = CGALToShapely(src);
+            std::cout << "cast function complete, our casted object is: " << shapely << "\n";
+            py::handle shapely_handle = shapely.release();
+            return shapely_handle;
         }
     };
 }}
