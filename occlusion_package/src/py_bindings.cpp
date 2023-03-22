@@ -5,12 +5,14 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(py_occlusions, m) {
+PYBIND11_MODULE(py_occlusions, m)
+{
     // Optional docstring
     m.doc() = "Library to find bounds on states of hidden traffic and predict their future occupancies";
-    
+
     py::class_<cpp_occlusions::OcclusionHandler>(m, "OcclusionHandler")
-        .def(py::init<std::list<Polygon>, Polygon, int, cpp_occlusions::ReachabilityParams>())
+        .def(py::init<std::list<cpp_occlusions::Polygon>, cpp_occlusions::Polygon, int,
+                      cpp_occlusions::ReachabilityParams>())
         .def("update", &cpp_occlusions::OcclusionHandler::Update)
         .def("get_reachable_sets", &cpp_occlusions::OcclusionHandler::GetReachableSets, py::return_value_policy::copy);
 
@@ -22,88 +24,102 @@ PYBIND11_MODULE(py_occlusions, m) {
         .def_readwrite("amax", &cpp_occlusions::ReachabilityParams::amax)
         .def_readwrite("dt", &cpp_occlusions::ReachabilityParams::dt)
         .def_readwrite("prediction_horizon", &cpp_occlusions::ReachabilityParams::prediction_horizon)
-        .def_readwrite("min_shadow_area", &cpp_occlusions::ReachabilityParams::min_shadow_area);
-
+        .def_readwrite("min_shadow_volume", &cpp_occlusions::ReachabilityParams::min_shadow_volume);
 }
 
-namespace PYBIND11_NAMESPACE { namespace detail {
-    template <> struct type_caster<Polygon> {
+namespace PYBIND11_NAMESPACE
+{
+namespace detail
+{
+template <> struct type_caster<cpp_occlusions::Polygon>
+{
 
-        Polygon ShapelyToCGAL(PyObject *shapely_polygon) {
-            Polygon cgal_polygon;
-            
-            Py_ssize_t i, n;
-            Py_ssize_t x = 0;
-            Py_ssize_t y = 1;
+    cpp_occlusions::Polygon ShapelyToCGAL(PyObject *shapely_polygon)
+    {
+        cpp_occlusions::Polygon cgal_polygon;
 
-            PyObject* xy = PyObject_GetAttrString(PyObject_GetAttrString(PyObject_GetAttrString(shapely_polygon, "exterior"), "coords"), "xy");
-            
-            PyObject* x_coords = PyTuple_GetItem(xy, x);
-            PyObject* y_coords = PyTuple_GetItem(xy, y);
+        Py_ssize_t i, n;
+        Py_ssize_t x = 0;
+        Py_ssize_t y = 1;
 
-            PyObject* index;
-            PyObject* xitem;
-            PyObject* yitem;
+        PyObject *xy = PyObject_GetAttrString(
+            PyObject_GetAttrString(PyObject_GetAttrString(shapely_polygon, "exterior"), "coords"), "xy");
 
-            n = PyObject_Length(x_coords);
+        PyObject *x_coords = PyTuple_GetItem(xy, x);
+        PyObject *y_coords = PyTuple_GetItem(xy, y);
 
-            for(i = 0; i < n-1; ++i) {
-                index = PyLong_FromLong(i);
-                xitem = PyObject_GetItem(x_coords, index);
-                yitem = PyObject_GetItem(y_coords, index);
-                
-                cgal_polygon.push_back(Point2(PyFloat_AsDouble(xitem),PyFloat_AsDouble(yitem)));
-            }
+        PyObject *index;
+        PyObject *xitem;
+        PyObject *yitem;
 
-            // Avoid memory leaks
-            Py_DECREF(xy);
-            Py_DECREF(index);
-            Py_DECREF(xitem);
-            Py_DECREF(yitem);
+        n = PyObject_Length(x_coords);
 
-            return cgal_polygon;
+        for (i = 0; i < n - 1; ++i)
+        {
+            index = PyLong_FromLong(i);
+            xitem = PyObject_GetItem(x_coords, index);
+            yitem = PyObject_GetItem(y_coords, index);
+
+            cgal_polygon.push_back(cpp_occlusions::Point2(PyFloat_AsDouble(xitem), PyFloat_AsDouble(yitem)));
         }
 
-        static py::object CGALToShapely(Polygon cgal_polygon) {
-            Py_ssize_t i, n;
-            Py_ssize_t x = 0;
-            Py_ssize_t y = 1;
+        // Avoid memory leaks
+        Py_DECREF(xy);
+        Py_DECREF(index);
+        Py_DECREF(xitem);
+        Py_DECREF(yitem);
 
-            n = cgal_polygon.size();
+        return cgal_polygon;
+    }
 
-            PyObject* coords = PyList_New(n+1);
+    static py::object CGALToShapely(cpp_occlusions::Polygon cgal_polygon)
+    {
+        Py_ssize_t i, n;
+        Py_ssize_t x = 0;
+        Py_ssize_t y = 1;
 
-            for(i = 0; i < n; i++) {
-                PyList_SetItem(coords,i,PyTuple_Pack(2,PyFloat_FromDouble((double) cgal_polygon.vertex(i).x()),PyFloat_FromDouble((double) cgal_polygon.vertex(i).y())));
-            }
-            // ShapelyPolygons have the first point added as last point to close the loop
-            PyList_SetItem(coords,n,PyTuple_Pack(2,PyFloat_FromDouble((double) cgal_polygon.vertex(0).x()),PyFloat_FromDouble((double) cgal_polygon.vertex(0).y())));
+        n = cgal_polygon.size();
 
-            py::object ShapelyPolygon = py::module_::import("shapely").attr("geometry").attr("Polygon");
-            py::object xy_coords = reinterpret_steal<py::object>(coords);
-            py::object shapely = ShapelyPolygon(xy_coords);
+        PyObject *coords = PyList_New(n + 1);
 
-            return shapely;
+        for (i = 0; i < n; i++)
+        {
+            PyList_SetItem(coords, i,
+                           PyTuple_Pack(2, PyFloat_FromDouble((double)cgal_polygon.vertex(i).x()),
+                                        PyFloat_FromDouble((double)cgal_polygon.vertex(i).y())));
         }
+        // ShapelyPolygons have the first point added as last point to close the loop
+        PyList_SetItem(coords, n,
+                       PyTuple_Pack(2, PyFloat_FromDouble((double)cgal_polygon.vertex(0).x()),
+                                    PyFloat_FromDouble((double)cgal_polygon.vertex(0).y())));
 
-    public:
-    
-        PYBIND11_TYPE_CASTER(Polygon, const_name("CGALPolygon"));
+        py::object ShapelyPolygon = py::module_::import("shapely").attr("geometry").attr("Polygon");
+        py::object xy_coords = reinterpret_steal<py::object>(coords);
+        py::object shapely = ShapelyPolygon(xy_coords);
 
-        // Conversion part 1 (Python->C++)
-        bool load(handle src, bool) {
-            PyObject *source = src.ptr();
-            value = ShapelyToCGAL(source);
+        return shapely;
+    }
 
-            return !PyErr_Occurred();
-        }
+  public:
+    PYBIND11_TYPE_CASTER(cpp_occlusions::Polygon, const_name("CGALPolygon"));
 
-        // Conversion part 2 (C++ -> Python)
-        static handle cast(Polygon src, return_value_policy, handle /* parent */) {
-            py::object shapely = CGALToShapely(src);
-            py::handle shapely_handle = shapely.release();
+    // Conversion part 1 (Python->C++)
+    bool load(handle src, bool)
+    {
+        PyObject *source = src.ptr();
+        value = ShapelyToCGAL(source);
 
-            return shapely_handle;
-        }
-    };
-}}
+        return !PyErr_Occurred();
+    }
+
+    // Conversion part 2 (C++ -> Python)
+    static handle cast(cpp_occlusions::Polygon src, return_value_policy, handle /* parent */)
+    {
+        py::object shapely = CGALToShapely(src);
+        py::handle shapely_handle = shapely.release();
+
+        return shapely_handle;
+    }
+};
+} // namespace detail
+} // namespace PYBIND11_NAMESPACE

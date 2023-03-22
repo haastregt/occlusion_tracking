@@ -1,67 +1,63 @@
 #include "../include/cpp_occlusions/occluded_volume.h"
 
-namespace cpp_occlusions {
+#include "../include/cpp_occlusions/polyhedron_modifiers.h"
 
-OccludedVolume::OccludedVolume(Polyhedron initial_polyhedron, Polygon road_polygon) 
+namespace cpp_occlusions
+{
+
+OccludedVolume::OccludedVolume(Polyhedron initial_polyhedron, Polygon road_polygon)
 {
     _shadow_polyhedron = initial_polyhedron;
     //_road_polyhedron = extrude(road_polygon);
 }
 
-OccludedVolume::~OccludedVolume() {}
-
-void OccludedVolume::Propagate(float dt) 
+OccludedVolume::~OccludedVolume()
 {
+}
 
+void OccludedVolume::Propagate(float dt)
+{
+    // This function expands the shadow polyhedron using reachability
+
+    // if not polyhedron: polyhedron = self.polyhedron
+
+    // Note that this proposed expansion algorithm is an over - approximation.The
+    // proper reachable set computations are more advanced(maybe see later if it
+    // is possible)
+
+    // Abstractions as various functions and take union here?
+
+    // a : skew along x with each vertex's Z-coord (which is vx)*dt +
+    // 1/2*a_max*dt^2
+    // b : skew along x with each vertex's Z-coord (which is vx)*dt
+    // - 1/2*a_min*dt^2
+    // Take union of a &b Extrude in Z - dir by a_max *dt on top and a_min *dt on
+    // bottom
+    // Extrude in Y - dit by y_vel *dt in both directions
+
+    // Take intersection between expanded poly and extruded driving corridor
+
+    // Maybe the extrusions can be done by taking a minkowsky sum with a vector
 }
 
 void OccludedVolume::Propagate(float dt, Polyhedron &polyhedron)
 {
-
 }
 
 std::vector<Polygon> OccludedVolume::ComputeFutureOccupancies(float dt, int prediction_horizon)
 {
-  std::vector<Polygon> placeholder(prediction_horizon);
-  return placeholder;
+    // This function performs the reachability of the shadow over a prediction
+    // horizon and returns the occupancy set for a dynamic obstacle in CommonRoad
+
+    // polyhedron = self.polyhedron # Make a copy
+    // occupancy_set = []
+    // for i in range(prediction_horizon):
+    //   expand(dt, polyhedron)
+    //   projected = xy_project(polyhedron)
+    //   occupancy_set.append(projected)
+
+    std::vector<Polygon> placeholder(prediction_horizon);
+    return placeholder;
 }
 
-}
-
-/*
-#include "reachability.h"
-#include <iostream>
-#include <CGAL/Simple_cartesian.h>
-
-typedef CGAL::Simple_cartesian<double> Kernel;
-typedef Kernel::Point_2 Point_2;
-typedef Kernel::Segment_2 Segment_2;
-
-int main()
-{
-  Point_2 p(1,1), q(10,10);
-  std::cout << "p = " << p << std::endl;
-  std::cout << "q = " << q.x() << " " << q.y() << std::endl;
-  std::cout << "sqdist(p,q) = "
-            << CGAL::squared_distance(p,q) << std::endl;
-  Segment_2 s(p,q);
-  Point_2 m(5, 9);
-  std::cout << "m = " << m << std::endl;
-  std::cout << "sqdist(Segment_2(p,q), m) = "
-            << CGAL::squared_distance(s,m) << std::endl;
-  std::cout << "p, q, and m ";
-  switch (CGAL::orientation(p,q,m)){
-  case CGAL::COLLINEAR:
-    std::cout << "are collinear\n";
-    break;
-  case CGAL::LEFT_TURN:
-    std::cout << "make a left turn\n";
-    break;
-  case CGAL::RIGHT_TURN:
-    std::cout << "make a right turn\n";
-    break;
-  }
-  std::cout << " midpoint(p,q) = " << CGAL::midpoint(p,q) << std::endl;
-  return 0;
-}
-*/
+} // namespace cpp_occlusions

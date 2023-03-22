@@ -8,19 +8,6 @@ from shapely.geometry import MultiPoint
 from commonroad.geometry.shape import Polygon as CommonRoadPolygon
 from commonroad.scenario.scenario import Lanelet
 
-from CGAL.CGAL_Kernel import Polygon_2 as Polygon
-
-@dataclass
-class ReachabilityBounds:
-    """"
-    Import this to access all bounds for the reachability analysis without
-    needing to pass them in as function parameters or defining them everywhere
-    """
-    VXMAX: float = 30
-    VYMAX: float = 1
-    AMAX: float = 8
-    AMIN: float = -8
-
 def ShapelyPolygon2Polygon(shapely_polygon):
     assert isinstance(shapely_polygon, ShapelyPolygon)
     assert hasattr(shapely_polygon, 'exterior')
@@ -76,11 +63,3 @@ def Lanelet2ShapelyPolygon(lanelet):
             lanelet_shapely = MultiPoint(lanelet_boundary).convex_hull
             assert lanelet_shapely.is_valid, "Failed to convert lanelet to polygon"
     return lanelet_shapely
-
-def LaneletToCGALPolygon(lanelet):
-    cgal_polygon: Polygon
-    return cgal_polygon
-
-def ShapelyToCGALPolygon(shapely_polygon):
-    cgal_polygon: Polygon
-    return cgal_polygon
