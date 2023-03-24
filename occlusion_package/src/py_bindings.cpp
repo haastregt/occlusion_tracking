@@ -84,14 +84,26 @@ template <> struct type_caster<cpp_occlusions::Polygon>
 
         for (i = 0; i < n; i++)
         {
+            // Use this if inexact construction kernel is used
+            // PyList_SetItem(coords, i,
+            //               PyTuple_Pack(2, PyFloat_FromDouble((double)cgal_polygon.vertex(i).x()),
+            //                            PyFloat_FromDouble((double)cgal_polygon.vertex(i).y())));
+
+            // Use this if exact construction kernel is used
             PyList_SetItem(coords, i,
-                           PyTuple_Pack(2, PyFloat_FromDouble((double)cgal_polygon.vertex(i).x()),
-                                        PyFloat_FromDouble((double)cgal_polygon.vertex(i).y())));
+                           PyTuple_Pack(2, PyFloat_FromDouble(CGAL::to_double(cgal_polygon.vertex(i).x())),
+                                        PyFloat_FromDouble(CGAL::to_double(cgal_polygon.vertex(i).y()))));
         }
         // ShapelyPolygons have the first point added as last point to close the loop
-        PyList_SetItem(coords, n,
-                       PyTuple_Pack(2, PyFloat_FromDouble((double)cgal_polygon.vertex(0).x()),
-                                    PyFloat_FromDouble((double)cgal_polygon.vertex(0).y())));
+        // Use this if inexact construction kernel is used
+        // PyList_SetItem(coords, n,
+        //                PyTuple_Pack(2, PyFloat_FromDouble((double)cgal_polygon.vertex(0).x()),
+        //                             PyFloat_FromDouble((double)cgal_polygon.vertex(0).y())));
+
+        // Use this if exact construction kernel is used
+        PyList_SetItem(coords, i,
+                       PyTuple_Pack(2, PyFloat_FromDouble(CGAL::to_double(cgal_polygon.vertex(0).x())),
+                                    PyFloat_FromDouble(CGAL::to_double(cgal_polygon.vertex(0).y()))));
 
         py::object ShapelyPolygon = py::module_::import("shapely").attr("geometry").attr("Polygon");
         py::object xy_coords = reinterpret_steal<py::object>(coords);

@@ -5,10 +5,9 @@
 namespace cpp_occlusions
 {
 
-OccludedVolume::OccludedVolume(Polyhedron initial_polyhedron, Polygon road_polygon)
+OccludedVolume::OccludedVolume(Polyhedron initial_polyhedron, const Polygon &road_polygon)
+    : _shadow_polyhedron(initial_polyhedron), _road_polygon(road_polygon)
 {
-    _shadow_polyhedron = initial_polyhedron;
-    //_road_polyhedron = extrude(road_polygon);
 }
 
 OccludedVolume::~OccludedVolume()

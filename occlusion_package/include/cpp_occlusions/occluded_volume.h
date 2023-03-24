@@ -9,11 +9,12 @@ namespace cpp_occlusions
 class OccludedVolume
 {
   private:
-    Polyhedron _shadow_polyhedron;
-    Polyhedron _road_polyhedron;
+    const Polygon &_road_polygon;
 
   public:
-    OccludedVolume(Polyhedron initial_polyhedron, Polygon road_polygon);
+    Polyhedron _shadow_polyhedron;
+
+    OccludedVolume(Polyhedron initial_polyhedron, const Polygon &road_polygon);
 
     ~OccludedVolume();
 

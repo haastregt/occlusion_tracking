@@ -16,7 +16,8 @@ class OcclusionHandler
   private:
     int _time_step;
     ReachabilityParams _params;
-    std::vector<OccludedVolume> _shadow_list;
+    std::list<OccludedVolume> _shadow_list;
+    std::list<Polygon> _driving_corridors;
 
   public:
     OcclusionHandler(std::list<Polygon> driving_corridor_polygons, Polygon initial_sensor_view, int init_time_step,

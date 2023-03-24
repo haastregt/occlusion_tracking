@@ -2,21 +2,33 @@ from occlusion_tracker import OcclusionTracker
 from commonroad.scenario.scenario import Scenario
 from shapely.geometry import Polygon
 
-point1 = [0, 25]
-point2 = [25, 25]
-point3 = [25, 0]
-point4 = [0, 0]
-point5 = [10, 10]
-poly1 = Polygon([point4, point3, point5, point2, point1])
-poly2 = Polygon([point1, point3, point4])
+point1 = [-10, 10]
+point2 = [10, 10]
+point3 = [10, -10]
+point4 = [-10, -10]
 
-polylist = [poly1, poly2]
+point5 = [-20, 5]
+point6 = [20, 5]
+point7 = [20, -5]
+point8 = [-20, -5]
+
+point9 = [0, 0]
+point10 = [0, 15]
+point11 = [15, 15]
+point12 = [15, -15]
+point13 = [-10, -15]
+
+poly1 = Polygon([point1, point2, point3, point4])
+poly2 = Polygon([point5, point6, point7, point8])
+poly3 = Polygon([point9, point10, point11, point12, point13])
+
+polylist = [poly2, poly3, poly1]
 scenario = Scenario(dt=0.1)
 tracker = OcclusionTracker(scenario,poly1)
 
 tracker.update(poly1, 1)
 
-#output = tracker.get_cr_dynamic_obstacles()
-#print(output)
+output = tracker.get_cr_dynamic_obstacles(scenario)
+print(output)
 
 print("Wow, we didn't get any errors")

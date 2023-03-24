@@ -18,15 +18,18 @@ const int DIM = 3;
 template <class HDS> class InitialiseAsExtrudedPolygon : public CGAL::Modifier_base<HDS>
 {
   public:
-    Polygon &polygon;
+    Polygon polygon_ref;
     std::pair<float, float> bounds;
 
-    InitialiseAsExtrudedPolygon(Polygon &poly, std::pair<float, float> bnds) : polygon(poly), bounds(bnds)
+    InitialiseAsExtrudedPolygon(Polygon poly, std::pair<float, float> bnds) : polygon_ref(poly), bounds(bnds)
     {
     }
 
     void operator()(HDS &hds)
     {
+        std::cout << "Inside operator function" << std::endl;
+        Polygon polygon = Polygon(polygon_ref);
+        std::cout << "Our polygon is: " << polygon << std::endl;
         CGAL::Polyhedron_incremental_builder_3<HDS> B(hds, true);
 
         typedef typename HDS::Vertex Vertex;
@@ -35,21 +38,17 @@ template <class HDS> class InitialiseAsExtrudedPolygon : public CGAL::Modifier_b
         B.begin_surface(polygon.size(), polygon.size() + 2, polygon.size() * 3);
 
         // Make sure faces will have their normals pointing outwards
-        if (polygon.orientation() == CGAL::CLOCKWISE)
+        if (!polygon.orientation() == CGAL::CLOCKWISE)
         {
-            for (auto it = polygon.vertices_begin(); it != polygon.vertices_end(); ++it)
-            {
-                B.add_vertex(Point3(it->x(), it->y(), bounds.first));
-                B.add_vertex(Point3(it->x(), it->y(), bounds.second));
-            }
+            polygon.reverse_orientation();
         }
-        else
+
+        std::cout << "We will now add points" << std::endl;
+        for (auto it = polygon.vertices_begin(); it != polygon.vertices_end(); ++it)
         {
-            for (auto it = polygon.vertices_end(); it != polygon.vertices_begin(); --it)
-            {
-                B.add_vertex(Point3(it->x(), it->y(), bounds.first));
-                B.add_vertex(Point3(it->x(), it->y(), bounds.second));
-            }
+            std::cout << "The problem is not dereferencing it anymore" << *it << std::endl;
+            B.add_vertex(Point3(it->x(), it->y(), bounds.first));
+            B.add_vertex(Point3(it->x(), it->y(), bounds.second));
         }
 
         // Bottom face
@@ -89,7 +88,7 @@ template <class HDS> class InitialiseAsExtrudedPolygon : public CGAL::Modifier_b
     }
 };
 
-// This might actually be possible to do with just std::transform() instead
+// This might actually be possible to do with just std::transform() instead or using AffineTransformation_3 in CGAL
 /// @brief This MModifier performs a linear map on the polyhedron.
 /// Linear maps can be used to perform e.g. a skew operation with
 /// [1 0 dt; 0 1 0; 0 0 1] or a projection with [1 0 0; 0 1 0; 0 0 0].

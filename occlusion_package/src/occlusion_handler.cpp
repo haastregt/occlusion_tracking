@@ -1,3 +1,7 @@
+#include <CGAL/Boolean_set_operations_2.h>
+
+#include <cassert>
+
 #include "../include/cpp_occlusions/occlusion_handler.h"
 
 #include "../include/cpp_occlusions/polyhedron_modifiers.h"
@@ -8,28 +12,56 @@ namespace cpp_occlusions
 OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons, Polygon initial_sensor_view,
                                    int init_time_step, ReachabilityParams params)
 {
-    // Assert that Polygons are not self-intersecting: .is_simple()
-    // Assert that Polygons have at least three points: .size()
-
+    Polygon temp;
+    Polygon *polygon_ptr = &temp;
     Polyhedron P;
-    InitialiseAsExtrudedPolygon<HalfedgeDS> extrude(initial_sensor_view,
-                                                    std::pair<float, float>{params.vmin, params.vmax});
-    P.delegate(extrude);
+    std::list<CGAL::Polygon_with_holes_2<Kernel>> output_list;
+    InitialiseAsExtrudedPolygon<HalfedgeDS> extrude(Polygon(), std::pair<float, float>{params.vmin, params.vmax});
 
-    std::cout << "The polyhedron is " << (P.is_closed() ? "" : "not ") << "closed."
-              << "\n";
+    if (!initial_sensor_view.is_counterclockwise_oriented())
+    {
+        initial_sensor_view.reverse_orientation();
+    }
 
-    std::cout << "The polyhedron is " << (P.is_valid() ? "" : "not ") << "valid."
-              << "\n";
+    for (Polygon driving_corridor : driving_corridor_polygons)
+    {
+        if (!driving_corridor.is_counterclockwise_oriented())
+        {
+            driving_corridor.reverse_orientation();
+        }
 
-    std::cout << "The polyhedron has " << P.size_of_vertices() << " vertices."
-              << "\n";
-    // Calculate the first view:
-    // For each driving corridor:
-    //     Take differences between driving corridor and sensorview
-    //     Extrude differences to full range of longitudinal vel
-    //     Append all separate polyhedrons to shadow list
-    CGAL::draw(P);
+        _driving_corridors.push_back(driving_corridor);
+        output_list.clear(); // Empty the output_list
+
+        CGAL::difference(driving_corridor, initial_sensor_view, std::back_inserter(output_list));
+        for (CGAL::Polygon_with_holes_2<Kernel> diff : output_list)
+        {
+            assert(diff.outer_boundary().is_simple() && "Polygon has a self-intersection!");
+            assert((diff.outer_boundary().size() > 2) && "Polygon should have at least three points");
+
+            P = Polyhedron(); // Re-initialising an empty polyhedron
+            extrude.polygon_ref = diff.outer_boundary();
+
+            for (auto it = diff.outer_boundary().vertices_begin(); it != diff.outer_boundary().vertices_end(); ++it)
+            {
+                std::cout << "This works for diff.outer_boundary(): " << *it << std::endl;
+            }
+
+            for (auto it = extrude.polygon_ref.vertices_begin(); it != extrude.polygon_ref.vertices_end(); ++it)
+            {
+                std::cout << "This works for extrude.polygon_ref: " << *it << std::endl;
+            }
+
+            P.delegate(extrude);
+            std::cout << "Delegate succeeded" << std::endl;
+            _shadow_list.push_back(OccludedVolume(P, *_driving_corridors.end()));
+        }
+    }
+
+    for (OccludedVolume shadow : _shadow_list)
+    {
+        CGAL::draw(shadow._shadow_polyhedron);
+    }
 }
 
 OcclusionHandler::~OcclusionHandler()

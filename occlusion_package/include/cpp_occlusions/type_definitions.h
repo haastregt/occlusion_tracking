@@ -1,6 +1,6 @@
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Polyhedron_3.h>
-#include <CGAL/Simple_cartesian.h>
 
 #ifndef TYPE_DEFINITIONS_H
 #define TYPE_DEFINITIONS_H
@@ -8,7 +8,7 @@
 namespace cpp_occlusions
 {
 
-typedef CGAL::Simple_cartesian<float> Kernel;
+typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
 typedef CGAL::Point_2<Kernel> Point2;
 typedef CGAL::Point_3<Kernel> Point;
 typedef CGAL::Polygon_2<Kernel> Polygon;

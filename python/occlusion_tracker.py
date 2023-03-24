@@ -5,6 +5,7 @@ from commonroad.scenario.trajectory import InitialState
 from commonroad.prediction.prediction import SetBasedPrediction, Occupancy
 
 from utilities import ShapelyPolygon2Polygon
+from shapely.geometry import Polygon
 
 from py_occlusions import ReachabilityParams, OcclusionHandler
 
@@ -25,7 +26,27 @@ class OcclusionTracker:
         self.time_step = initial_time_step
         
         # TODO: Find all driving corridors
-        driving_corridor_polygons = []
+        point1 = [-10, 10]
+        point2 = [10, 10]
+        point3 = [10, -10]
+        point4 = [-10, -10]
+
+        point5 = [-20, 5]
+        point6 = [20, 5]
+        point7 = [20, -5]
+        point8 = [-20, -5]
+
+        point9 = [0, 0]
+        point10 = [0, 15]
+        point11 = [15, 15]
+        point12 = [15, -15]
+        point13 = [-10, -15]
+
+        poly1 = Polygon([point1, point2, point3, point4])
+        poly2 = Polygon([point5, point6, point7, point8])
+        poly3 = Polygon([point9, point10, point11, point12, point13])
+
+        driving_corridor_polygons = [poly2, poly3]
         
         self.occlusion_handler = OcclusionHandler(driving_corridor_polygons,sensor_view, self.time_step, self.params)
 
