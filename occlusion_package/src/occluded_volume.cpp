@@ -21,22 +21,26 @@ OccludedVolume::~OccludedVolume()
 
 Polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedron)
 {
-    return Polyhedron();
+    Polyhedron placeholder;
+    return placeholder;
 }
 
 Polyhedron OccludedVolume::VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron)
 {
-    return Polyhedron();
+    Polyhedron placeholder;
+    return placeholder;
 }
 
 Polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron polyhedron)
 {
-    return Polyhedron();
+    Polyhedron placeholder;
+    return placeholder;
 }
 
 Polyhedron OccludedVolume::AccelerationAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron)
 {
-    return Polyhedron();
+    Polyhedron placeholder;
+    return placeholder;
 }
 
 std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_view)
@@ -52,7 +56,8 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
     new_shadow *= velocity_abstraction;
 
     // TODO: if (_params.use_abstraction.acceleration)
-    Nef_polyhedron acceleration_abstraction(AccelerationAbstraction(dt, _shadow_polyhedron));
+    P = AccelerationAbstraction(dt, _shadow_polyhedron);
+    Nef_polyhedron acceleration_abstraction(P);
     new_shadow *= acceleration_abstraction;
 
     // TODO: Include other abstractions here in a similar matter
