@@ -11,9 +11,8 @@ namespace cpp_occlusions
 
 OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons, Polygon initial_sensor_view,
                                    int init_time_step, ReachabilityParams params)
+    : _params(params), _time_step(init_time_step)
 {
-    Polygon temp;
-    Polygon *polygon_ptr = &temp;
     Polyhedron P;
     std::list<CGAL::Polygon_with_holes_2<Kernel>> output_list;
     InitialiseAsExtrudedPolygon<HalfedgeDS> extrude(Polygon(), std::pair<float, float>{params.vmin, params.vmax});
@@ -31,36 +30,23 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
         }
 
         _driving_corridors.push_back(driving_corridor);
-        output_list.clear(); // Empty the output_list
 
+        output_list.clear();
         CGAL::difference(driving_corridor, initial_sensor_view, std::back_inserter(output_list));
+
         for (CGAL::Polygon_with_holes_2<Kernel> diff : output_list)
         {
             assert(diff.outer_boundary().is_simple() && "Polygon has a self-intersection!");
             assert((diff.outer_boundary().size() > 2) && "Polygon should have at least three points");
 
-            P = Polyhedron(); // Re-initialising an empty polyhedron
-            extrude.polygon_ref = diff.outer_boundary();
-
-            for (auto it = diff.outer_boundary().vertices_begin(); it != diff.outer_boundary().vertices_end(); ++it)
-            {
-                std::cout << "This works for diff.outer_boundary(): " << *it << std::endl;
-            }
-
-            for (auto it = extrude.polygon_ref.vertices_begin(); it != extrude.polygon_ref.vertices_end(); ++it)
-            {
-                std::cout << "This works for extrude.polygon_ref: " << *it << std::endl;
-            }
-
+            extrude.polygon = diff.outer_boundary();
+            P = Polyhedron();
             P.delegate(extrude);
-            std::cout << "Delegate succeeded" << std::endl;
-            _shadow_list.push_back(OccludedVolume(P, *_driving_corridors.end()));
-        }
-    }
 
-    for (OccludedVolume shadow : _shadow_list)
-    {
-        CGAL::draw(shadow._shadow_polyhedron);
+            assert(P.is_closed() && "Polyhedra should be closed in order for conversion to Nef");
+
+            _shadow_list.push_back(OccludedVolume(P, *_driving_corridors.end(), _params));
+        }
     }
 }
 
@@ -68,72 +54,31 @@ OcclusionHandler::~OcclusionHandler()
 {
 }
 
-void OcclusionHandler::Update(Polygon sensor_view)
+void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
 {
-    // This function updates the occlusion polyhedrons for the whole scene
+    float dt = new_time_step - _time_step;
+    _time_step += dt;
 
-    // t = new_time_step - self.time_step
-    // self.time_step = new_time_step
-
-    // Extrude sensor_view to full range of longitudinal vel
-    //
-    // For each shadow in list:
-    //     shadow.expand(t)
-    //     new_shadow_list.append = Boolean operation shadow and sensor_view (Note
-    //     this could give multiple new polyhedra as they could have splitted)
-    // shadow_list = new_shadow_list
-
-    for (auto it = sensor_view.vertices_begin(); it != sensor_view.vertices_end(); ++it)
+    std::list<OccludedVolume> new_shadow_list;
+    for (OccludedVolume shadow : _shadow_list)
     {
-        std::cout << *it << std::endl;
+        for (OccludedVolume new_shadow : shadow.Propagate(dt, sensor_view))
+        {
+            new_shadow_list.push_back(new_shadow);
+        }
     }
-
-    // check if the polygon is simple.
-    std::cout << "The polygon is " << (sensor_view.is_simple() ? "" : "not ") << "simple."
-              << "\n";
-    // check if the polygon is convex
-    std::cout << "The polygon is " << (sensor_view.is_convex() ? "" : "not ") << "convex."
-              << "\n";
-
-    CGAL::draw(sensor_view);
 }
 
 std::list<std::list<Polygon>> OcclusionHandler::GetReachableSets()
 {
-    // For each shadow in shadowlist:
-    //     occupancy_set = shadow.get_cr_occupancy_set(time_step, dt,
-    //     prediction_horizon) Use this occupancy set to set up dynamic obstacle
+    std::list<std::list<Polygon>> occupancy_lists;
 
-    // First element should be shadow shape (occupancy t=0), the rest the
-    // occupancies of future time stepsd
+    for (OccludedVolume shadow : _shadow_list)
+    {
+        occupancy_lists.push_back(shadow.ComputeFutureOccupancies(_params.prediction_dt, _params.prediction_horizon));
+    }
 
-    Polygon p1;
-    p1.push_back(Point2(0, 0));
-    p1.push_back(Point2(4, 0));
-    p1.push_back(Point2(4, 4));
-    p1.push_back(Point2(2, 2));
-    p1.push_back(Point2(0, 4));
-
-    Polygon p2;
-    p2.push_back(Point2(4, 0));
-    p2.push_back(Point2(4, 4));
-    p2.push_back(Point2(2, 2));
-
-    Polygon p3;
-    p3.push_back(Point2(2, 2));
-    p3.push_back(Point2(0, 0));
-    p3.push_back(Point2(4, 0));
-
-    std::list<Polygon> between;
-    between.push_back(p1);
-    between.push_back(p2);
-    between.push_back(p3);
-    std::list<std::list<Polygon>> temp;
-    temp.push_back(between);
-    temp.push_back(between);
-
-    std::cout << "This works! \n";
-    return temp;
+    return occupancy_lists;
 }
 
 } // namespace cpp_occlusions

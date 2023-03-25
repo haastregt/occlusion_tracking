@@ -8,8 +8,8 @@ point3 = [10, -10]
 point4 = [-10, -10]
 
 point5 = [-20, 5]
-point6 = [20, 5]
-point7 = [20, -5]
+point6 = [15, 5]
+point7 = [15, -5]
 point8 = [-20, -5]
 
 point9 = [0, 0]
@@ -24,9 +24,10 @@ poly3 = Polygon([point9, point10, point11, point12, point13])
 
 polylist = [poly2, poly3, poly1]
 scenario = Scenario(dt=0.1)
-tracker = OcclusionTracker(scenario,poly1)
+tracker = OcclusionTracker(scenario, poly1)
 
 tracker.update(poly1, 1)
+print("Wow, we didn't get any errors")
 
 output = tracker.get_cr_dynamic_obstacles(scenario)
 print(output)

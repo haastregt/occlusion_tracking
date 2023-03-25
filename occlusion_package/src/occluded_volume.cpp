@@ -1,3 +1,7 @@
+#include <CGAL/Boolean_set_operations_2.h>
+
+#include <cassert>
+
 #include "../include/cpp_occlusions/occluded_volume.h"
 
 #include "../include/cpp_occlusions/polyhedron_modifiers.h"
@@ -5,8 +9,9 @@
 namespace cpp_occlusions
 {
 
-OccludedVolume::OccludedVolume(Polyhedron initial_polyhedron, const Polygon &road_polygon)
-    : _shadow_polyhedron(initial_polyhedron), _road_polygon(road_polygon)
+OccludedVolume::OccludedVolume(Polyhedron initial_polyhedron, const Polygon &road_polygon,
+                               const ReachabilityParams &params)
+    : _shadow_polyhedron(initial_polyhedron), _road_polygon(road_polygon), _params(params)
 {
 }
 
@@ -14,36 +19,72 @@ OccludedVolume::~OccludedVolume()
 {
 }
 
-void OccludedVolume::Propagate(float dt)
+Polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedron)
 {
-    // This function expands the shadow polyhedron using reachability
-
-    // if not polyhedron: polyhedron = self.polyhedron
-
-    // Note that this proposed expansion algorithm is an over - approximation.The
-    // proper reachable set computations are more advanced(maybe see later if it
-    // is possible)
-
-    // Abstractions as various functions and take union here?
-
-    // a : skew along x with each vertex's Z-coord (which is vx)*dt +
-    // 1/2*a_max*dt^2
-    // b : skew along x with each vertex's Z-coord (which is vx)*dt
-    // - 1/2*a_min*dt^2
-    // Take union of a &b Extrude in Z - dir by a_max *dt on top and a_min *dt on
-    // bottom
-    // Extrude in Y - dit by y_vel *dt in both directions
-
-    // Take intersection between expanded poly and extruded driving corridor
-
-    // Maybe the extrusions can be done by taking a minkowsky sum with a vector
+    return Polyhedron();
 }
 
-void OccludedVolume::Propagate(float dt, Polyhedron &polyhedron)
+Polyhedron OccludedVolume::VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron)
 {
+    return Polyhedron();
 }
 
-std::vector<Polygon> OccludedVolume::ComputeFutureOccupancies(float dt, int prediction_horizon)
+Polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron polyhedron)
+{
+    return Polyhedron();
+}
+
+Polyhedron OccludedVolume::AccelerationAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron)
+{
+    return Polyhedron();
+}
+
+std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_view)
+{
+    std::list<OccludedVolume> new_shadow_list;
+
+    Nef_polyhedron new_shadow(Nef_polyhedron::COMPLETE);
+    Polyhedron P;
+
+    // TODO: if (_params.use_abstraction.velocity)
+    P = VelocityAbstraction(dt, _shadow_polyhedron);
+    Nef_polyhedron velocity_abstraction(P);
+    new_shadow *= velocity_abstraction;
+
+    // TODO: if (_params.use_abstraction.acceleration)
+    Nef_polyhedron acceleration_abstraction(AccelerationAbstraction(dt, _shadow_polyhedron));
+    new_shadow *= acceleration_abstraction;
+
+    // TODO: Include other abstractions here in a similar matter
+
+    Nef_polyhedron copy;
+    std::list<CGAL::Polygon_with_holes_2<Kernel>> output_list;
+    InitialiseAsExtrudedPolygon<HalfedgeDS> extrude(Polygon(), std::pair<float, float>{_params.vmin, _params.vmax});
+
+    CGAL::difference(_road_polygon, sensor_view, std::back_inserter(output_list));
+    for (CGAL::Polygon_with_holes_2<Kernel> diff : output_list)
+    {
+        assert(diff.outer_boundary().is_simple() && "Polygon has a self-intersection!");
+        assert((diff.outer_boundary().size() > 2) && "Polygon should have at least three points");
+
+        copy = new_shadow;
+        P = Polyhedron();
+
+        extrude.polygon = diff.outer_boundary();
+        P.delegate(extrude);
+        assert(P.is_closed() && "Polyhedra should be closed in order for conversion to Nef");
+        copy *= Nef_polyhedron(P);
+
+        assert(copy.is_simple() && "Nef_Polyhedra should be simple in order for conversion to normal polyhedra");
+        copy.convert_to_polyhedron(P);
+
+        new_shadow_list.push_back(OccludedVolume(P, _road_polygon, _params));
+    }
+
+    return new_shadow_list;
+}
+
+std::list<Polygon> OccludedVolume::ComputeFutureOccupancies(float dt, int prediction_horizon)
 {
     // This function performs the reachability of the shadow over a prediction
     // horizon and returns the occupancy set for a dynamic obstacle in CommonRoad
@@ -55,7 +96,7 @@ std::vector<Polygon> OccludedVolume::ComputeFutureOccupancies(float dt, int pred
     //   projected = xy_project(polyhedron)
     //   occupancy_set.append(projected)
 
-    std::vector<Polygon> placeholder(prediction_horizon);
+    std::list<Polygon> placeholder;
     return placeholder;
 }
 
