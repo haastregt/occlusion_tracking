@@ -44,20 +44,27 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
             P.delegate(extrude);
 
             assert(P.is_closed() && "Polyhedra should be closed in order for conversion to Nef");
-
-            _shadow_list.push_back(OccludedVolume(P, *_driving_corridors.end(), _params));
+            // *_driving_corridor.end();
+            _shadow_list.push_back(OccludedVolume(P, driving_corridor, _params));
         }
     }
+
+    std::cout << "Initialised with " << _shadow_list.size() << " initial shadows" << std::endl;
 }
 
 OcclusionHandler::~OcclusionHandler()
 {
 }
 
-void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
+void OcclusionHandler::Update(Polygon sensor_view, float new_time_step)
 {
     float dt = new_time_step - _time_step;
     _time_step += dt;
+
+    if (!sensor_view.is_counterclockwise_oriented())
+    {
+        sensor_view.reverse_orientation();
+    }
 
     std::list<OccludedVolume> new_shadow_list;
     for (OccludedVolume shadow : _shadow_list)

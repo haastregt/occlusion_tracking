@@ -25,8 +25,9 @@ poly3 = Polygon([point9, point10, point11, point12, point13])
 polylist = [poly2, poly3, poly1]
 scenario = Scenario(dt=0.1)
 tracker = OcclusionTracker(scenario, poly1)
-
-tracker.update(poly1, 1)
+print("Wow, we didn't get any errors")
+sensor_view2 = Polygon([[-10, 0], [10, 0], [10, -10], [-10, -10]])
+tracker.update(sensor_view2, 1)
 print("Wow, we didn't get any errors")
 
 output = tracker.get_cr_dynamic_obstacles(scenario)

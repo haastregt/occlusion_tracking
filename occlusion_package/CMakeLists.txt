@@ -3,6 +3,7 @@ project(occlusion_package VERSION 0.0.1)
 
 # Make sure VSCode can find the includes
 set(CMAKE_EXPORT_COMPILE_COMMANDS=ON)
+set(CMAKE_CXX_FLAGS "-fcompare-debug-second")
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)

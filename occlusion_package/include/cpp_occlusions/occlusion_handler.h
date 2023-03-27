@@ -27,7 +27,7 @@ class OcclusionHandler
 
     /// Update the occlusions with new sensor view for the whole scene
     /// @param sensorview Polygon of the new FOV
-    void Update(Polygon sensorview, int new_time_step);
+    void Update(Polygon sensorview, float new_time_step);
 
     /// Get the reachable sets for future time intervals
     /// @return List of Polygon arrays for occupancy of each time interval

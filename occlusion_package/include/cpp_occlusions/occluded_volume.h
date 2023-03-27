@@ -9,9 +9,9 @@ namespace cpp_occlusions
 class OccludedVolume
 {
   private:
-    const Polygon &_road_polygon;
+    const Polygon _road_polygon;
 
-    const ReachabilityParams &_params;
+    const ReachabilityParams _params;
 
     Polyhedron _shadow_polyhedron;
 
@@ -19,26 +19,26 @@ class OccludedVolume
     /// Circle(Vmax*dt), x in vbounds}
     /// @param dt The time step into the future for which the reachability abstraction is computed
     /// @param polyhedron The polyhedron that the abstraction is applied to
-    Polyhedron VelocityAbstraction(float dt, Polyhedron polyhedron);
+    Nef_polyhedron VelocityAbstraction(float dt, Polyhedron polyhedron);
 
     /// @brief Applies the velocity reachability abstraction: R_Mvel(P) = { [x, y, v] | [x, y] in projxy(R_Macc(P)) +
     /// Circle(Vmax*dt), x in vbounds}
     /// @param time_interval The time interval over which the reachability abstraction is computed
     /// @param polyhedron The polyhedron that the abstraction is applied to
-    Polyhedron VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron);
+    Nef_polyhedron VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron);
 
     /// @brief  Applies the acceleration reachability abstraction: R_Macc(P) = { A*P + B*U_abounds }
     /// @param dt The time step into the future for which the reachability abstraction is computed
     /// @param polyhedron The polyhedron that the abstraction is applied to
-    Polyhedron AccelerationAbstraction(float dt, Polyhedron polyhedron);
+    Nef_polyhedron AccelerationAbstraction(float dt, Polyhedron polyhedron);
 
     /// @brief  Applies the acceleration reachability abstraction: R_Macc(P) = { A*P + B*U_abounds }
     /// @param time_interval The time interval over which the reachability abstraction is computed
     /// @param polyhedron The polyhedron that the abstraction is applied to
-    Polyhedron AccelerationAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron);
+    Nef_polyhedron AccelerationAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron);
 
   public:
-    OccludedVolume(Polyhedron initial_polyhedron, const Polygon &road_polygon, const ReachabilityParams &params);
+    OccludedVolume(Polyhedron initial_polyhedron, const Polygon road_polygon, const ReachabilityParams params);
 
     ~OccludedVolume();
 
