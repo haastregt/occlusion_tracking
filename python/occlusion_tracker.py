@@ -32,10 +32,10 @@ class OcclusionTracker:
         point3 = [10, -10]
         point4 = [-10, -10]
 
-        point5 = [-20, 5]
+        point5 = [-10, 5]
         point6 = [15, 5]
         point7 = [15, -5]
-        point8 = [-20, -5]
+        point8 = [-10, -5]
 
         point9 = [0, 0]
         point10 = [0, 15]

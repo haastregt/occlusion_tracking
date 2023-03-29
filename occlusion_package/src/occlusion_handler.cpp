@@ -4,7 +4,7 @@
 
 #include "../include/cpp_occlusions/occlusion_handler.h"
 
-#include "../include/cpp_occlusions/polyhedron_modifiers.h"
+#include "../include/cpp_occlusions/poly_modifiers.h"
 
 namespace cpp_occlusions
 {
@@ -82,7 +82,7 @@ std::list<std::list<Polygon>> OcclusionHandler::GetReachableSets()
 
     for (OccludedVolume shadow : _shadow_list)
     {
-        occupancy_lists.push_back(shadow.ComputeFutureOccupancies(_params.prediction_dt, _params.prediction_horizon));
+        occupancy_lists.push_back(shadow.ComputeFutureOccupancies());
     }
 
     return occupancy_lists;

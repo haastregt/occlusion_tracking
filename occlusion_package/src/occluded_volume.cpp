@@ -6,7 +6,7 @@
 
 #include "../include/cpp_occlusions/occluded_volume.h"
 
-#include "../include/cpp_occlusions/polyhedron_modifiers.h"
+#include "../include/cpp_occlusions/poly_modifiers.h"
 
 #include <CGAL/Boolean_set_operations_2.h>
 #include <CGAL/draw_polyhedron.h>
@@ -27,7 +27,7 @@ OccludedVolume::~OccludedVolume()
 
 Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedron)
 {
-    int n = 16;                                  // Number of vertices to approximate the circle
+    int n = 8;                                   // Number of vertices to approximate the circle
     float R = _params.vmax * dt / cos(M_PI / n); // Use apothem to make sure we have an over-approximation of the circle
     Polygon disk_polygon;
     for (int i = 0; i < n; ++i)
@@ -41,10 +41,10 @@ Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedr
 
     InitialiseAsExtrudedPolygon<HalfedgeDS> make_polyhedron(disk_polygon, std::pair<float, float>{0, 1E-15});
     disk.delegate(make_polyhedron);
-    CGAL::draw(disk);
 
     Nef_polyhedron nef_disk(disk);
     Nef_polyhedron nef(polyhedron);
+
     return CGAL::minkowski_sum_3(nef, nef_disk);
 }
 
@@ -87,6 +87,7 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
     std::list<CGAL::Polygon_with_holes_2<Kernel>> output_list;
     InitialiseAsExtrudedPolygon<HalfedgeDS> extrude(Polygon(), std::pair<float, float>{_params.vmin, _params.vmax});
     CGAL::difference(_road_polygon, sensor_view, std::back_inserter(output_list));
+
     for (CGAL::Polygon_with_holes_2<Kernel> diff : output_list)
     {
         assert(diff.outer_boundary().is_simple() && "Polygon has a self-intersection!");
@@ -104,28 +105,44 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
 
         P = Polyhedron();
         copy.convert_to_polyhedron(P);
-        // TODO: If volume > min_volume
-        new_shadow_list.push_back(OccludedVolume(P, _road_polygon, _params));
-        CGAL::draw(P);
+
+        if (!P.is_empty())
+        {
+            DissolveCloseVertices(P, 0.001);
+            new_shadow_list.push_back(OccludedVolume(P, _road_polygon, _params));
+        }
     }
 
     return new_shadow_list;
 }
 
-std::list<Polygon> OccludedVolume::ComputeFutureOccupancies(float dt, int prediction_horizon)
+std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
 {
-    // This function performs the reachability of the shadow over a prediction
-    // horizon and returns the occupancy set for a dynamic obstacle in CommonRoad
+    std::list<Polygon> occupancy_set;
+    occupancy_set.push_back(ProjectXY(_shadow_polyhedron));
 
-    // polyhedron = self.polyhedron # Make a copy
-    // occupancy_set = []
-    // for i in range(prediction_horizon):
-    //   expand(dt, polyhedron)
-    //   projected = xy_project(polyhedron)
-    //   occupancy_set.append(projected)
+    Polyhedron P;
+    InitialiseAsExtrudedPolygon<HalfedgeDS> extrude(_road_polygon, std::pair<float, float>{_params.vmin, _params.vmax});
+    P.delegate(extrude);
+    Nef_polyhedron nef_road(P);
+
+    for (int i = 1; i <= _params.prediction_horizon; i++)
+    {
+        Nef_polyhedron occupancy(Nef_polyhedron::COMPLETE);
+
+        // TODO: if (_params.use_abstraction.velocity)
+        Nef_polyhedron velocity_abstraction = VelocityAbstraction(_params.prediction_dt * i, _shadow_polyhedron);
+        occupancy *= velocity_abstraction;
+
+        // TODO: Other abstractions
+
+        occupancy *= nef_road;
+
+        occupancy_set.push_back(ProjectXY(P));
+    }
 
     std::list<Polygon> placeholder;
-    return placeholder;
+    return occupancy_set;
 }
 
 } // namespace cpp_occlusions

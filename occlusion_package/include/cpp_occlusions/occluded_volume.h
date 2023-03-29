@@ -51,8 +51,8 @@ class OccludedVolume
     /// @param dt Time interval for which each occupancy is computed
     /// @param prediction_horizon Number of time steps into the future you want to
     /// generate the occupancies for
-    /// @return Array of Polygons for the occupancy within each time interval
-    std::list<Polygon> ComputeFutureOccupancies(float dt, int prediction_horizon);
+    /// @return Array of Polygons for the occupancy within each time interval. The first polygon is the shadow itself.
+    std::list<Polygon> ComputeFutureOccupancies();
 };
 
 } // namespace cpp_occlusions
