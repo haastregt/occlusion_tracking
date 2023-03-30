@@ -10,6 +10,7 @@ from commonroad_dc.collision.collision_detection.pycrcc_collision_dispatch impor
 from shapely.geometry import Polygon as ShapelyPolygon
 from utilities import polygon_union
 
+
 class Sensor:
     def __init__(self,
                  position,
@@ -33,11 +34,12 @@ class Sensor:
 
     def get_extended_sensor_view_and_obstacles(self, scenario):
         sensor_view = self.get_sensor_view(scenario)
-        [observed_obstacles, observed_shapes] = self.get_observed_obstacles(sensor_view, scenario)
+        [observed_obstacles, observed_shapes] = self.get_observed_obstacles(
+            sensor_view, scenario)
         extended_sensor_view = sensor_view
         for observed_shape in observed_shapes:
             unions = polygon_union([extended_sensor_view, observed_shape])
-            extended_sensor_view = unions[0] # This has to be fixed
+            extended_sensor_view = unions[0]  # This has to be fixed
         return [extended_sensor_view, observed_obstacles]
 
     def get_sensor_view(self, scenario):
@@ -87,7 +89,7 @@ class Sensor:
         for obstacle in obstacles:
             cc.add_collision_object(obstacle)
 
-        for angle in ray_angles:
+        for angle in ray_angles[:-1]:
             ray_end = [self.position[0] + self.range*np.cos(angle),
                        self.position[1] + self.range*np.sin(angle)]
 

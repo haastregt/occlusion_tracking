@@ -6,6 +6,8 @@
 
 #include "../include/cpp_occlusions/poly_modifiers.h"
 
+#include <CGAL/draw_polygon_2.h>
+#include <CGAL/draw_polyhedron.h>
 namespace cpp_occlusions
 {
 
@@ -44,7 +46,7 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
             P.delegate(extrude);
 
             assert(P.is_closed() && "Polyhedra should be closed in order for conversion to Nef");
-            // *_driving_corridor.end();
+
             _shadow_list.push_back(OccludedVolume(P, driving_corridor, _params));
         }
     }
@@ -61,19 +63,26 @@ void OcclusionHandler::Update(Polygon sensor_view, float new_time_step)
     float dt = new_time_step - _time_step;
     _time_step += dt;
 
+    // Check this since first time step of simulation is 0, while time at initialisation is also at 0.
+    if (dt == 0)
+        return;
+
     if (!sensor_view.is_counterclockwise_oriented())
     {
         sensor_view.reverse_orientation();
     }
 
-    std::list<OccludedVolume> new_shadow_list;
-    for (OccludedVolume shadow : _shadow_list)
+    std::list<OccludedVolume> copy_shadow_list = _shadow_list;
+    _shadow_list.clear();
+    for (OccludedVolume shadow : copy_shadow_list)
     {
         for (OccludedVolume new_shadow : shadow.Propagate(dt, sensor_view))
         {
-            new_shadow_list.push_back(new_shadow);
+            _shadow_list.push_back(new_shadow);
         }
     }
+
+    std::cout << "At time step " << new_time_step << "s we have " << _shadow_list.size() << " shadows" << std::endl;
 }
 
 std::list<std::list<Polygon>> OcclusionHandler::GetReachableSets()

@@ -1,13 +1,16 @@
 import numpy as np
 
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType
+from commonroad.scenario.scenario import Lanelet
 from commonroad.scenario.trajectory import InitialState
 from commonroad.prediction.prediction import SetBasedPrediction, Occupancy
 
-from utilities import ShapelyPolygon2Polygon
+from utilities import Lanelet2ShapelyPolygon, ShapelyPolygon2Polygon, ShapelyRemoveDoublePoints
 from shapely.geometry import Polygon
 
 from py_occlusions import ReachabilityParams, OcclusionHandler
+
+import matplotlib.pyplot as plt
 
 
 class OcclusionTracker:
@@ -19,48 +22,63 @@ class OcclusionTracker:
     params.vmax = 10
     params.amin = -5
     params.amax = 7
-    params.prediction_dt = 0.1
-    params.prediction_horizon = 10
+    params.prediction_dt = 0.5
+    params.prediction_horizon = 4
     params.min_shadow_volume = 1.0
 
     def __init__(self, scenario, sensor_view, initial_time_step=0):
+        print("Initialising Occlusion Tracker")
         self.time_step = initial_time_step
 
-        # TODO: Find all driving corridors
-        point1 = [-10, 10]
-        point2 = [10, 10]
-        point3 = [10, -10]
-        point4 = [-10, -10]
+        # Find the initial lanelets
+        initial_lanelets = []
+        for lanelet in scenario.lanelet_network.lanelets:
+            if lanelet.predecessor == []:
+                initial_lanelets.append(lanelet)
 
-        point5 = [-10, 5]
-        point6 = [15, 5]
-        point7 = [15, -5]
-        point8 = [-10, -5]
+        # Generate lanes (Collection of lanelets from start to end of the scenario)
+        lanes = []
+        for lanelet in initial_lanelets:
+            current_lanes, _ = Lanelet.all_lanelets_by_merging_successors_from_lanelet(
+                lanelet, scenario.lanelet_network, max_length=500)
+            for lane in current_lanes:
+                lanelet_shapely = Lanelet2ShapelyPolygon(lane)
+                lanelet_processed = ShapelyRemoveDoublePoints(
+                    lanelet_shapely, 0.1)
+                lanes.append(lanelet_processed)
 
-        point9 = [0, 0]
-        point10 = [0, 15]
-        point11 = [15, 15]
-        point12 = [15, -15]
-        point13 = [-10, -15]
+        # print("The lanes are: ")
+        # for lane in lanes:
+        #     if not lane.is_simple:
+        #         print("Lanelet has self_intersection!")
+        #     print(lane.exterior.xy)
+        #     x, y = lane.exterior.xy
+        #     plt.plot(x, y)
+        #     for i in range(len(x)):
+        #         plt.text(x[i], y[i], str(i))
+        #     plt.show()
 
-        poly1 = Polygon([point1, point2, point3, point4])
-        poly2 = Polygon([point5, point6, point7, point8])
-        poly3 = Polygon([point9, point10, point11, point12, point13])
+        # print("Our sensor view is: ")
+        # if not sensor_view.is_simple:
+        #     print("Sensor-view has self_intersection!")
+        # plt.plot(*sensor_view.exterior.xy)
+        # plt.show()
 
-        driving_corridor_polygons = [poly2, poly3, poly1]
+        sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
 
         self.occlusion_handler = OcclusionHandler(
-            driving_corridor_polygons, sensor_view, self.time_step, self.params)
+            lanes, sensor_view_processed, self.time_step, self.params)
 
     def update(self, sensor_view, new_time_step):
+        sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
+
         self.occlusion_handler.update(sensor_view, new_time_step)
 
-    def get_cr_dynamic_obstacles(self, scenario):
+    def get_dynamic_obstacles(self, scenario):
         occupancy_sets = self.occlusion_handler.get_reachable_sets()
 
         dynamic_obstacles = []
         for occupancy_set in occupancy_sets:
-
             occupancies = []
             # First element is the shape of the occlusion itself
             for i, polygon in enumerate(occupancy_set[1:]):

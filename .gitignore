@@ -8,5 +8,7 @@
 .qglviewer.xml
 .vscode/
 build/
+install/
+figs/
 test.cpp
 __pycache__/

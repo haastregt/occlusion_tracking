@@ -10,6 +10,9 @@ from planner import Planner
 from sensor import Sensor
 from occlusion_tracker import OcclusionTracker
 
+import time
+
+
 def step_scenario(scenario):
     new_scenario = copy.deepcopy(scenario)
     for vehicle in scenario.dynamic_obstacles:
@@ -18,6 +21,7 @@ def step_scenario(scenario):
             stepped_vehicle = step_vehicle(vehicle)
             new_scenario.add_objects(stepped_vehicle)
     return new_scenario
+
 
 def step_vehicle(vehicle):
     initial_state = vehicle.prediction.trajectory.state_list[0]
@@ -29,6 +33,7 @@ def step_vehicle(vehicle):
                            initial_state,
                            TrajectoryPrediction(trajectory, vehicle.obstacle_shape))
 
+
 def step_simulation(scenario, configuration):
     driven_state_list = []
     percieved_scenarios = []
@@ -37,12 +42,13 @@ def step_simulation(scenario, configuration):
     ego_shape = Rectangle(configuration.get('vehicle_length'),
                           configuration.get('vehicle_width'))
     ego_initial_state = InitialState(position=np.array([configuration.get('initial_state_x'),
-                                                 configuration.get('initial_state_y')]),
-                              orientation=configuration.get(
-                                  'initial_state_orientation'),
-                              velocity=configuration.get(
-                                  'initial_state_velocity'),
-                              time_step=0)
+                                                        configuration.get('initial_state_y')]),
+                                     orientation=configuration.get(
+        'initial_state_orientation'),
+        velocity=configuration.get(
+        'initial_state_velocity'),
+        time_step=0)
+
     ego_vehicle = DynamicObstacle(scenario.generate_object_id(),
                                   ObstacleType.CAR, ego_shape,
                                   ego_initial_state)
@@ -53,14 +59,9 @@ def step_simulation(scenario, configuration):
                     min_resolution=configuration.get('min_resolution'),
                     view_range=configuration.get('view_range'))
 
-    occ_track = OcclusionTracker(scenario,
-                                  min_vel=configuration.get('min_velocity'),
-                                  max_vel=configuration.get('max_velocity'),
-                                  min_shadow_area=configuration.get(
-                                      'min_shadow_area'),
-                                  prediction_horizon=configuration.get(
-                                      'prediction_horizon'),
-                                  tracking_enabled=configuration.get('tracking_enabled'))
+    # We need the initial sensor view for initialising Occlusion Tracker
+    sensor_view = sensor.get_sensor_view(scenario)
+    occ_track = OcclusionTracker(scenario, sensor_view)
 
     planner = Planner(ego_vehicle.initial_state,
                       vehicle_shape=ego_vehicle.obstacle_shape,
@@ -70,22 +71,33 @@ def step_simulation(scenario, configuration):
                       max_acceleration=configuration.get('max_acceleration'),
                       max_deceleration=configuration.get('max_deceleration'),
                       time_horizon=configuration.get('planning_horizon'))
+
     simulation_steps = configuration.get('simulation_duration')
     for step in range(simulation_steps+1):
+        print("In simulation step ", step)
+
         # Start with an empty percieved scenario
         percieved_scenario = copy.deepcopy(scenario)
         for obstacle in percieved_scenario.obstacles:
             percieved_scenario.remove_obstacle(obstacle)
 
         # Update the sensor and get the sensor view and the list of observed obstacles
-        sensor.update(ego_vehicle.initial_state) # initial_state is current state
+        # initial_state is current state
+        sensor.update(ego_vehicle.initial_state)
         sensor_view = sensor.get_sensor_view(scenario)
-        observed_obstacles, _ = sensor.get_observed_obstacles(sensor_view, scenario)
+        observed_obstacles, _ = sensor.get_observed_obstacles(
+            sensor_view, scenario)
         percieved_scenario.add_objects(observed_obstacles)
 
         # Update the tracker with the new sensor view and get the prediction for the shadows
+        update_time = time.time()
         occ_track.update(sensor_view, ego_vehicle.initial_state.time_step)
+        print("Update computational time: ", time.time()-update_time)
+
+        prediction_time = time.time()
         shadow_obstacles = occ_track.get_dynamic_obstacles(percieved_scenario)
+        print("Prediction computational time: ", time.time()-prediction_time)
+
         percieved_scenario.add_objects(shadow_obstacles)
 
         # Update the planner and plan a trajectory

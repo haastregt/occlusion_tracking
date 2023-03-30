@@ -12,6 +12,8 @@
 #include <CGAL/draw_polyhedron.h>
 #include <CGAL/minkowski_sum_3.h>
 
+#include <CGAL/draw_polygon_2.h>
+
 namespace cpp_occlusions
 {
 
@@ -138,6 +140,8 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
 
         occupancy *= nef_road;
 
+        P = Polyhedron();
+        occupancy.convert_to_Polyhedron(P);
         occupancy_set.push_back(ProjectXY(P));
     }
 

@@ -1,4 +1,4 @@
-#TODO: Make another planner that allows for trajectories of the centerline
+# TODO: Make another planner that allows for trajectories of the centerline
 
 import numpy as np
 from commonroad.scenario.trajectory import InitialState, Trajectory
@@ -9,11 +9,12 @@ from commonroad_dc.collision.collision_detection.pycrcc_collision_dispatch impor
 from utilities import Lanelet2ShapelyPolygon
 from shapely.geometry import Point
 
+
 class Planner:
     def __init__(self,
                  initial_state,
-                 waypoints = [],
-                 goal_point = [],
+                 waypoints=[],
+                 goal_point=[],
                  vehicle_shape=Rectangle(4.8, 2),
                  reference_speed=9,
                  max_acceleration=2,
@@ -55,11 +56,13 @@ class Planner:
 
         starting_lanelets = []
         for lanelet_id in starting_lanelet_ids:
-            starting_lanelets.append(lanelet_network.find_lanelet_by_id(lanelet_id))
+            starting_lanelets.append(
+                lanelet_network.find_lanelet_by_id(lanelet_id))
 
         starting_lane = []
         for lanelet in starting_lanelets:
-            starting_lanes = lanelet.all_lanelets_by_merging_successors_from_lanelet(lanelet, lanelet_network)[0]
+            starting_lanes = lanelet.all_lanelets_by_merging_successors_from_lanelet(
+                lanelet, lanelet_network)[0]
             for lane in starting_lanes:
                 lane_shape = Lanelet2ShapelyPolygon(lane)
                 if lane_shape.intersects(Point(*self.goal_point)):
@@ -74,10 +77,13 @@ class Planner:
     def remove_passed_waypoints(self):
         # TODO: Change to a for loop and check that waypoints is not empty
         while True:
-            assert self.waypoints, 'No waypoints found ahead current position and orientation ' + str(self.initial_state.position) + str(self.initial_state.orientation)
+            assert self.waypoints, 'No waypoints found ahead current position and orientation ' + \
+                str(self.initial_state.position) + \
+                str(self.initial_state.orientation)
             direction_vector = self.waypoints[0] - self.initial_state.position
             angle_to_next_point = np.arctan2(*np.flip(direction_vector))
-            angle_diff_to_next_point = abs((np.pi + angle_to_next_point - self.initial_state.orientation) % (2*np.pi) - np.pi)
+            angle_diff_to_next_point = abs(
+                (np.pi + angle_to_next_point - self.initial_state.orientation) % (2*np.pi) - np.pi)
             next_point_is_too_close = bool(
                 np.hypot(*direction_vector) < 1)
             if next_point_is_too_close or (angle_diff_to_next_point > np.pi/2):
@@ -89,15 +95,19 @@ class Planner:
     def generate_velocity_profiles(self, number_of_trajectories=10):
         # Accelerate immediately or decelerate after one time step
 
-        velocity_decs = self.initial_state.velocity - self.max_dec * self.dt * np.arange(self.time_horizon)
-        velocity_incs = self.initial_state.velocity + self.max_acc * self.dt * (1 + np.arange(self.time_horizon))
+        velocity_decs = self.initial_state.velocity - \
+            self.max_dec * self.dt * np.arange(self.time_horizon)
+        velocity_incs = self.initial_state.velocity + self.max_acc * \
+            self.dt * (1 + np.arange(self.time_horizon))
         max_velocity_increase = abs(velocity_decs[-1])
         assert velocity_decs[-1] <= 0, "Planning horizon too short for current speed to reach 0!"
 
         velocity_profiles = []
         for velocity_increase in np.linspace(max_velocity_increase, 0, number_of_trajectories):
-            unbounded_velocity_profile = np.minimum(velocity_incs, velocity_increase + velocity_decs)
-            velocity_profile = np.clip(unbounded_velocity_profile, 0, self.reference_speed)
+            unbounded_velocity_profile = np.minimum(
+                velocity_incs, velocity_increase + velocity_decs)
+            velocity_profile = np.clip(
+                unbounded_velocity_profile, 0, self.reference_speed)
             velocity_profiles.append(velocity_profile)
         assert np.array_equal(velocity_profiles[-1], velocity_decs.clip(0))
         return velocity_profiles
@@ -134,9 +144,9 @@ class Planner:
                 [x_along_time[time_step], y_along_time[time_step]])
             orientation = orientations_along_time[time_step]
             state = InitialState(position=position,
-                          orientation=orientation,
-                          velocity=float(velocity),
-                          time_step=time_step + start_time_step)
+                                 orientation=orientation,
+                                 velocity=float(velocity),
+                                 time_step=time_step + start_time_step)
             state_list.append(state)
         return Trajectory(start_time_step, state_list)
 

@@ -8,6 +8,7 @@ from shapely.geometry import MultiPoint
 from commonroad.geometry.shape import Polygon as CommonRoadPolygon
 from commonroad.scenario.scenario import Lanelet
 
+
 def ShapelyPolygon2Polygon(shapely_polygon):
     assert isinstance(shapely_polygon, ShapelyPolygon)
     assert hasattr(shapely_polygon, 'exterior')
@@ -15,11 +16,13 @@ def ShapelyPolygon2Polygon(shapely_polygon):
     vertices = np.array(list(zip(*shapely_polygon.exterior.xy)))
     return CommonRoadPolygon(vertices)
 
-def rgb2hex(r,g,b):
+
+def rgb2hex(r, g, b):
     def clamp(x):
         return max(0, min(x, 255))
 
     return "#{0:02x}{1:02x}{2:02x}".format(clamp(r), clamp(g), clamp(b))
+
 
 def polygon_union(polygons):
     current_polygon = ShapelyPolygon()
@@ -27,6 +30,7 @@ def polygon_union(polygons):
         current_polygon = current_polygon.union(polygon)
     polygon_list = filter_polygons(current_polygon)
     return polygon_list
+
 
 def filter_polygons(input):
     polygonEmpty = ShapelyPolygon()
@@ -48,6 +52,7 @@ def filter_polygons(input):
                     polygon_list.append(element)
     return polygon_list
 
+
 def Lanelet2ShapelyPolygon(lanelet):
     assert isinstance(lanelet, Lanelet)
     right = lanelet.right_vertices
@@ -63,3 +68,25 @@ def Lanelet2ShapelyPolygon(lanelet):
             lanelet_shapely = MultiPoint(lanelet_boundary).convex_hull
             assert lanelet_shapely.is_valid, "Failed to convert lanelet to polygon"
     return lanelet_shapely
+
+
+def ShapelyRemoveDoublePoints(polygon, tolerance):
+    x_prev = 99999999999999
+    y_prev = 99999999999999
+
+    new_coords = []
+    for coord in polygon.exterior.coords[:-1]:
+        x = coord[0]
+        y = coord[1]
+        if abs(x-x_prev) < tolerance and abs(y - y_prev) < tolerance:
+            continue
+        else:
+            new_coords.append(coord)
+            x_prev = x
+            y_prev = y
+
+    x, y = polygon.exterior.coords[-1]
+    if abs(x-x_prev) < tolerance and abs(y - y_prev) < tolerance:
+        new_coords = new_coords[:-1]
+
+    return ShapelyPolygon(new_coords)
