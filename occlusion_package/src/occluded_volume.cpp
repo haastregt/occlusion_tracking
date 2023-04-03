@@ -50,7 +50,6 @@ Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedr
 
     Nef_polyhedron nef_disk(disk);
     Nef_polyhedron nef(polyhedron);
-
     return CGAL::minkowski_sum_3(nef, nef_disk);
 }
 

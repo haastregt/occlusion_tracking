@@ -9,11 +9,8 @@ namespace cpp_occlusions
 class OccludedVolume
 {
   private:
-    const Polygon _road_polygon;
 
     const ReachabilityParams _params;
-
-    Polyhedron _shadow_polyhedron;
 
     /// @brief Applies the velocity reachability abstraction: R_Mvel(P) = { [x, y, v] | [x, y] in projxy(R_Macc(P)) +
     /// Circle(Vmax*dt), x in vbounds}
@@ -38,6 +35,11 @@ class OccludedVolume
     Nef_polyhedron AccelerationAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron);
 
   public:
+
+    const Polygon _road_polygon;
+
+    Polyhedron _shadow_polyhedron;
+    
     OccludedVolume(Polyhedron initial_polyhedron, const Polygon road_polygon, const ReachabilityParams params);
 
     ~OccludedVolume();

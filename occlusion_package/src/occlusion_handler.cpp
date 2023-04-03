@@ -15,6 +15,8 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
                                    int init_time_step, ReachabilityParams params)
     : _params(params), _time_step(init_time_step)
 {
+    int num_shadows = 0;
+
     Polyhedron P;
     std::list<CGAL::Polygon_with_holes_2<Kernel>> output_list;
     InitialiseAsExtrudedPolygon<HalfedgeDS> extrude(Polygon(), std::pair<float, float>{params.vmin, params.vmax});
@@ -31,7 +33,7 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
             driving_corridor.reverse_orientation();
         }
 
-        _driving_corridors.push_back(driving_corridor);
+        std::list<OccludedVolume> corridor;
 
         output_list.clear();
         CGAL::difference(driving_corridor, initial_sensor_view, std::back_inserter(output_list));
@@ -47,11 +49,17 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
 
             assert(P.is_closed() && "Polyhedra should be closed in order for conversion to Nef");
 
-            _shadow_list.push_back(OccludedVolume(P, driving_corridor, _params));
+            corridor.push_back(OccludedVolume(P, driving_corridor, _params));
+        }
+
+        if(!corridor.empty())
+        {
+            num_shadows += corridor.size();
+            _shadow_list_by_corridor.push_back(corridor);
         }
     }
 
-    std::cout << "Initialised with " << _shadow_list.size() << " initial shadows" << std::endl;
+    std::cout << "Initialised with " << num_shadows << " initial shadows" << std::endl;
 }
 
 OcclusionHandler::~OcclusionHandler()
@@ -63,6 +71,8 @@ void OcclusionHandler::Update(Polygon sensor_view, float new_time_step)
     float dt = new_time_step - _time_step;
     _time_step += dt;
 
+    int num_shadows = 0;
+
     // Check this since first time step of simulation is 0, while time at initialisation is also at 0.
     if (dt == 0)
         return;
@@ -72,26 +82,63 @@ void OcclusionHandler::Update(Polygon sensor_view, float new_time_step)
         sensor_view.reverse_orientation();
     }
 
-    std::list<OccludedVolume> copy_shadow_list = _shadow_list;
-    _shadow_list.clear();
-    for (OccludedVolume shadow : copy_shadow_list)
+    std::list<std::list<OccludedVolume>> copy_shadow_list_by_corridor = _shadow_list_by_corridor;
+    _shadow_list_by_corridor.clear();
+    for (auto corridor : copy_shadow_list_by_corridor)
     {
-        for (OccludedVolume new_shadow : shadow.Propagate(dt, sensor_view))
+        Polygon road_polygon = corridor.begin()->_road_polygon;
+        
+        std::list<Nef_polyhedron> nef_list;
+        for (OccludedVolume shadow : corridor)
         {
-            _shadow_list.push_back(new_shadow);
+            for (OccludedVolume new_shadow : shadow.Propagate(dt, sensor_view))
+            {
+                // Check if this intersects with another shadow in this corridor, if so merge
+                bool is_double = false;
+                Nef_polyhedron nef_new(new_shadow._shadow_polyhedron);
+
+                for (Nef_polyhedron& nef_existing : nef_list)
+                {
+                    if (nef_new * nef_existing != Nef_polyhedron::EMPTY)
+                    {
+                        nef_existing += nef_new;
+                        is_double = true;
+                        break;
+                    }
+                }
+                if (!is_double)
+                {
+                    nef_list.push_back(nef_new);
+                }
+            }
         }
+
+        std::list<OccludedVolume> new_corridor;
+
+        for (Nef_polyhedron nef : nef_list)
+        {
+            Polyhedron P;
+            nef.convert_to_polyhedron(P);
+            new_corridor.push_back(OccludedVolume(P, road_polygon, _params));
+        }
+        num_shadows += new_corridor.size();
+
+        _shadow_list_by_corridor.push_back(new_corridor);
     }
 
-    std::cout << "At time step " << new_time_step << "s we have " << _shadow_list.size() << " shadows" << std::endl;
+    std::cout << "At time step " << new_time_step << "s we have " << num_shadows << " shadows" << std::endl;
 }
 
 std::list<std::list<Polygon>> OcclusionHandler::GetReachableSets()
 {
     std::list<std::list<Polygon>> occupancy_lists;
 
-    for (OccludedVolume shadow : _shadow_list)
+    for (auto shadow_list : _shadow_list_by_corridor)
     {
-        occupancy_lists.push_back(shadow.ComputeFutureOccupancies());
+        for (OccludedVolume shadow : shadow_list)
+        {
+            occupancy_lists.push_back(shadow.ComputeFutureOccupancies());
+        }
     }
 
     return occupancy_lists;

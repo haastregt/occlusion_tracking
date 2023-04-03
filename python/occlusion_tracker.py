@@ -67,7 +67,7 @@ class OcclusionTracker:
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
 
         self.occlusion_handler = OcclusionHandler(
-            lanes, sensor_view_processed, self.time_step, self.params)
+            [lanes[3]], sensor_view_processed, self.time_step, self.params)
 
     def update(self, sensor_view, new_time_step):
         self.time_step = new_time_step
@@ -83,8 +83,8 @@ class OcclusionTracker:
         for occupancy_set in occupancy_sets:
 
             # if self.time_step > 13:
-            #     x, y = occupancy_set[0].exterior.xy
-            #     plt.plot(x, y)
+            # x, y = occupancy_set[0].exterior.xy
+            # plt.plot(x, y)
 
             occupancies = []
             # First element is the shape of the occlusion itself
@@ -94,11 +94,11 @@ class OcclusionTracker:
                 occupancies.append(occupancy)
 
                 # if self.time_step > 13:
-                #     x, y = polygon.exterior.xy
-                #     plt.plot(x, y)
+                # x, y = polygon.exterior.xy
+                # plt.plot(x, y)
 
             # if self.time_step > 13:
-            #     plt.show()
+            # plt.show()
 
             obstacle_id = scenario.generate_object_id()
             obstacle_type = ObstacleType.UNKNOWN
