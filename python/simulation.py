@@ -11,6 +11,7 @@ from sensor import Sensor
 from occlusion_tracker import OcclusionTracker
 
 import time
+import matplotlib.pyplot as plt
 
 
 def step_scenario(scenario):
@@ -75,7 +76,8 @@ def step_simulation(scenario, configuration):
     simulation_steps = configuration.get('simulation_duration')
     for step in range(simulation_steps+1):
         print("In simulation step ", step)
-
+        if (step > 14):
+            print(14)
         # Start with an empty percieved scenario
         percieved_scenario = copy.deepcopy(scenario)
         for obstacle in percieved_scenario.obstacles:

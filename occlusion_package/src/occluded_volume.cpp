@@ -3,12 +3,16 @@
 //#include <CGAL/Surface_mesh.h>
 
 #include <cassert>
+#include <chrono>
 
 #include "../include/cpp_occlusions/occluded_volume.h"
 
 #include "../include/cpp_occlusions/poly_modifiers.h"
 
 #include <CGAL/Boolean_set_operations_2.h>
+#include <CGAL/Polygon_mesh_processing/measure.h>
+#include <CGAL/Surface_mesh.h>
+#include <CGAL/boost/graph/convert_nef_polyhedron_to_polygon_mesh.h>
 #include <CGAL/draw_polyhedron.h>
 #include <CGAL/minkowski_sum_3.h>
 
@@ -74,6 +78,7 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
 
     Nef_polyhedron new_shadow(Nef_polyhedron::COMPLETE);
     Polyhedron P;
+    CGAL::Surface_mesh<Nef_polyhedron::Point_3> surface_mesh;
 
     // TODO: if (_params.use_abstraction.velocity)
     Nef_polyhedron velocity_abstraction = VelocityAbstraction(dt, _shadow_polyhedron);
@@ -95,7 +100,7 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
         assert(diff.outer_boundary().is_simple() && "Polygon has a self-intersection!");
         assert((diff.outer_boundary().size() > 2) && "Polygon should have at least three points");
 
-        copy = new_shadow;
+        copy = Nef_polyhedron(new_shadow);
         P = Polyhedron();
 
         extrude.polygon = diff.outer_boundary();
@@ -105,11 +110,14 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
 
         assert(copy.is_simple() && "Nef_Polyhedra should be simple in order for conversion to normal polyhedra");
 
-        P = Polyhedron();
-        copy.convert_to_polyhedron(P);
+        surface_mesh = CGAL::Surface_mesh<Nef_polyhedron::Point_3>();
+        CGAL::convert_nef_polyhedron_to_polygon_mesh(copy, surface_mesh, true);
 
-        if (!P.is_empty())
+        if (CGAL::Polygon_mesh_processing::volume(surface_mesh) > _params.min_shadow_volume)
         {
+            P = Polyhedron();
+            copy.convert_to_polyhedron(P);
+
             DissolveCloseVertices(P, 0.001);
             new_shadow_list.push_back(OccludedVolume(P, _road_polygon, _params));
         }

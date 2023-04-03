@@ -70,21 +70,35 @@ class OcclusionTracker:
             lanes, sensor_view_processed, self.time_step, self.params)
 
     def update(self, sensor_view, new_time_step):
+        self.time_step = new_time_step
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
 
-        self.occlusion_handler.update(sensor_view, new_time_step)
+        # TODO: 0.1 is the actual dt, new_time_step is the integer
+        self.occlusion_handler.update(sensor_view, 0.1*new_time_step)
 
     def get_dynamic_obstacles(self, scenario):
         occupancy_sets = self.occlusion_handler.get_reachable_sets()
 
         dynamic_obstacles = []
         for occupancy_set in occupancy_sets:
+
+            # if self.time_step > 13:
+            #     x, y = occupancy_set[0].exterior.xy
+            #     plt.plot(x, y)
+
             occupancies = []
             # First element is the shape of the occlusion itself
             for i, polygon in enumerate(occupancy_set[1:]):
                 occupancy = Occupancy(self.time_step+i+1,
                                       ShapelyPolygon2Polygon(polygon))
                 occupancies.append(occupancy)
+
+                # if self.time_step > 13:
+                #     x, y = polygon.exterior.xy
+                #     plt.plot(x, y)
+
+            # if self.time_step > 13:
+            #     plt.show()
 
             obstacle_id = scenario.generate_object_id()
             obstacle_type = ObstacleType.UNKNOWN
