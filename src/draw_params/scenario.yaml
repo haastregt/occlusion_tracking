@@ -46,7 +46,7 @@ dynamic_obstacle:
         time_begin: 0
         time_end: 1
         antialiased: true
-        opacity: 1
+        opacity: 0.5
         facecolor: '#ffff00'
         edgecolor: '#ffff00'
         linewidth: 0.5

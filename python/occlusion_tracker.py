@@ -17,20 +17,23 @@ class OcclusionTracker:
     time_step: int
 
     # TODO: Make this load from yaml file
-    params = ReachabilityParams()
-    params.vmin = 0
-    params.vmax = 10
-    params.amin = -5
-    params.amax = 7
-    params.dt = 0.1
-    params.prediction_interval = 5
-    params.prediction_horizon = 20
-    params.min_shadow_volume = 1.0
-    params.velocity_tracking_enabled = False
+    def load_params(self, config):
+        params = ReachabilityParams()
+        params.vmin = config.get('vmin')
+        params.vmax = config.get('vmax')
+        params.amin = config.get('amin')
+        params.amax = config.get('amax')
+        params.dt = config.get('dt')
+        params.prediction_interval = config.get('prediction_interval')
+        params.prediction_horizon = config.get('prediction_horizon')
+        params.min_shadow_volume = config.get('min_shadow_volume')
+        params.velocity_tracking_enabled = config.get(
+            'velocity_tracking_enabled')
+        self.params = params
 
-    def __init__(self, scenario, sensor_view, initial_time_step=0):
-        print("Initialising Occlusion Tracker")
+    def __init__(self, scenario, sensor_view, params, initial_time_step=0):
         self.time_step = initial_time_step
+        self.load_params(params)
 
         # Find the initial lanelets
         initial_lanelets = []
@@ -49,33 +52,16 @@ class OcclusionTracker:
                     lanelet_shapely, 0.1)
                 lanes.append(lanelet_processed)
 
-        # print("The lanes are: ")
-        # for lane in lanes:
-        #     if not lane.is_simple:
-        #         print("Lanelet has self_intersection!")
-        #     print(lane.exterior.xy)
-        #     x, y = lane.exterior.xy
-        #     plt.plot(x, y)
-        #     for i in range(len(x)):
-        #         plt.text(x[i], y[i], str(i))
-        #     plt.show()
-
-        # print("Our sensor view is: ")
-        # if not sensor_view.is_simple:
-        #     print("Sensor-view has self_intersection!")
-        # plt.plot(*sensor_view.exterior.xy)
-        # plt.show()
-
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
 
         self.occlusion_handler = OcclusionHandler(
-            [lanes[1]], sensor_view_processed, self.time_step, self.params)
+            lanes, sensor_view_processed, self.time_step, self.params)
 
     def update(self, sensor_view, new_time_step):
         self.time_step = new_time_step
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
 
-        self.occlusion_handler.update(sensor_view, new_time_step)
+        self.occlusion_handler.update(sensor_view_processed, new_time_step)
 
     def get_dynamic_obstacles(self, scenario):
         occupancy_sets = self.occlusion_handler.get_reachable_sets()

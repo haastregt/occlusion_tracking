@@ -16,7 +16,7 @@ vehicle_shape:
     time_begin: 0
     time_end: 1
     antialiased: true
-    opacity: 1.0
+    opacity: 1
     facecolor: '#ffff00'
     edgecolor: '#000000'
     linewidth: 0.5

@@ -9,9 +9,9 @@ from commonroad.geometry.shape import Rectangle
 from planner import Planner
 from sensor import Sensor
 from occlusion_tracker import OcclusionTracker
+from py_occlusions import ReachabilityParams
 
-import time
-import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 
 def step_scenario(scenario):
@@ -62,7 +62,9 @@ def step_simulation(scenario, configuration):
 
     # We need the initial sensor view for initialising Occlusion Tracker
     sensor_view = sensor.get_sensor_view(scenario)
-    occ_track = OcclusionTracker(scenario, sensor_view)
+
+    occlusion_params = configuration.get('occlusion_params')
+    occ_track = OcclusionTracker(scenario, sensor_view, occlusion_params)
 
     planner = Planner(ego_vehicle.initial_state,
                       vehicle_shape=ego_vehicle.obstacle_shape,
@@ -74,8 +76,7 @@ def step_simulation(scenario, configuration):
                       time_horizon=configuration.get('planning_horizon'))
 
     simulation_steps = configuration.get('simulation_duration')
-    for step in range(simulation_steps+1):
-        print("In simulation step ", step)
+    for step in tqdm(range(simulation_steps+1), desc="Running simulation"):
 
         # Start with an empty percieved scenario
         percieved_scenario = copy.deepcopy(scenario)

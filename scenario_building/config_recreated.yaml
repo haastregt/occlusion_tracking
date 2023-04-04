@@ -1,11 +1,11 @@
 #GENERAL
-simulation_duration : 35
+simulation_duration : 50
 
 #EGO_VEHICLE
 initial_state_x : 70
 initial_state_y : -23
 initial_state_orientation: 1.57
-initial_state_velocity: 9
+initial_state_velocity: 0 #was 9
 
 vehicle_type : car
 vehicle_length : 4.8
@@ -26,8 +26,19 @@ min_resolution : 2
 view_range : 50
 
 #OCCLUSION_TRACKER
-min_velocity : 0
-max_velocity : 12
-min_shadow_area : 1
-prediction_horizon : 23
-tracking_enabled : True
+# min_velocity : 0
+# max_velocity : 12
+# min_shadow_area : 1
+# prediction_horizon : 23
+# tracking_enabled : True
+
+occlusion_params:
+  vmin : 0
+  vmax : 10
+  amin : -5
+  amax : 7
+  dt : 0.1
+  prediction_interval : 5
+  prediction_horizon : 20
+  min_shadow_volume : 1.0
+  velocity_tracking_enabled : False

@@ -60,7 +60,8 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
         }
     }
 
-    std::cout << "Initialised with " << num_shadows << " initial shadows" << std::endl;
+    // for debugging exploding shadows
+    // std::cout << "Initialised with " << num_shadows << " initial shadows" << std::endl;
 }
 
 OcclusionHandler::~OcclusionHandler()
@@ -127,7 +128,8 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
         _shadow_list_by_corridor.push_back(new_corridor);
     }
 
-    std::cout << "At time step " << new_time_step << "s we have " << num_shadows << " shadows" << std::endl;
+    // for debuggind exploding shadows
+    // std::cout << "At time step " << new_time_step << "s we have " << num_shadows << " shadows" << std::endl;
 }
 
 std::list<std::list<Polygon>> OcclusionHandler::GetReachableSets()
