@@ -91,14 +91,8 @@ def step_simulation(scenario, configuration):
         percieved_scenario.add_objects(observed_obstacles)
 
         # Update the tracker with the new sensor view and get the prediction for the shadows
-        update_time = time.time()
         occ_track.update(sensor_view, ego_vehicle.initial_state.time_step)
-        print("Update computational time: ", time.time()-update_time)
-
-        prediction_time = time.time()
         shadow_obstacles = occ_track.get_dynamic_obstacles(percieved_scenario)
-        print("Prediction computational time: ", time.time()-prediction_time)
-
         percieved_scenario.add_objects(shadow_obstacles)
 
         # Update the planner and plan a trajectory

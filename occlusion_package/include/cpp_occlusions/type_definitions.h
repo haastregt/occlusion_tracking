@@ -26,11 +26,12 @@ struct ReachabilityParams
     float amin;
     float amax;
 
-    float prediction_dt;
+    float dt;
+    int prediction_interval;
     int prediction_horizon;
     float min_shadow_volume;
 
-    // TODO: Add struct with booleans for which abstractions to use?
+    bool velocity_tracking_enabled;
 };
 
 } // namespace cpp_occlusions

@@ -22,9 +22,11 @@ class OcclusionTracker:
     params.vmax = 10
     params.amin = -5
     params.amax = 7
-    params.prediction_dt = 0.5
-    params.prediction_horizon = 4
+    params.dt = 0.1
+    params.prediction_interval = 5
+    params.prediction_horizon = 20
     params.min_shadow_volume = 1.0
+    params.velocity_tracking_enabled = False
 
     def __init__(self, scenario, sensor_view, initial_time_step=0):
         print("Initialising Occlusion Tracker")
@@ -67,14 +69,13 @@ class OcclusionTracker:
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
 
         self.occlusion_handler = OcclusionHandler(
-            [lanes[3]], sensor_view_processed, self.time_step, self.params)
+            [lanes[1]], sensor_view_processed, self.time_step, self.params)
 
     def update(self, sensor_view, new_time_step):
         self.time_step = new_time_step
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
 
-        # TODO: 0.1 is the actual dt, new_time_step is the integer
-        self.occlusion_handler.update(sensor_view, 0.1*new_time_step)
+        self.occlusion_handler.update(sensor_view, new_time_step)
 
     def get_dynamic_obstacles(self, scenario):
         occupancy_sets = self.occlusion_handler.get_reachable_sets()
@@ -82,23 +83,13 @@ class OcclusionTracker:
         dynamic_obstacles = []
         for occupancy_set in occupancy_sets:
 
-            # if self.time_step > 13:
-            # x, y = occupancy_set[0].exterior.xy
-            # plt.plot(x, y)
-
             occupancies = []
             # First element is the shape of the occlusion itself
             for i, polygon in enumerate(occupancy_set[1:]):
-                occupancy = Occupancy(self.time_step+i+1,
-                                      ShapelyPolygon2Polygon(polygon))
-                occupancies.append(occupancy)
-
-                # if self.time_step > 13:
-                # x, y = polygon.exterior.xy
-                # plt.plot(x, y)
-
-            # if self.time_step > 13:
-            # plt.show()
+                for k in range(self.params.prediction_interval):
+                    occupancy = Occupancy(self.time_step+i*self.params.prediction_interval+k+1,
+                                          ShapelyPolygon2Polygon(polygon))
+                    occupancies.append(occupancy)
 
             obstacle_id = scenario.generate_object_id()
             obstacle_type = ObstacleType.UNKNOWN

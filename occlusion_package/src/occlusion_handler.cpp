@@ -16,6 +16,7 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
     : _params(params), _time_step(init_time_step)
 {
     int num_shadows = 0;
+    _time_step = 0;
 
     Polyhedron P;
     std::list<CGAL::Polygon_with_holes_2<Kernel>> output_list;
@@ -52,7 +53,7 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
             corridor.push_back(OccludedVolume(P, driving_corridor, _params));
         }
 
-        if(!corridor.empty())
+        if (!corridor.empty())
         {
             num_shadows += corridor.size();
             _shadow_list_by_corridor.push_back(corridor);
@@ -66,10 +67,10 @@ OcclusionHandler::~OcclusionHandler()
 {
 }
 
-void OcclusionHandler::Update(Polygon sensor_view, float new_time_step)
+void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
 {
-    float dt = new_time_step - _time_step;
-    _time_step += dt;
+    float dt = _params.dt * (new_time_step - _time_step);
+    _time_step = new_time_step;
 
     int num_shadows = 0;
 
@@ -87,7 +88,7 @@ void OcclusionHandler::Update(Polygon sensor_view, float new_time_step)
     for (auto corridor : copy_shadow_list_by_corridor)
     {
         Polygon road_polygon = corridor.begin()->_road_polygon;
-        
+
         std::list<Nef_polyhedron> nef_list;
         for (OccludedVolume shadow : corridor)
         {
@@ -97,7 +98,7 @@ void OcclusionHandler::Update(Polygon sensor_view, float new_time_step)
                 bool is_double = false;
                 Nef_polyhedron nef_new(new_shadow._shadow_polyhedron);
 
-                for (Nef_polyhedron& nef_existing : nef_list)
+                for (Nef_polyhedron &nef_existing : nef_list)
                 {
                     if (nef_new * nef_existing != Nef_polyhedron::EMPTY)
                     {

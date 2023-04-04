@@ -79,15 +79,17 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
     Polyhedron P;
     CGAL::Surface_mesh<Nef_polyhedron::Point_3> surface_mesh;
 
-    // TODO: if (_params.use_abstraction.velocity)
-    Nef_polyhedron velocity_abstraction = VelocityAbstraction(dt, _shadow_polyhedron);
-    new_shadow *= velocity_abstraction;
-
-    // TODO: if (_params.use_abstraction.acceleration)
-    // Nef_polyhedron acceleration_abstraction = AccelerationAbstraction(dt, _shadow_polyhedron);
-    // new_shadow *= acceleration_abstraction;
-
-    // TODO: Include other abstractions here in a similar matter
+    if (_params.velocity_tracking_enabled)
+    {
+        // TODO:
+        // Nef_polyhedron acceleration_abstraction = AccelerationAbstraction(dt, _shadow_polyhedron);
+        // new_shadow *= acceleration_abstraction;
+    }
+    else
+    {
+        Nef_polyhedron velocity_abstraction = VelocityAbstraction(dt, _shadow_polyhedron);
+        new_shadow *= velocity_abstraction;
+    }
 
     Nef_polyhedron copy;
     std::list<CGAL::Polygon_with_holes_2<Kernel>> output_list;
@@ -109,6 +111,8 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
 
         assert(copy.is_simple() && "Nef_Polyhedra should be simple in order for conversion to normal polyhedra");
 
+        // We check if the minimal volume is above a treshhold to avoid small shadows due to numerical rounding
+        // TODO: Maybe not necessary since we use exact construction kernel
         surface_mesh = CGAL::Surface_mesh<Nef_polyhedron::Point_3>();
         CGAL::convert_nef_polyhedron_to_polygon_mesh(copy, surface_mesh, true);
 
@@ -135,15 +139,21 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
     P.delegate(extrude);
     Nef_polyhedron nef_road(P);
 
-    for (int i = 1; i <= _params.prediction_horizon; i++)
+    int num_predictions = _params.prediction_horizon / _params.prediction_interval;
+    for (int i = 1; i <= num_predictions; i++)
     {
         Nef_polyhedron occupancy(Nef_polyhedron::COMPLETE);
 
-        // TODO: if (_params.use_abstraction.velocity)
-        Nef_polyhedron velocity_abstraction = VelocityAbstraction(_params.prediction_dt * i, _shadow_polyhedron);
-        occupancy *= velocity_abstraction;
-
-        // TODO: Other abstractions
+        if (_params.velocity_tracking_enabled)
+        {
+            // TODO: Other abstractions
+        }
+        else
+        {
+            Nef_polyhedron velocity_abstraction =
+                VelocityAbstraction(_params.dt * _params.prediction_interval * i, _shadow_polyhedron);
+            occupancy *= velocity_abstraction;
+        }
 
         occupancy *= nef_road;
 
