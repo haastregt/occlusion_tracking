@@ -55,19 +55,19 @@ Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedr
 
 Nef_polyhedron OccludedVolume::VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron)
 {
-    Polyhedron placeholder;
+    Nef_polyhedron placeholder;
     return placeholder;
 }
 
 Nef_polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron polyhedron)
 {
-    Polyhedron placeholder;
+    Nef_polyhedron placeholder;
     return placeholder;
 }
 
 Nef_polyhedron OccludedVolume::AccelerationAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron)
 {
-    Polyhedron placeholder;
+    Nef_polyhedron placeholder;
     return placeholder;
 }
 

@@ -3,7 +3,8 @@ project(occlusion_package VERSION 0.0.1)
 
 # Make sure VSCode can find the includes
 set(CMAKE_EXPORT_COMPILE_COMMANDS=ON)
-set(CMAKE_CXX_FLAGS "-fcompare-debug-second")
+#set(CMAKE_CXX_FLAGS "-fcompare-debug-second")
+#set(CMAKE_CXX_FLAGS "-lgmp -lmpfr")
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release) #Debug for debugging, Release for performance
@@ -12,13 +13,12 @@ endif()
 #############################
 # CGAL and its dependencies #
 #############################
-find_package( CGAL REQUIRED COMPONENTS Core Qt5 )
+find_package( CGAL REQUIRED COMPONENTS Core Qt5 PATHS "/occlusion_package/CGAL-5.5.2/")
 
 if ( NOT CGAL_FOUND )
   message(STATUS "This project requires the CGAL library, and will not be compiled.")
   return()  
 endif()
-
 
 # Boost and its components
 find_package( Boost REQUIRED )
@@ -49,6 +49,7 @@ target_include_directories(py_occlusions PRIVATE include/cpp_occlusions)
 add_definitions(-DCGAL_USE_BASIC_VIEWER -DQT_NO_KEYWORDS)
 
 target_link_libraries(py_occlusions PUBLIC CGAL::CGAL CGAL::CGAL_Core CGAL::CGAL_Qt5)
+# target_link_libraries(py_occlusions PRIVATE cgal)
 
 install(TARGETS py_occlusions 
   COMPONENT python 

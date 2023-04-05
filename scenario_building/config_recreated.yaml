@@ -1,5 +1,5 @@
 #GENERAL
-simulation_duration : 50
+simulation_duration : 25
 
 #EGO_VEHICLE
 initial_state_x : 70
