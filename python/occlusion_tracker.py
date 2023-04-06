@@ -5,8 +5,7 @@ from commonroad.scenario.scenario import Lanelet
 from commonroad.scenario.trajectory import InitialState
 from commonroad.prediction.prediction import SetBasedPrediction, Occupancy
 
-from utilities import Lanelet2ShapelyPolygon, ShapelyPolygon2Polygon, ShapelyRemoveDoublePoints
-from shapely.geometry import Polygon
+from utilities import Lanelet2ShapelyPolygon, ShapelyPolygon2Polygon, ShapelyRemoveDoublePoints, create_lane_shapes
 
 from py_occlusions import ReachabilityParams, OcclusionHandler
 
@@ -16,7 +15,6 @@ import matplotlib.pyplot as plt
 class OcclusionTracker:
     time_step: int
 
-    # TODO: Make this load from yaml file
     def load_params(self, config):
         params = ReachabilityParams()
         params.vmin = config.get('vmin')
@@ -43,19 +41,24 @@ class OcclusionTracker:
 
         # Generate lanes (Collection of lanelets from start to end of the scenario)
         lanes = []
+        mapped_lanes = []
         for lanelet in initial_lanelets:
             current_lanes, _ = Lanelet.all_lanelets_by_merging_successors_from_lanelet(
                 lanelet, scenario.lanelet_network, max_length=500)
             for lane in current_lanes:
-                lanelet_shapely = Lanelet2ShapelyPolygon(lane)
-                lanelet_processed = ShapelyRemoveDoublePoints(
-                    lanelet_shapely, 0.1)
-                lanes.append(lanelet_processed)
+                original, mapped = create_lane_shapes(lane)
+                print(original)
+                lanes.append(original)
+                mapped_lanes.append(mapped)
+                # lanelet_shapely = Lanelet2ShapelyPolygon(lane)
+                # lanelet_processed = ShapelyRemoveDoublePoints(
+                #     lanelet_shapely, 0.1)
+                # lanes.append(lanelet_processed)
 
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
-
+        print(lanes[0])
         self.occlusion_handler = OcclusionHandler(
-            lanes, sensor_view_processed, self.time_step, self.params)
+            [lanes[0]], sensor_view_processed, self.time_step, self.params)
 
     def update(self, sensor_view, new_time_step):
         self.time_step = new_time_step

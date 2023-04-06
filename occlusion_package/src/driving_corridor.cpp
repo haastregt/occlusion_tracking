@@ -8,7 +8,7 @@ DrivingCorridor::DrivingCorridor(Polygon lane_polygon, float max_triangulation_e
       _target_shape(GetTargetShape(lane_polygon)), _source_domain(Domain(_source_shape)),
       _target_domain(Domain(_target_shape)), _max_edge_length(IKernel::FT(max_triangulation_edge_length))
 {
-    assert(_source_shape.size() == coordinates.size());
+    assert(_source_shape.size() == _target_shape.size());
 
     const Point_range seeds = {IPoint2(1, 1)}; // = GetPointInside(); // TODO find point inside original polygon
     _source_domain.create(_max_edge_length, seeds);

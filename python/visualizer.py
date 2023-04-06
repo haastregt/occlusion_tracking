@@ -32,7 +32,7 @@ class Visualizer:
 
         # Draw the first location of the shadows
         draw_params = DynamicObstacleParams.load(
-            file_path="draw_params/shadow.yaml", validate_types=False)
+            file_path="python/draw_params/shadow.yaml", validate_types=False)
         draw_params.time_begin = time_begin
         draw_params.time_end = time_begin + 1
         for shadow in shadows:
@@ -40,7 +40,7 @@ class Visualizer:
 
         # Draw the shadow predictions
         draw_params = DynamicObstacleParams.load(
-            file_path="draw_params/shadow_prediction.yaml", validate_types=False)
+            file_path="python/draw_params/shadow_prediction.yaml", validate_types=False)
         for i in reversed(range(time_horizon)):
             tint_factor = 0.005**(1/(i+1))
             Ri = int(R + (255 - R) * tint_factor)
@@ -62,7 +62,7 @@ class Visualizer:
              ego_vehicle=None,
              sensor_view=None):
 
-        draw_params = MPDrawParams().load(file_path="draw_params/scenario.yaml")
+        draw_params = MPDrawParams().load(file_path="python/draw_params/scenario.yaml")
         draw_params.time_begin = time_begin
         draw_params.time_end = time_end
 
@@ -73,7 +73,7 @@ class Visualizer:
         if sensor_view is not None:
             # Draw params can be overwritten when rendering specific objects
             draw_params = ShapeParams.load(
-                file_path="draw_params/sensor_view.yaml", validate_types=False)
+                file_path="python/draw_params/sensor_view.yaml", validate_types=False)
             ShapelyPolygon2Polygon(sensor_view).draw(
                 rnd, draw_params=draw_params)
 
@@ -82,7 +82,7 @@ class Visualizer:
                 scenario.remove_obstacle(ego_vehicle)
 
                 draw_params = DynamicObstacleParams.load(
-                    file_path="draw_params/ego_vehicle.yaml", validate_types=False)
+                    file_path="python/draw_params/ego_vehicle.yaml", validate_types=False)
                 draw_params.time_begin = time_begin
                 draw_params.time_end = time_end
                 ego_vehicle.draw(rnd, draw_params=draw_params)
