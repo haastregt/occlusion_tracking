@@ -1,9 +1,9 @@
-#include "type_definitions.h"
+#include "cpp_occlusions/type_definitions.h"
 
 #include <CGAL/Polyhedron_incremental_builder_3.h>
 
-#ifndef POLYHEDRON_MODIFIERS_H
-#define POLYHEDRON_MODIFIERS_H
+#ifndef UTILITY_H
+#define UTILITY_H
 
 namespace cpp_occlusions
 {

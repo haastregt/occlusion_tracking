@@ -1,9 +1,4 @@
-#include <CGAL/draw_polygon_2.h>
-#include <CGAL/draw_polyhedron.h>
-
-#include <iostream>
-
-#include "occluded_volume.h"
+#include "cpp_occlusions/occluded_volume.h"
 
 #ifndef OCCLUSION_HANDLER_H
 #define OCCLUSION_HANDLER_H

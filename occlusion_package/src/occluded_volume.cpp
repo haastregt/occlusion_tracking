@@ -1,22 +1,14 @@
-//#include <CGAL/Polygon_mesh_processing/corefinement.h>
-//#include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
-//#include <CGAL/Surface_mesh.h>
-
-#include <cassert>
-#include <chrono>
-
-#include "../include/cpp_occlusions/occluded_volume.h"
-
-#include "../include/cpp_occlusions/poly_modifiers.h"
+#include "cpp_occlusions/occluded_volume.h"
+#include "cpp_occlusions/utility.h"
 
 #include <CGAL/Boolean_set_operations_2.h>
 #include <CGAL/Polygon_mesh_processing/measure.h>
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/boost/graph/convert_nef_polyhedron_to_polygon_mesh.h>
-#include <CGAL/draw_polyhedron.h>
 #include <CGAL/minkowski_sum_3.h>
 
 #include <CGAL/draw_polygon_2.h>
+#include <CGAL/draw_polyhedron.h>
 
 namespace cpp_occlusions
 {

@@ -1,9 +1,12 @@
-#include "type_definitions.h"
+#include "cpp_occlusions/type_definitions.h"
 
 #include <CGAL/Barycentric_coordinates_2/Delaunay_domain_2.h>
 #include <CGAL/Barycentric_coordinates_2/Harmonic_coordinates_2.h>
 #include <CGAL/Cartesian_converter.h>
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+
+#ifndef DRIVING_CORRIDOR_H
+#define DRIVING_CORRIDOR_H
 
 namespace cpp_occlusions
 {
@@ -30,7 +33,7 @@ class DrivingCorridor
 
     // This can be used to tune the quality vs computational time
     // Higher value - less accurate, faster computation
-    const IKernel::FT _max_edge_length = IKernel::FT(0.1);
+    const IKernel::FT _max_edge_length;
 
     EK_to_IK to_inexact;
     IK_to_EK to_exact;
@@ -44,7 +47,7 @@ class DrivingCorridor
     Point_range TransformTargetToSource(Point_range coordinates);
 
   public:
-    DrivingCorridor(Polygon lane_polygon);
+    DrivingCorridor(Polygon lane_polygon, float max_triangulation_edge_lenth = 1);
 
     ~DrivingCorridor();
 
@@ -54,3 +57,5 @@ class DrivingCorridor
 };
 
 } // namespace cpp_occlusions
+
+#endif

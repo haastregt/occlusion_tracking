@@ -1,13 +1,11 @@
+#include "cpp_occlusions/occlusion_handler.h"
+#include "cpp_occlusions/utility.h"
+
 #include <CGAL/Boolean_set_operations_2.h>
-
-#include <cassert>
-
-#include "../include/cpp_occlusions/occlusion_handler.h"
-
-#include "../include/cpp_occlusions/poly_modifiers.h"
 
 #include <CGAL/draw_polygon_2.h>
 #include <CGAL/draw_polyhedron.h>
+
 namespace cpp_occlusions
 {
 

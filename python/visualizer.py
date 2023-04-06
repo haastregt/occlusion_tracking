@@ -31,20 +31,22 @@ class Visualizer:
         B = int(0)
 
         # Draw the first location of the shadows
-        draw_params = DynamicObstacleParams.load(file_path="src/draw_params/shadow.yaml", validate_types=False)
+        draw_params = DynamicObstacleParams.load(
+            file_path="draw_params/shadow.yaml", validate_types=False)
         draw_params.time_begin = time_begin
         draw_params.time_end = time_begin + 1
         for shadow in shadows:
             shadow.draw(rnd, draw_params=draw_params)
 
         # Draw the shadow predictions
-        draw_params = DynamicObstacleParams.load(file_path="src/draw_params/shadow_prediction.yaml", validate_types=False)
+        draw_params = DynamicObstacleParams.load(
+            file_path="draw_params/shadow_prediction.yaml", validate_types=False)
         for i in reversed(range(time_horizon)):
             tint_factor = 0.005**(1/(i+1))
             Ri = int(R + (255 - R) * tint_factor)
             Gi = int(G + (255 - G) * tint_factor)
             Bi = int(B + (255 - G) * tint_factor)
-            color = rgb2hex(Ri,Gi,Bi)
+            color = rgb2hex(Ri, Gi, Bi)
 
             draw_params.time_begin = time_begin+i
             draw_params.time_end = time_begin+i+1
@@ -59,29 +61,32 @@ class Visualizer:
              time_end=500,
              ego_vehicle=None,
              sensor_view=None):
-        
-        draw_params = MPDrawParams().load(file_path="src/draw_params/scenario.yaml")
+
+        draw_params = MPDrawParams().load(file_path="draw_params/scenario.yaml")
         draw_params.time_begin = time_begin
         draw_params.time_end = time_end
 
         # Set global draw params for drawing
-        rnd = MPRenderer(figsize=(8,8))
+        rnd = MPRenderer(figsize=(8, 8))
         rnd.draw_params = draw_params
 
         if sensor_view is not None:
             # Draw params can be overwritten when rendering specific objects
-            draw_params = ShapeParams.load(file_path="src/draw_params/sensor_view.yaml", validate_types=False)
-            ShapelyPolygon2Polygon(sensor_view).draw(rnd, draw_params=draw_params)
-            
+            draw_params = ShapeParams.load(
+                file_path="draw_params/sensor_view.yaml", validate_types=False)
+            ShapelyPolygon2Polygon(sensor_view).draw(
+                rnd, draw_params=draw_params)
+
         if scenario is not None:
             if ego_vehicle is not None:
                 scenario.remove_obstacle(ego_vehicle)
 
-                draw_params = DynamicObstacleParams.load(file_path="src/draw_params/ego_vehicle.yaml", validate_types=False)
+                draw_params = DynamicObstacleParams.load(
+                    file_path="draw_params/ego_vehicle.yaml", validate_types=False)
                 draw_params.time_begin = time_begin
                 draw_params.time_end = time_end
                 ego_vehicle.draw(rnd, draw_params=draw_params)
-                
+
             shadow_obstacles = scenario.obstacles_by_role_and_type(
                 obstacle_type=ObstacleType.UNKNOWN)
             scenario.remove_obstacle(shadow_obstacles)

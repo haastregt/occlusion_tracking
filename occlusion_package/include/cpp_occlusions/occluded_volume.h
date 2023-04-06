@@ -1,7 +1,7 @@
-#include "type_definitions.h"
+#include "cpp_occlusions/type_definitions.h"
 
-#ifndef REACHABILITY_CORE_H
-#define REACHABILITY_CORE_H
+#ifndef OCCLUDED_VOLUME_H
+#define OCCLUDED_VOLUME_H
 
 namespace cpp_occlusions
 {

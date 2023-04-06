@@ -3,14 +3,14 @@
 namespace cpp_occlusions
 {
 
-DrivingCorridor::DrivingCorridor(Polygon lane_polygon)
+DrivingCorridor::DrivingCorridor(Polygon lane_polygon, float max_triangulation_edge_length)
     : _original_polygon(lane_polygon), _source_shape(GetSourceShape(lane_polygon)),
       _target_shape(GetTargetShape(lane_polygon)), _source_domain(Domain(_source_shape)),
-      _target_domain(Domain(_target_shape))
+      _target_domain(Domain(_target_shape)), _max_edge_length(IKernel::FT(max_triangulation_edge_length))
 {
     assert(_source_shape.size() == coordinates.size());
 
-    const Point_range seeds; // = GetPointInside(); // TODO find point inside original polygon
+    const Point_range seeds = {IPoint2(1, 1)}; // = GetPointInside(); // TODO find point inside original polygon
     _source_domain.create(_max_edge_length, seeds);
 
     // seeds = GetPointInside(); // TODO find point inside target
@@ -42,30 +42,25 @@ Point_range DrivingCorridor::GetTargetShape(Polygon lane)
 void DrivingCorridor::TransformOriginalToMapped(Polyhedron &polyhedron)
 {
     Point_range points;
-    std::cout << "Original Points: ";
     for (auto vert_it = polyhedron.vertices_begin(); vert_it != polyhedron.vertices_end(); ++vert_it)
     {
         // Transform to IK since Harmonic Coordinates cant use exact coords
         Point2 exact_point(vert_it->point().x(), vert_it->point().y());
         points.push_back(to_inexact(exact_point));
-        std::cout << to_inexact(exact_point) << ", ";
     }
-    std::cout << std::endl;
 
     Point_range transformed_points = TransformSourceToTarget(points);
 
-    std::cout << "Transformed Points: ";
-    auto vert_it = polyhedron.vertices_begin();
+    Polyhedron::Vertex_iterator vert_it = polyhedron.vertices_begin();
     for (int i = 0; i < polyhedron.size_of_vertices(); i++)
     {
         IPoint2 inexact_point(transformed_points[i].x(), transformed_points[i].y());
         Point2 exact_point = to_exact(inexact_point);
-        vert_it->point().x() = exact_point.x();
-        vert_it->point().y() = exact_point.y();
+        vert_it->point() = Point(exact_point.x(), exact_point.y(), vert_it->point().z());
         ++vert_it;
-        std::cout << inexact_point << ", ";
     }
-    std::cout << std::endl;
+
+    assert(polyhedron.is_valid());
 }
 
 void DrivingCorridor::TransformMappedToOriginal(Polyhedron &polyhedron)
@@ -80,36 +75,37 @@ void DrivingCorridor::TransformMappedToOriginal(Polyhedron &polyhedron)
 
     Point_range transformed_points = TransformTargetToSource(points);
 
-    auto vert_it = polyhedron.vertices_begin();
+    Polyhedron::Vertex_iterator vert_it = polyhedron.vertices_begin();
     for (int i = 0; i < polyhedron.size_of_vertices(); i++)
     {
         IPoint2 inexact_point(transformed_points[i].x(), transformed_points[i].y());
         Point2 exact_point = to_exact(inexact_point);
-        vert_it->point().x() = exact_point.x();
-        vert_it->point().y() = exact_point.y();
+        vert_it->point() = Point(exact_point.x(), exact_point.y(), vert_it->point().z());
         ++vert_it;
     }
+    assert(polyhedron.is_valid());
 }
 
 Point_range DrivingCorridor::TransformTargetToSource(Point_range coordinates)
 {
-    Harmonic_coordinates_2 harmonic_coordinates(coordinates, _target_domain);
+    Harmonic_coordinates_2 harmonic_coordinates(_target_shape, _target_domain);
     harmonic_coordinates.compute();
-    std::vector<std::vector<double>> new_coordinates;
-
-    harmonic_coordinates(std::back_inserter(new_coordinates));
 
     Point_range transformed_points;
-    for (std::vector<double> coords : new_coordinates)
+    for (IPoint2 coords : coordinates)
     {
+        std::vector<double> hc;
+        harmonic_coordinates(coords, std::back_inserter(hc));
+
         IKernel::FT x = IKernel::FT(0);
         IKernel::FT y = IKernel::FT(0);
 
-        for (std::size_t i = 0; i < coords.size(); i++)
+        for (std::size_t i = 0; i < hc.size(); i++)
         {
-            x += coords[i] * _source_shape[i].x();
-            y += coords[i] * _source_shape[i].y();
+            x += hc[i] * _source_shape[i].x();
+            y += hc[i] * _source_shape[i].y();
         }
+
         transformed_points.push_back(IPoint2(x, y));
     }
 
@@ -118,23 +114,24 @@ Point_range DrivingCorridor::TransformTargetToSource(Point_range coordinates)
 
 Point_range DrivingCorridor::TransformSourceToTarget(Point_range coordinates)
 {
-    Harmonic_coordinates_2 harmonic_coordinates(coordinates, _source_domain);
+    Harmonic_coordinates_2 harmonic_coordinates(_source_shape, _source_domain);
     harmonic_coordinates.compute();
-    std::vector<std::vector<double>> new_coordinates;
-
-    harmonic_coordinates(std::back_inserter(new_coordinates));
 
     Point_range transformed_points;
-    for (std::vector<double> coords : new_coordinates)
+    for (IPoint2 coords : coordinates)
     {
-        double x = 0;
-        double y = 0;
+        std::vector<double> hc;
+        harmonic_coordinates(coords, std::back_inserter(hc));
 
-        for (std::size_t i = 0; i < coords.size(); i++)
+        IKernel::FT x = IKernel::FT(0);
+        IKernel::FT y = IKernel::FT(0);
+
+        for (std::size_t i = 0; i < hc.size(); i++)
         {
-            x += coords[i] * _target_shape[i].x();
-            y += coords[i] * _target_shape[i].y();
+            x += hc[i] * _target_shape[i].x();
+            y += hc[i] * _target_shape[i].y();
         }
+
         transformed_points.push_back(IPoint2(x, y));
     }
 
