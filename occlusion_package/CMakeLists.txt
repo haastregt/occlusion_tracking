@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS=ON)
 set(CMAKE_CXX_FLAGS "-lgmp -lmpfr")
 
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release) #Debug for debugging, Release for performance
+  set(CMAKE_BUILD_TYPE Debug) #Debug for debugging, Release for performance
 endif()
 
 #############################
@@ -62,7 +62,7 @@ install(TARGETS py_occlusions
 #    Testing Executable     #
 #############################
 add_executable(test)
-target_sources(test PRIVATE test.cpp src/driving_corridor.cpp)
+target_sources(test PRIVATE test.cpp src/driving_corridor.cpp src/utility.cpp)
 target_include_directories(test PRIVATE include/)
 add_definitions(-DCGAL_USE_BASIC_VIEWER -DQT_NO_KEYWORDS -DCGAL_EIGEN3_ENABLED)
 target_link_libraries(test PUBLIC CGAL::CGAL CGAL::CGAL_Core CGAL::CGAL_Qt5)

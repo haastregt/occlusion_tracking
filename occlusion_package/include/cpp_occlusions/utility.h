@@ -8,8 +8,6 @@
 namespace cpp_occlusions
 {
 
-const int DIM = 3;
-
 /// @brief  This Modifier will initialise a polyhedron based of an
 /// extruded polygon.
 template <class HDS> class InitialiseAsExtrudedPolygon : public CGAL::Modifier_base<HDS>
@@ -85,37 +83,7 @@ Polygon ProjectXY(Polyhedron &polyhedron);
 
 void DissolveCloseVertices(Polyhedron &polyhedron, float tolerance);
 
-// This might actually be possible to do with just std::transform() instead or using AffineTransformation_3 in CGAL
-/// @brief This MModifier performs a linear map on the polyhedron.
-/// Linear maps can be used to perform e.g. a skew operation with
-/// [1 0 dt; 0 1 0; 0 0 1] or a projection with [1 0 0; 0 1 0; 0 0 0].
-template <class HDS> class LinearMap : public CGAL::Modifier_base<HDS>
-{
-  public:
-    std::array<std::array<float, DIM>, DIM> map;
-
-    LinearMap(std::array<std::array<float, DIM>, DIM> m) : map(m)
-    {
-    }
-
-    void operator()(HDS &hds)
-    {
-    }
-};
-
-/* These cant be in a header file because it gets defined multiple times due to multiple includes
-/// @brief This modifier projects the polyhedron to the xy plane.
-LinearMap<HalfedgeDS> project_xy_modifier((std::array<std::array<float, DIM>, DIM>){{{1, 0, 0}, {0, 1, 0}, {0, 0, 0}}});
-
-/// @brief This modifier skews along x with the velocity
-/// @param dt time step to know how much to skew
-LinearMap<HalfedgeDS> skew_x_with_vel(float dt)
-{
-    std::array<std::array<float, DIM>, DIM> map = {{{1, 0, dt}, {0, 1, 0}, {0, 0, 1}}};
-    LinearMap<HalfedgeDS> skew(map);
-    return skew;
-}
-*/
+Polygon InsetPolygon(Polygon &polygon, float inset_distance);
 
 } // namespace cpp_occlusions
 

@@ -90,4 +90,26 @@ void DissolveCloseVertices(Polyhedron &polyhedron, float tolerance)
     }
 }
 
+Polygon InsetPolygon(Polygon &polygon, float inset_distance)
+{
+    Polygon inset_polygon;
+    for (auto vertex = polygon.vertices_begin(); vertex != polygon.vertices_end(); ++vertex)
+    {
+        auto prev_vertex = (vertex == polygon.vertices_begin()) ? polygon.vertices_end() - 1 : vertex - 1;
+        auto next_vertex = (vertex == polygon.vertices_end() - 1) ? polygon.vertices_begin() : vertex + 1;
+
+        CGAL::Vector_2<Kernel> prev_edge = *vertex - *prev_vertex;
+        CGAL::Vector_2<Kernel> next_edge = *next_vertex - *vertex;
+        double prev_edge_length = CGAL::sqrt(CGAL::to_double(prev_edge.squared_length()));
+        double next_edge_length = CGAL::sqrt(CGAL::to_double(next_edge.squared_length()));
+        CGAL::Vector_2<Kernel> bisector = next_edge_length * prev_edge + prev_edge_length * next_edge;
+        double bisector_length = CGAL::sqrt(CGAL::to_double(bisector.squared_length()));
+        bisector = bisector / bisector_length;
+
+        Point2 inset_vertex = *vertex + inset_distance * bisector.perpendicular(CGAL::COUNTERCLOCKWISE);
+        inset_polygon.push_back(inset_vertex);
+    }
+    return inset_polygon;
+}
+
 } // namespace cpp_occlusions
