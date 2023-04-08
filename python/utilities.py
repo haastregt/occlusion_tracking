@@ -173,6 +173,9 @@ def create_lane_shapes(lane):
     mapped_lane = ShapelyPolygon(mapped_lane_shape)
     assert mapped_lane.is_valid, "Mapped lane does not have a valid shape"
 
+    assert len(original_lane.exterior.coords[:]) == len(
+        mapped_lane.exterior.coords[:]), "Number of vertices for original and mapped polygons have to be the same"
+
     return original_lane, mapped_lane
 
 

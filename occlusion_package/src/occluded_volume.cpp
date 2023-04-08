@@ -13,9 +13,9 @@
 namespace cpp_occlusions
 {
 
-OccludedVolume::OccludedVolume(Polyhedron initial_polyhedron, const Polygon road_polygon,
+OccludedVolume::OccludedVolume(Polyhedron initial_polyhedron, DrivingCorridor *driving_corridor,
                                const ReachabilityParams params)
-    : _shadow_polyhedron(initial_polyhedron), _road_polygon(road_polygon), _params(params)
+    : _shadow_polyhedron(initial_polyhedron), _driving_corridor(driving_corridor), _params(params)
 {
 }
 
@@ -40,9 +40,16 @@ Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedr
     InitialiseAsExtrudedPolygon<HalfedgeDS> make_polyhedron(disk_polygon, std::pair<float, float>{0, 1E-15});
     disk.delegate(make_polyhedron);
 
+    // TODO: Some double conversions happening? Probably the transformations can use
+    // Nef as inputs and outputs
+    Polyhedron mapped_polyhedron = _driving_corridor->TransformOriginalToMapped(polyhedron);
     Nef_polyhedron nef_disk(disk);
     Nef_polyhedron nef(polyhedron);
-    return CGAL::minkowski_sum_3(nef, nef_disk);
+    Nef_polyhedron minkowski_sum = CGAL::minkowski_sum_3(nef, nef_disk);
+
+    Polyhedron result;
+    minkowski_sum.convert_to_polyhedron(result);
+    return Nef_polyhedron(result);
 }
 
 Nef_polyhedron OccludedVolume::VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron)
@@ -86,7 +93,7 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
     Nef_polyhedron copy;
     std::list<CGAL::Polygon_with_holes_2<Kernel>> output_list;
     InitialiseAsExtrudedPolygon<HalfedgeDS> extrude(Polygon(), std::pair<float, float>{_params.vmin, _params.vmax});
-    CGAL::difference(_road_polygon, sensor_view, std::back_inserter(output_list));
+    CGAL::difference(_driving_corridor->original_polygon, sensor_view, std::back_inserter(output_list));
 
     for (CGAL::Polygon_with_holes_2<Kernel> diff : output_list)
     {
@@ -114,7 +121,7 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
             copy.convert_to_polyhedron(P);
 
             DissolveCloseVertices(P, 0.001);
-            new_shadow_list.push_back(OccludedVolume(P, _road_polygon, _params));
+            new_shadow_list.push_back(OccludedVolume(P, _driving_corridor, _params));
         }
     }
 
@@ -127,7 +134,8 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
     occupancy_set.push_back(ProjectXY(_shadow_polyhedron));
 
     Polyhedron P;
-    InitialiseAsExtrudedPolygon<HalfedgeDS> extrude(_road_polygon, std::pair<float, float>{_params.vmin, _params.vmax});
+    InitialiseAsExtrudedPolygon<HalfedgeDS> extrude(_driving_corridor->original_polygon,
+                                                    std::pair<float, float>{_params.vmin, _params.vmax});
     P.delegate(extrude);
     Nef_polyhedron nef_road(P);
 
@@ -146,7 +154,8 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
                 VelocityAbstraction(_params.dt * _params.prediction_interval * i, _shadow_polyhedron);
             occupancy *= velocity_abstraction;
         }
-
+        // TODO: This is redundant since the mapping used in the Velocity abstraction already
+        // takes the intersection with the road
         occupancy *= nef_road;
 
         P = Polyhedron();
@@ -156,6 +165,16 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
 
     std::list<Polygon> placeholder;
     return occupancy_set;
+}
+
+Polyhedron OccludedVolume::GetPolyhedron()
+{
+    return _shadow_polyhedron;
+}
+
+DrivingCorridor *OccludedVolume::GetDrivingCorridor()
+{
+    return _driving_corridor;
 }
 
 } // namespace cpp_occlusions

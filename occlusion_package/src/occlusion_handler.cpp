@@ -1,4 +1,5 @@
 #include "cpp_occlusions/occlusion_handler.h"
+#include "cpp_occlusions/driving_corridor.h"
 #include "cpp_occlusions/utility.h"
 
 #include <CGAL/Boolean_set_operations_2.h>
@@ -9,7 +10,8 @@
 namespace cpp_occlusions
 {
 
-OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons, Polygon initial_sensor_view,
+OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
+                                   std::list<Polygon> mapped_driving_corridor_polygons, Polygon initial_sensor_view,
                                    int init_time_step, ReachabilityParams params)
     : _params(params), _time_step(init_time_step)
 {
@@ -25,17 +27,26 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
         initial_sensor_view.reverse_orientation();
     }
 
-    for (Polygon driving_corridor : driving_corridor_polygons)
+    std::list<Polygon>::iterator mapped_it = mapped_driving_corridor_polygons.begin();
+    for (Polygon driving_corridor_poly : driving_corridor_polygons)
     {
-        if (!driving_corridor.is_counterclockwise_oriented())
+        if (!driving_corridor_poly.is_counterclockwise_oriented())
         {
-            driving_corridor.reverse_orientation();
+            driving_corridor_poly.reverse_orientation();
+            mapped_it->reverse_orientation();
         }
+        assert(mapped_it->is_counterclockwise_oriented() &&
+               "original and mapped driving corridors should have same orientation");
+
+        // TODO: This technically creates a memory leak. Maybe add these pointers to an array
+        // for which each element will be deleted in the OcclusionHandler destructor. However
+        // since there is just one Occlusion Handler per simulation, it should not really matter.
+        DrivingCorridor *driving_corridor = new DrivingCorridor(driving_corridor_poly, *mapped_it);
 
         std::list<OccludedVolume> corridor;
 
         output_list.clear();
-        CGAL::difference(driving_corridor, initial_sensor_view, std::back_inserter(output_list));
+        CGAL::difference(driving_corridor_poly, initial_sensor_view, std::back_inserter(output_list));
 
         for (CGAL::Polygon_with_holes_2<Kernel> diff : output_list)
         {
@@ -56,6 +67,8 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
             num_shadows += corridor.size();
             _shadow_list_by_corridor.push_back(corridor);
         }
+
+        ++mapped_it;
     }
 
     // for debugging exploding shadows
@@ -86,7 +99,7 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
     _shadow_list_by_corridor.clear();
     for (auto corridor : copy_shadow_list_by_corridor)
     {
-        Polygon road_polygon = corridor.begin()->_road_polygon;
+        DrivingCorridor *driving_corridor = corridor.begin()->GetDrivingCorridor();
 
         std::list<Nef_polyhedron> nef_list;
         for (OccludedVolume shadow : corridor)
@@ -95,7 +108,7 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
             {
                 // Check if this intersects with another shadow in this corridor, if so merge
                 bool is_double = false;
-                Nef_polyhedron nef_new(new_shadow._shadow_polyhedron);
+                Nef_polyhedron nef_new(new_shadow.GetPolyhedron());
 
                 for (Nef_polyhedron &nef_existing : nef_list)
                 {
@@ -119,7 +132,7 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
         {
             Polyhedron P;
             nef.convert_to_polyhedron(P);
-            new_corridor.push_back(OccludedVolume(P, road_polygon, _params));
+            new_corridor.push_back(OccludedVolume(P, driving_corridor, _params));
         }
         num_shadows += new_corridor.size();
 

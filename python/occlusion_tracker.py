@@ -11,6 +11,8 @@ from py_occlusions import ReachabilityParams, OcclusionHandler
 
 import matplotlib.pyplot as plt
 
+from shapely.geometry import Polygon
+
 
 class OcclusionTracker:
     time_step: int
@@ -47,18 +49,24 @@ class OcclusionTracker:
                 lanelet, scenario.lanelet_network, max_length=500)
             for lane in current_lanes:
                 original, mapped = create_lane_shapes(lane)
-                print(original)
                 lanes.append(original)
                 mapped_lanes.append(mapped)
-                # lanelet_shapely = Lanelet2ShapelyPolygon(lane)
-                # lanelet_processed = ShapelyRemoveDoublePoints(
-                #     lanelet_shapely, 0.1)
-                # lanes.append(lanelet_processed)
 
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
-        print(lanes[0])
+
+        test_lane = Polygon(
+            [[-2, 0], [0, 0], [0, -1], [1, -1], [1, 0.5], [0.5, 1], [-2, 1]])
+        plt.plot(*test_lane.exterior.xy)
+        test_lane_mapped = Polygon(
+            [[0, 0], [2, 0], [3, 0], [3, 1], [2, 1], [1.5, 1], [0, 1]])
+        plt.plot(*test_lane_mapped.exterior.xy)
+        test_view = Polygon(
+            [[-3, -2], [2, -2], [2, 0], [0, 0], [0, 2], [-3, 2]])
+        plt.plot(*test_view.exterior.xy)
+        plt.show()
+
         self.occlusion_handler = OcclusionHandler(
-            [lanes[0]], sensor_view_processed, self.time_step, self.params)
+            [lanes[0]], [mapped_lanes[0]], sensor_view_processed, self.time_step, self.params)
 
     def update(self, sensor_view, new_time_step):
         self.time_step = new_time_step

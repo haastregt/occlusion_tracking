@@ -14,8 +14,8 @@ class OcclusionHandler
     std::list<std::list<OccludedVolume>> _shadow_list_by_corridor;
 
   public:
-    OcclusionHandler(std::list<Polygon> driving_corridor_polygons, Polygon initial_sensor_view, int init_time_step,
-                     ReachabilityParams params);
+    OcclusionHandler(std::list<Polygon> driving_corridor_polygons, std::list<Polygon> mapped_driving_corridor_polygons,
+                     Polygon initial_sensor_view, int init_time_step, ReachabilityParams params);
 
     ~OcclusionHandler();
 

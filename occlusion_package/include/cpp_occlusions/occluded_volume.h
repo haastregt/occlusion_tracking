@@ -1,3 +1,4 @@
+#include "cpp_occlusions/driving_corridor.h"
 #include "cpp_occlusions/type_definitions.h"
 
 #ifndef OCCLUDED_VOLUME_H
@@ -10,6 +11,10 @@ class OccludedVolume
 {
   private:
     const ReachabilityParams _params;
+
+    DrivingCorridor *_driving_corridor;
+
+    Polyhedron _shadow_polyhedron;
 
     /// @brief Applies the velocity reachability abstraction: R_Mvel(P) = { [x, y, v] | [x, y] in projxy(R_Macc(P)) +
     /// Circle(Vmax*dt), x in vbounds}
@@ -34,11 +39,7 @@ class OccludedVolume
     Nef_polyhedron AccelerationAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron);
 
   public:
-    const Polygon _road_polygon;
-
-    Polyhedron _shadow_polyhedron;
-
-    OccludedVolume(Polyhedron initial_polyhedron, const Polygon road_polygon, const ReachabilityParams params);
+    OccludedVolume(Polyhedron initial_polyhedron, DrivingCorridor *driving_corridor, const ReachabilityParams params);
 
     ~OccludedVolume();
 
@@ -53,6 +54,14 @@ class OccludedVolume
     /// generate the occupancies for
     /// @return Array of Polygons for the occupancy within each time interval. The first polygon is the shadow itself.
     std::list<Polygon> ComputeFutureOccupancies();
+
+    /// @brief Getter for the private _shadow_polyhedron variable
+    /// @return The shadow polyhedron
+    Polyhedron GetPolyhedron();
+
+    /// @brief Getter for the private _driving_corridor variable
+    /// @return The driving corridor for the shadow
+    DrivingCorridor *GetDrivingCorridor();
 };
 
 } // namespace cpp_occlusions
