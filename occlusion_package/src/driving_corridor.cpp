@@ -107,7 +107,6 @@ Polyhedron DrivingCorridor::TransformMappedToOriginal(Polyhedron &input_polyhedr
     Nef_polyhedron nef_input(input_polyhedron);
     nef_input *= _target_polyhedron;
     nef_input.convert_to_polyhedron(polyhedron);
-    std::cout << "Mapping to original. After intersection with inset, is empty? " << polyhedron.is_empty() << std::endl;
 
     Point_range points;
     for (auto vert_it = polyhedron.vertices_begin(); vert_it != polyhedron.vertices_end(); ++vert_it)
@@ -116,9 +115,7 @@ Polyhedron DrivingCorridor::TransformMappedToOriginal(Polyhedron &input_polyhedr
         Point2 exact_point(vert_it->point().x(), vert_it->point().y());
         points.push_back(to_inexact(exact_point));
     }
-    std::cout << "Extracted points" << std::endl;
     Point_range transformed_points = TransformTargetToSource(points);
-    std::cout << "Transformed points" << std::endl;
     Polyhedron::Vertex_iterator vert_it = polyhedron.vertices_begin();
     for (int i = 0; i < polyhedron.size_of_vertices(); i++)
     {

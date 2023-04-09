@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS=ON)
 set(CMAKE_CXX_FLAGS "-lgmp -lmpfr")
 
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Debug) #Debug for debugging, Release for performance
+  set(CMAKE_BUILD_TYPE Release) #Debug for debugging, Release for performance
 endif()
 
 #############################
