@@ -54,17 +54,6 @@ class OcclusionTracker:
 
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
 
-        test_lane = Polygon(
-            [[-2, 0], [0, 0], [0, -1], [1, -1], [1, 0.5], [0.5, 1], [-2, 1]])
-        plt.plot(*test_lane.exterior.xy)
-        test_lane_mapped = Polygon(
-            [[0, 0], [2, 0], [3, 0], [3, 1], [2, 1], [1.5, 1], [0, 1]])
-        plt.plot(*test_lane_mapped.exterior.xy)
-        test_view = Polygon(
-            [[-3, -2], [2, -2], [2, 0], [0, 0], [0, 2], [-3, 2]])
-        plt.plot(*test_view.exterior.xy)
-        plt.show()
-
         self.occlusion_handler = OcclusionHandler(
             [lanes[0]], [mapped_lanes[0]], sensor_view_processed, self.time_step, self.params)
 

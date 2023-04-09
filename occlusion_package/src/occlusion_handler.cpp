@@ -4,9 +4,6 @@
 
 #include <CGAL/Boolean_set_operations_2.h>
 
-#include <CGAL/draw_polygon_2.h>
-#include <CGAL/draw_polyhedron.h>
-
 namespace cpp_occlusions
 {
 
@@ -104,8 +101,15 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
         std::list<Nef_polyhedron> nef_list;
         for (OccludedVolume shadow : corridor)
         {
+            bool has_split = false;
             for (OccludedVolume new_shadow : shadow.Propagate(dt, sensor_view))
             {
+                if (has_split)
+                {
+                    std::cout << "SHADOW HAS SPLIT" << std::endl;
+                }
+                has_split = true;
+
                 // Check if this intersects with another shadow in this corridor, if so merge
                 bool is_double = false;
                 Nef_polyhedron nef_new(new_shadow.GetPolyhedron());
@@ -116,6 +120,7 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
                     {
                         nef_existing += nef_new;
                         is_double = true;
+                        std::cout << "MERGING A SHADOW" << std::endl;
                         break;
                     }
                 }
@@ -146,15 +151,17 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
 std::list<std::list<Polygon>> OcclusionHandler::GetReachableSets()
 {
     std::list<std::list<Polygon>> occupancy_lists;
-
+    std::cout << "Getting reachable sets" << std::endl;
     for (auto shadow_list : _shadow_list_by_corridor)
     {
+        std::cout << "Iterating over corridors" << std::endl;
         for (OccludedVolume shadow : shadow_list)
         {
+            std::cout << "Iterating over shadows " << std::endl;
             occupancy_lists.push_back(shadow.ComputeFutureOccupancies());
         }
     }
-
+    std::cout << "Computed Occupancy list" << std::endl;
     return occupancy_lists;
 }
 

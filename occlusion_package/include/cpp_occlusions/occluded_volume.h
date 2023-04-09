@@ -38,6 +38,8 @@ class OccludedVolume
     /// @param polyhedron The polyhedron that the abstraction is applied to
     Nef_polyhedron AccelerationAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron);
 
+    void Debug(int i);
+
   public:
     OccludedVolume(Polyhedron initial_polyhedron, DrivingCorridor *driving_corridor, const ReachabilityParams params);
 

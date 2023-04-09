@@ -1,9 +1,9 @@
 #GENERAL
-simulation_duration : 5
+simulation_duration : 25
 
 #EGO_VEHICLE
 initial_state_x : 70
-initial_state_y : -23
+initial_state_y : -23 #was -23
 initial_state_orientation: 1.57
 initial_state_velocity: 0 #was 9
 

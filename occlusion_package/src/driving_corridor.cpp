@@ -1,8 +1,6 @@
 #include "cpp_occlusions/driving_corridor.h"
 #include "cpp_occlusions/utility.h"
 
-#include <CGAL/draw_polygon_2.h>
-
 namespace cpp_occlusions
 {
 
@@ -13,9 +11,6 @@ DrivingCorridor::DrivingCorridor(Polygon lane_polygon, Polygon transformed_polyg
 {
     assert(_source_shape.size() == _target_shape.size());
 
-    std::cout << "Creating a driving corridor with \n lane polygon: " << lane_polygon << "\n and transformed polygon"
-              << transformed_polygon << std::endl;
-
     IPoint2 seed = GetPointInside(lane_polygon);
     const Point_range seeds_source = {seed};
     _source_domain.create(_max_edge_length, seeds_source);
@@ -23,7 +18,6 @@ DrivingCorridor::DrivingCorridor(Polygon lane_polygon, Polygon transformed_polyg
     seed = GetPointInside(transformed_polygon);
     const Point_range seeds_target = {seed};
     _target_domain.create(_max_edge_length, seeds_target);
-    std::cout << "Set up the domains" << std::endl;
 
     // We have to create Nef polyhedra that are slightly insetted to intersect the
     // inputs prior to a mapping, otherwise points could be outside the domain and
@@ -31,10 +25,6 @@ DrivingCorridor::DrivingCorridor(Polygon lane_polygon, Polygon transformed_polyg
     // Polyhedra.
     Polygon inset_lane = InsetPolygon(lane_polygon, 0.01);
     Polygon inset_transformed = InsetPolygon(transformed_polygon, 0.01);
-    std::cout << "Inset lane: " << inset_lane << std::endl;
-    CGAL::draw(inset_lane);
-    std::cout << "Inset transformed: " << inset_transformed << std::endl;
-    CGAL::draw(inset_transformed);
 
     InitialiseAsExtrudedPolygon<HalfedgeDS> extrude(inset_lane, std::pair<float, float>{-100, 100});
     Polyhedron P = Polyhedron();
@@ -59,7 +49,6 @@ IPoint2 DrivingCorridor::GetPointInside(Polygon polygon)
     {
         if (polygon.has_on_positive_side(vertex + vec))
         {
-            std::cout << "Seed is: " << IPoint2(to_inexact(vertex + vec)) << std::endl;
             return IPoint2(to_inexact(vertex + vec));
         }
         vec = vec.perpendicular(CGAL::COUNTERCLOCKWISE);
@@ -89,21 +78,15 @@ Polyhedron DrivingCorridor::TransformOriginalToMapped(Polyhedron &input_polyhedr
     nef_input *= _source_polyhedron;
     nef_input.convert_to_polyhedron(polyhedron);
 
-    std::cout << "Input polyhedron is valid? " << input_polyhedron.is_valid() << std::endl;
-    std::cout << "After intersection it is valid? " << polyhedron.is_valid() << std::endl;
-
     Point_range points;
     for (auto vert_it = polyhedron.vertices_begin(); vert_it != polyhedron.vertices_end(); ++vert_it)
     {
         // Transform to IK since Harmonic Coordinates cant use exact coords
         Point2 exact_point(vert_it->point().x(), vert_it->point().y());
         points.push_back(to_inexact(exact_point));
-        std::cout << "Extracted point: " << to_inexact(exact_point) << std::endl;
     }
 
-    std::cout << "Going to transform points" << std::endl;
     Point_range transformed_points = TransformSourceToTarget(points);
-    std::cout << "Transformed points" << std::endl;
 
     Polyhedron::Vertex_iterator vert_it = polyhedron.vertices_begin();
     for (int i = 0; i < polyhedron.size_of_vertices(); i++)
@@ -124,9 +107,7 @@ Polyhedron DrivingCorridor::TransformMappedToOriginal(Polyhedron &input_polyhedr
     Nef_polyhedron nef_input(input_polyhedron);
     nef_input *= _target_polyhedron;
     nef_input.convert_to_polyhedron(polyhedron);
-
-    std::cout << "Input polyhedron is valid? " << input_polyhedron.is_valid() << std::endl;
-    std::cout << "After intersection it is valid? " << polyhedron.is_valid() << std::endl;
+    std::cout << "Mapping to original. After intersection with inset, is empty? " << polyhedron.is_empty() << std::endl;
 
     Point_range points;
     for (auto vert_it = polyhedron.vertices_begin(); vert_it != polyhedron.vertices_end(); ++vert_it)
@@ -135,9 +116,9 @@ Polyhedron DrivingCorridor::TransformMappedToOriginal(Polyhedron &input_polyhedr
         Point2 exact_point(vert_it->point().x(), vert_it->point().y());
         points.push_back(to_inexact(exact_point));
     }
-
+    std::cout << "Extracted points" << std::endl;
     Point_range transformed_points = TransformTargetToSource(points);
-
+    std::cout << "Transformed points" << std::endl;
     Polyhedron::Vertex_iterator vert_it = polyhedron.vertices_begin();
     for (int i = 0; i < polyhedron.size_of_vertices(); i++)
     {
@@ -159,8 +140,6 @@ Point_range DrivingCorridor::TransformTargetToSource(Point_range coordinates) co
     Point_range transformed_points;
     for (IPoint2 coords : coordinates)
     {
-        std::cout << "Our coords are " << coords << std::endl;
-
         std::vector<double> hc;
         harmonic_coordinates(coords, std::back_inserter(hc));
 
@@ -174,7 +153,6 @@ Point_range DrivingCorridor::TransformTargetToSource(Point_range coordinates) co
         }
 
         transformed_points.push_back(IPoint2(x, y));
-        std::cout << "Our transformed coords are " << IPoint2(x, y) << std::endl;
     }
 
     return transformed_points;
@@ -184,15 +162,12 @@ Point_range DrivingCorridor::TransformSourceToTarget(Point_range coordinates) co
 {
     // TODO: This can probably be precomputed
     Harmonic_coordinates_2 harmonic_coordinates(_source_shape, _source_domain);
-    std::cout << "Set up harmonic coordinates" << std::endl;
     harmonic_coordinates.compute();
-    std::cout << "Computed coordinates" << std::endl;
 
     Point_range transformed_points;
     for (IPoint2 coords : coordinates)
     {
         std::vector<double> hc;
-        std::cout << "Our coords are " << coords << std::endl;
         harmonic_coordinates(coords, std::back_inserter(hc));
 
         IKernel::FT x = IKernel::FT(0);
@@ -205,7 +180,6 @@ Point_range DrivingCorridor::TransformSourceToTarget(Point_range coordinates) co
         }
 
         transformed_points.push_back(IPoint2(x, y));
-        std::cout << "Our transformed coords are " << IPoint2(x, y) << std::endl;
     }
 
     return transformed_points;

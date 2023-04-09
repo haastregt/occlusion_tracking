@@ -2,9 +2,6 @@
 
 #include <CGAL/Boolean_set_operations_2.h>
 
-#include <CGAL/draw_polygon_2.h>
-#include <CGAL/draw_polyhedron.h>
-
 namespace cpp_occlusions
 {
 
