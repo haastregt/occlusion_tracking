@@ -1,6 +1,9 @@
 #include "cpp_occlusions/occluded_volume.h"
 #include "cpp_occlusions/utility.h"
 
+#include <cmath>
+
+#include <CGAL/Aff_transformation_3.h>
 #include <CGAL/Boolean_set_operations_2.h>
 #include <CGAL/Polygon_mesh_processing/measure.h>
 #include <CGAL/Surface_mesh.h>
@@ -69,8 +72,58 @@ Nef_polyhedron OccludedVolume::VelocityAbstraction(std::pair<float, float> time_
 
 Nef_polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron polyhedron)
 {
-    Nef_polyhedron placeholder;
-    return placeholder;
+    // Acceleration abstraction: P = A*P + B*Ubounds, with A = [1,0,dt; 0,1,0; 0,0,1] and B = [0.5dt^2, 0; 0, dt; dt, 0]
+    CGAL::Aff_transformation_3<Kernel> A(Kernel::RT(1), Kernel::RT(0), Kernel::RT(dt), Kernel::RT(0), Kernel::RT(1),
+                                         Kernel::RT(0), Kernel::RT(0), Kernel::RT(0), Kernel::RT(1));
+
+    // B*Ubounds is a rectangular cuboid:
+    float xu = 0.5 * pow(dt, 2) * _params.amax;
+    float xl = 0.5 * pow(dt, 2) * _params.amin;
+    float yu = dt * _params.vlatmax;
+    float yl = -dt * _params.vlatmax;
+    float vu = dt * _params.amax;
+    float vl = dt * _params.amin;
+
+    Polygon rect;
+    rect.push_back(Point2(xu, yu));
+    rect.push_back(Point2(xl, yu));
+    rect.push_back(Point2(xl, yl));
+    rect.push_back(Point2(xu, yl));
+
+    Polyhedron input;
+    InitialiseAsExtrudedPolygon<HalfedgeDS> make_cuboid(rect, std::pair<float, float>{vl, vu});
+    input.delegate(make_cuboid);
+
+    // Also make a cuboid for the velocity bounds (This should maybe be its own abstraction for clarity)
+    Polygon full;
+    full.push_back(Point2(1E15, 1E15));
+    full.push_back(Point2(-1E15, 1E15));
+    full.push_back(Point2(-1E15, -1E15));
+    full.push_back(Point2(1E15, -1E15));
+
+    Polyhedron vbounds;
+    make_cuboid.polygon = full;
+    make_cuboid.bounds = std::pair<float, float>{_params.vmin, _params.vmax};
+    vbounds.delegate(make_cuboid);
+
+    // Now compute the abstraction
+    Polyhedron P = _driving_corridor->TransformOriginalToMapped(polyhedron);
+    CGAL::convex_hull_3(P.points_begin(), P.points_end(), P);
+
+    std::transform(P.points_begin(), P.points_end(), P.points_begin(), A);
+
+    Nef_polyhedron P_nef(P);
+    Nef_polyhedron input_nef(input);
+    P_nef = CGAL::minkowski_sum_3(P_nef, input_nef);
+
+    Nef_polyhedron vbounds_nef(vbounds);
+    P_nef *= vbounds_nef;
+
+    P_nef.convert_to_polyhedron(P);
+    P = _driving_corridor->TransformMappedToOriginal(P);
+    CGAL::convex_hull_3(P.points_begin(), P.points_end(), P);
+
+    return Nef_polyhedron(P);
 }
 
 Nef_polyhedron OccludedVolume::AccelerationAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron)
@@ -89,9 +142,8 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
 
     if (_params.velocity_tracking_enabled)
     {
-        // TODO:
-        // Nef_polyhedron acceleration_abstraction = AccelerationAbstraction(dt, _shadow_polyhedron);
-        // new_shadow *= acceleration_abstraction;
+        Nef_polyhedron acceleration_abstraction = AccelerationAbstraction(dt, _shadow_polyhedron);
+        new_shadow *= acceleration_abstraction;
     }
     else
     {
@@ -155,7 +207,9 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
 
         if (_params.velocity_tracking_enabled)
         {
-            // TODO: Other abstractions
+            Nef_polyhedron velocity_abstraction =
+                AccelerationAbstraction(_params.dt * _params.prediction_interval * i, _shadow_polyhedron);
+            occupancy *= velocity_abstraction;
         }
         else
         {

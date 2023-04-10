@@ -38,7 +38,8 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
         // TODO: This technically creates a memory leak. Maybe add these pointers to an array
         // for which each element will be deleted in the OcclusionHandler destructor. However
         // since there is just one Occlusion Handler per simulation, it should not really matter.
-        DrivingCorridor *driving_corridor = new DrivingCorridor(driving_corridor_poly, *mapped_it);
+        DrivingCorridor *driving_corridor =
+            new DrivingCorridor(driving_corridor_poly, *mapped_it, 1 / _params.mapping_quality);
 
         std::list<OccludedVolume> corridor;
 

@@ -25,11 +25,13 @@ struct ReachabilityParams
     float vmax;
     float amin;
     float amax;
+    float vlatmax;
 
     float dt;
     int prediction_interval;
     int prediction_horizon;
     float min_shadow_volume;
+    float mapping_quality;
 
     bool velocity_tracking_enabled;
 };

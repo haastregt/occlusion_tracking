@@ -22,10 +22,12 @@ PYBIND11_MODULE(py_occlusions, m)
         .def_readwrite("vmax", &cpp_occlusions::ReachabilityParams::vmax)
         .def_readwrite("amin", &cpp_occlusions::ReachabilityParams::amin)
         .def_readwrite("amax", &cpp_occlusions::ReachabilityParams::amax)
+        .def_readwrite("vlatmax", &cpp_occlusions::ReachabilityParams::vlatmax)
         .def_readwrite("dt", &cpp_occlusions::ReachabilityParams::dt)
         .def_readwrite("prediction_interval", &cpp_occlusions::ReachabilityParams::prediction_interval)
         .def_readwrite("prediction_horizon", &cpp_occlusions::ReachabilityParams::prediction_horizon)
         .def_readwrite("min_shadow_volume", &cpp_occlusions::ReachabilityParams::min_shadow_volume)
+        .def_readwrite("mapping_quality", &cpp_occlusions::ReachabilityParams::mapping_quality)
         .def_readwrite("velocity_tracking_enabled", &cpp_occlusions::ReachabilityParams::velocity_tracking_enabled);
 }
 

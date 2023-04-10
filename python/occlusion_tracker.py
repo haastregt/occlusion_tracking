@@ -23,10 +23,12 @@ class OcclusionTracker:
         params.vmax = config.get('vmax')
         params.amin = config.get('amin')
         params.amax = config.get('amax')
+        params.vlatmax = config.get('vlatmax')
         params.dt = config.get('dt')
         params.prediction_interval = config.get('prediction_interval')
         params.prediction_horizon = config.get('prediction_horizon')
         params.min_shadow_volume = config.get('min_shadow_volume')
+        params.mapping_quality = config.get('mapping_quality')
         params.velocity_tracking_enabled = config.get(
             'velocity_tracking_enabled')
         self.params = params
