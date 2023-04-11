@@ -1,22 +1,22 @@
 #GENERAL
-simulation_duration : 1
+simulation_duration : 25
 
 #EGO_VEHICLE
-initial_state_x : 70
-initial_state_y : -23 #was -23
-initial_state_orientation: 1.57
-initial_state_velocity: 9 #was 9
+initial_state_x : 0 #was 3
+initial_state_y : -29.5366 #was -23
+initial_state_orientation: 0
+initial_state_velocity: 12 #was 9
 
 vehicle_type : car
 vehicle_length : 4.8
 vehicle_width : 2
 goal_point_x : 40
-goal_point_y : 5
+goal_point_y : -30
 
 #PLANNER
-reference_speed : 9
+reference_speed : 12
 max_acceleration : 2
-max_deceleration : 4
+max_deceleration : 6
 planning_horizon : 50
 safety_margin : 1.2
 
@@ -37,4 +37,5 @@ occlusion_params:
   prediction_horizon : 20
   min_shadow_volume : 1.0
   mapping_quality : 1
-  velocity_tracking_enabled : True
+  simplification_precision: 0.1
+  velocity_tracking_enabled : False

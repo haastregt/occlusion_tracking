@@ -1,7 +1,7 @@
   time_begin: 0
   time_end: 1
   antialiased: true
-  opacity: 1
+  opacity: 0.5
   facecolor: '#E5E5FF'
   edgecolor: '#E5E5FF'
   linewidth: 0.5

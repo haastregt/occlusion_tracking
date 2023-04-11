@@ -85,6 +85,8 @@ void DissolveCloseVertices(Polyhedron &polyhedron, float tolerance);
 
 Polygon InsetPolygon(Polygon &polygon, float inset_distance);
 
+void SimplifyPolyhedron(Polyhedron& poly, float precision);
+
 } // namespace cpp_occlusions
 
 #endif

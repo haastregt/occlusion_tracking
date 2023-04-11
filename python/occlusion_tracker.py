@@ -29,12 +29,14 @@ class OcclusionTracker:
         params.prediction_horizon = config.get('prediction_horizon')
         params.min_shadow_volume = config.get('min_shadow_volume')
         params.mapping_quality = config.get('mapping_quality')
+        params.simplification_precision = config.get('simplification_precision')
         params.velocity_tracking_enabled = config.get(
             'velocity_tracking_enabled')
         self.params = params
 
-    def __init__(self, scenario, sensor_view, params, initial_time_step=0):
+    def __init__(self, scenario, sensor_view, params, planning_horizon, initial_time_step=0):
         self.time_step = initial_time_step
+        self.planning_horizon = planning_horizon
         self.load_params(params)
 
         # Find the initial lanelets
@@ -57,7 +59,7 @@ class OcclusionTracker:
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
 
         self.occlusion_handler = OcclusionHandler(
-            lanes, mapped_lanes, sensor_view_processed, self.time_step, self.params)
+            [lanes[1]], [mapped_lanes[1]], sensor_view_processed, self.time_step, self.params)
 
     def update(self, sensor_view, new_time_step):
         self.time_step = new_time_step
@@ -70,7 +72,6 @@ class OcclusionTracker:
 
         dynamic_obstacles = []
         for occupancy_set in occupancy_sets:
-
             occupancies = []
             # First element is the shape of the occlusion itself
             for i, polygon in enumerate(occupancy_set[1:]):
@@ -78,6 +79,11 @@ class OcclusionTracker:
                     occupancy = Occupancy(self.time_step+i*self.params.prediction_interval+k+1,
                                           ShapelyPolygon2Polygon(polygon))
                     occupancies.append(occupancy)
+
+ 
+            for i in range(self.params.prediction_horizon, self.planning_horizon):
+                #occupancy = Occupancy(self.time_step+i+1, ShapelyPolygon2Polygon((occupancy_set[-1])))
+                occupancy_set.append(occupancy)
 
             obstacle_id = scenario.generate_object_id()
             obstacle_type = ObstacleType.UNKNOWN

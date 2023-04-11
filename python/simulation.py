@@ -64,7 +64,7 @@ def step_simulation(scenario, configuration):
     sensor_view = sensor.get_sensor_view(scenario)
 
     occlusion_params = configuration.get('occlusion_params')
-    occ_track = OcclusionTracker(scenario, sensor_view, occlusion_params)
+    occ_track = OcclusionTracker(scenario, sensor_view, occlusion_params, configuration.get('planning_horizon'))
 
     planner = Planner(ego_vehicle.initial_state,
                       vehicle_shape=ego_vehicle.obstacle_shape,

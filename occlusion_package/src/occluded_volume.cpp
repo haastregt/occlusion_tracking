@@ -9,6 +9,7 @@
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/boost/graph/convert_nef_polyhedron_to_polygon_mesh.h>
 #include <CGAL/convex_hull_3.h>
+#include <CGAL/Polygon_mesh_processing/remesh.h>
 #include <CGAL/minkowski_sum_3.h>
 
 #include <CGAL/draw_nef_3.h>
@@ -96,10 +97,10 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron poly
 
     // Also make a cuboid for the velocity bounds (This should maybe be its own abstraction for clarity)
     Polygon full;
-    full.push_back(Point2(1E15, 1E15));
-    full.push_back(Point2(-1E15, 1E15));
-    full.push_back(Point2(-1E15, -1E15));
-    full.push_back(Point2(1E15, -1E15));
+    full.push_back(Point2(1E10, 1E10));
+    full.push_back(Point2(-1E10, 1E10));
+    full.push_back(Point2(-1E10, -1E10));
+    full.push_back(Point2(1E10, -1E10));
 
     Polyhedron vbounds;
     make_cuboid.polygon = full;
@@ -115,9 +116,6 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron poly
     Nef_polyhedron P_nef(P);
     Nef_polyhedron input_nef(input);
     P_nef = CGAL::minkowski_sum_3(P_nef, input_nef);
-
-    Nef_polyhedron vbounds_nef(vbounds);
-    P_nef *= vbounds_nef;
 
     P_nef.convert_to_polyhedron(P);
     P = _driving_corridor->TransformMappedToOriginal(P);
@@ -145,11 +143,13 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
         Nef_polyhedron acceleration_abstraction = AccelerationAbstraction(dt, _shadow_polyhedron);
         new_shadow *= acceleration_abstraction;
     }
-    else
-    {
-        Nef_polyhedron velocity_abstraction = VelocityAbstraction(dt, _shadow_polyhedron);
-        new_shadow *= velocity_abstraction;
-    }
+
+    Nef_polyhedron velocity_abstraction = VelocityAbstraction(dt, _shadow_polyhedron);
+    new_shadow *= velocity_abstraction;
+
+    new_shadow.convert_to_polyhedron(P);
+    SimplifyPolyhedron(P,_params.simplification_precision);
+    new_shadow = Nef_polyhedron(P);
 
     Nef_polyhedron copy;
     std::list<CGAL::Polygon_with_holes_2<Kernel>> output_list;
@@ -181,7 +181,7 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
             P = Polyhedron();
             copy.convert_to_polyhedron(P);
 
-            DissolveCloseVertices(P, 0.001);
+            //DissolveCloseVertices(P, 0.01);
             new_shadow_list.push_back(OccludedVolume(P, _driving_corridor, _params));
         }
     }
@@ -211,14 +211,11 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
                 AccelerationAbstraction(_params.dt * _params.prediction_interval * i, _shadow_polyhedron);
             occupancy *= velocity_abstraction;
         }
-        else
-        {
-            Nef_polyhedron velocity_abstraction =
-                VelocityAbstraction(_params.dt * _params.prediction_interval * i, _shadow_polyhedron);
-            occupancy *= velocity_abstraction;
-        }
-        // TODO: This is redundant since the mapping used in the Velocity abstraction already
-        // takes the intersection with the road
+
+        Nef_polyhedron velocity_abstraction =
+            VelocityAbstraction(_params.dt * _params.prediction_interval * i, _shadow_polyhedron);
+        occupancy *= velocity_abstraction;
+        
         occupancy *= nef_road;
 
         P = Polyhedron();

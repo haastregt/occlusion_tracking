@@ -32,6 +32,7 @@ struct ReachabilityParams
     int prediction_horizon;
     float min_shadow_volume;
     float mapping_quality;
+    float simplification_precision;
 
     bool velocity_tracking_enabled;
 };

@@ -1,6 +1,7 @@
 #include "cpp_occlusions/utility.h"
 
 #include <CGAL/Boolean_set_operations_2.h>
+#include <CGAL/convex_hull_3.h>
 
 namespace cpp_occlusions
 {
@@ -69,22 +70,29 @@ Polygon ProjectXY(Polyhedron &polyhedron)
 
 void DissolveCloseVertices(Polyhedron &polyhedron, float tolerance)
 {
-    for (auto vert_it = polyhedron.vertices_begin(); vert_it != polyhedron.vertices_end(); ++vert_it)
-    {
-        Polyhedron::Halfedge_around_vertex_circulator neighbour_it = vert_it->vertex_begin();
-        do
-        {
-            if (CGAL::squared_distance(neighbour_it->opposite()->vertex()->point(), vert_it->point()) <
-                tolerance * tolerance)
-            {
-                polyhedron.join_facet(neighbour_it->next());
-                polyhedron.join_facet(neighbour_it->opposite()->next());
-                polyhedron.join_vertex(neighbour_it);
-            }
-            break;
+    bool finished = false;
 
-        } while (++neighbour_it != vert_it->vertex_begin());
-    }
+    do 
+    {
+        finished = true;
+        for (auto vert_it = polyhedron.vertices_begin(); vert_it != polyhedron.vertices_end(); ++vert_it)
+        {
+            Polyhedron::Halfedge_around_vertex_circulator neighbour_it = vert_it->vertex_begin();
+            do
+            {
+                if (CGAL::squared_distance(neighbour_it->opposite()->vertex()->point(), vert_it->point()) <
+                    tolerance * tolerance)
+                {
+                    polyhedron.join_facet(neighbour_it->next());
+                    polyhedron.join_facet(neighbour_it->opposite()->next());
+                    polyhedron.join_vertex(neighbour_it);
+                    finished = false;
+                }
+                break;
+
+            } while (++neighbour_it != vert_it->vertex_begin());
+        }
+    } while (!finished);
 }
 
 Polygon InsetPolygon(Polygon &polygon, float inset_distance)
@@ -107,6 +115,24 @@ Polygon InsetPolygon(Polygon &polygon, float inset_distance)
         inset_polygon.push_back(inset_vertex);
     }
     return inset_polygon;
+}
+
+void SimplifyPolyhedron(Polyhedron& poly, float precision)
+{
+    for (auto vertex = poly.vertices_begin(); vertex != poly.vertices_end(); ++vertex)
+    {
+        Kernel::FT x = vertex->point().x();
+        Kernel::FT y = vertex->point().y();
+        Kernel::FT z = vertex->point().z();
+
+        x = std::round(CGAL::to_double(x)/precision) * precision;
+        y = std::round(CGAL::to_double(y)/precision) * precision;
+        z = std::round(CGAL::to_double(z)/precision) * precision;
+
+        vertex->point() = Point(x, y, z);
+    }
+
+    CGAL::convex_hull_3(poly.points_begin(), poly.points_end(), poly);
 }
 
 } // namespace cpp_occlusions
