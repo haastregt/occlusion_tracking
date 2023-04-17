@@ -59,7 +59,7 @@ class OcclusionTracker:
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
 
         self.occlusion_handler = OcclusionHandler(
-            [lanes[1]], [mapped_lanes[1]], sensor_view_processed, self.time_step, self.params)
+            lanes, mapped_lanes, sensor_view_processed, self.time_step, self.params)
 
     def update(self, sensor_view, new_time_step):
         self.time_step = new_time_step
