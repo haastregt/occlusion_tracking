@@ -14,6 +14,7 @@
 
 #include <CGAL/draw_nef_3.h>
 #include <CGAL/draw_polyhedron.h>
+#include <CGAL/draw_polygon_2.h>
 
 namespace cpp_occlusions
 {
@@ -33,7 +34,7 @@ Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedr
     int n = 4;                                   // Number of vertices to approximate the halfcircle
     float R = _params.vmax * dt / cos(M_PI / n); // Use apothem to make sure we have an over-approximation of the circle
     Polygon disk_polygon;
-    for (int i = 0; i < n; ++i)
+    for (int i = 0; i <= n; ++i)
     {
         float angle = i * M_PI / n - 0.5 * M_PI;
         float x = R * cos(angle);
@@ -180,6 +181,7 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
         {
             P = Polyhedron();
             copy.convert_to_polyhedron(P);
+            // CGAL::draw(copy);
 
             //DissolveCloseVertices(P, 0.01);
             new_shadow_list.push_back(OccludedVolume(P, _driving_corridor, _params));
@@ -207,9 +209,9 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
 
         if (_params.velocity_tracking_enabled)
         {
-            Nef_polyhedron velocity_abstraction =
+            Nef_polyhedron acceleration_abstraction =
                 AccelerationAbstraction(_params.dt * _params.prediction_interval * i, _shadow_polyhedron);
-            occupancy *= velocity_abstraction;
+            occupancy *= acceleration_abstraction;
         }
 
         Nef_polyhedron velocity_abstraction =
