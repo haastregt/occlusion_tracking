@@ -26,7 +26,7 @@ DrivingCorridor::DrivingCorridor(Polygon lane_polygon, Polygon transformed_polyg
     Polygon inset_lane = InsetPolygon(lane_polygon, 0.01);
     Polygon inset_transformed = InsetPolygon(transformed_polygon, 0.01);
 
-    InitialiseAsExtrudedPolygon<HalfedgeDS> extrude(inset_lane, std::pair<float, float>{-100, 100});
+    ExtrudeZ<HalfedgeDS> extrude(inset_lane, std::pair<float, float>{-100, 100});
     Polyhedron P = Polyhedron();
     P.delegate(extrude);
     _source_polyhedron = Nef_polyhedron(P);

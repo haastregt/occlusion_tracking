@@ -17,7 +17,7 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
 
     Polyhedron P;
     std::list<CGAL::Polygon_with_holes_2<Kernel>> output_list;
-    InitialiseAsExtrudedPolygon<HalfedgeDS> extrude(Polygon(), std::pair<float, float>{params.vmin, params.vmax});
+    ExtrudeZ<HalfedgeDS> extrude(Polygon(), std::pair<float, float>{params.vmin, params.vmax});
 
     if (!initial_sensor_view.is_counterclockwise_oriented())
     {

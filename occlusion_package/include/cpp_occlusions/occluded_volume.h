@@ -16,27 +16,28 @@ class OccludedVolume
 
     Polyhedron _shadow_polyhedron;
 
-    /// @brief Applies the velocity reachability abstraction: R_Mvel(P) = { [x, y, v] | [x, y] in projxy(R_Macc(P)) +
-    /// Circle(Vmax*dt), x in vbounds}
-    /// @param dt The time step into the future for which the reachability abstraction is computed
-    /// @param polyhedron The polyhedron that the abstraction is applied to
+    /// @brief Computes the reachability of the velocity abstraction: R_Mvel(P)
+    /// @param dt The time step into the future for which the reachability is computed
+    /// @param polyhedron The initial set of states
     Nef_polyhedron VelocityAbstraction(float dt, Polyhedron polyhedron);
 
-    /// @brief Applies the velocity reachability abstraction: R_Mvel(P) = { [x, y, v] | [x, y] in projxy(R_Macc(P)) +
-    /// Circle(Vmax*dt), x in vbounds}
-    /// @param time_interval The time interval over which the reachability abstraction is computed
-    /// @param polyhedron The polyhedron that the abstraction is applied to
+    /// @brief Computes the reachability of the velocity abstraction: R_Mvel(P)
+    /// @param time_interval The time interval over which the reachability is computed
+    /// @param polyhedron The initial set of states
     Nef_polyhedron VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron);
 
-    /// @brief  Applies the acceleration reachability abstraction: R_Macc(P) = { A*P + B*U_abounds }
-    /// @param dt The time step into the future for which the reachability abstraction is computed
-    /// @param polyhedron The polyhedron that the abstraction is applied to
+    /// @brief Computes the reachability of the acceleration abstraction: R_Macc(P)
+    /// @param dt The time step into the future for which the reachability is computed
+    /// @param polyhedron The initial set of states
     Nef_polyhedron AccelerationAbstraction(float dt, Polyhedron polyhedron);
 
-    /// @brief  Applies the acceleration reachability abstraction: R_Macc(P) = { A*P + B*U_abounds }
-    /// @param time_interval The time interval over which the reachability abstraction is computed
-    /// @param polyhedron The polyhedron that the abstraction is applied to
+    /// @brief Computes the reachability of the acceleration abstraction: R_Macc(P)
+    /// @param time_interval The time interval over which the reachability is computed
+    /// @param polyhedron The initial set of states
     Nef_polyhedron AccelerationAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron);
+
+    Nef_polyhedron VelocityAbstractionObsolete(float dt, Polyhedron polyhedron);
+    Nef_polyhedron AccelerationAbstractionObsolete(float dt, Polyhedron polyhedron);
 
   public:
     OccludedVolume(Polyhedron initial_polyhedron, DrivingCorridor *driving_corridor, const ReachabilityParams params);

@@ -50,7 +50,69 @@ Polygon ProjectXY(Polyhedron &polyhedron)
 
         previous_points.clear();
 
-        if (polygon.size() < 3)
+        if (polygon.size() < 3 || !polygon.is_simple())
+        {
+            // Then it would just be a point or line. Dont add this polygon to the list.
+            // This happens for instance when one of the faces is perpendicular to the xy plane
+            continue;
+        }
+
+        if (polygon.orientation() == CGAL::POSITIVE)
+        {
+            ii.push_back(polygon);
+        }
+    }
+    CGAL::join(ii.begin(), ii.end(), std::back_inserter(oi));
+
+    // The projection should result in just one polygon
+    return oi.front().outer_boundary();
+}
+
+Polygon ProjectXZ(Polyhedron &polyhedron)
+{
+    bool add_point = true;
+
+    Polygon polygon;
+    std::list<Point> previous_points;
+    std::vector<Polygon> ii;
+    std::vector<Polygon_wh> oi;
+
+    for (auto s = polyhedron.facets_begin(); s != polyhedron.facets_end(); ++s)
+    {
+        auto h = s->facet_begin(), he(h);
+
+        polygon = Polygon();
+        do
+        {
+            Point p1 = h->vertex()->point();
+            if (previous_points.empty())
+            {
+                polygon.insert(polygon.vertices_end(), Point2(p1.x(), p1.z()));
+                previous_points.push_back(p1);
+            }
+            else
+            {
+                for (Point previous_point : previous_points)
+                {
+                    if (p1.x() == previous_point.x() && p1.z() == previous_point.z())
+                    {
+                        add_point = false;
+                        break;
+                    }
+                }
+
+                if (add_point)
+                {
+                    polygon.insert(polygon.vertices_end(), Point2(p1.x(), p1.z()));
+                    previous_points.push_back(p1);
+                }
+            }
+            add_point = true;
+        } while (++h != he);
+
+        previous_points.clear();
+
+        if (polygon.size() < 3 || !polygon.is_simple())
         {
             // Then it would just be a point or line. Dont add this polygon to the list.
             // This happens for instance when one of the faces is perpendicular to the xy plane
