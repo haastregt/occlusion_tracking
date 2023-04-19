@@ -241,10 +241,8 @@ def find_RSS_distance(ego_vehicle, scenario, config):
                 continue
 
             ego_pos = ego_vehicle.prediction.trajectory.state_list[t].position
-            ego_ori = ego_vehicle.prediction.trajectory.state_list[t].orientation
-
+            angle = np.arccos(np.dot(ego_pos,traffic_pos)/(np.linalg.norm(ego_pos)*np.linalg.norm(traffic_pos)))
             diff = traffic_pos - ego_pos
-            angle = np.arctan(diff[1]/diff[0]) - ego_ori
             distance = np.linalg.norm(diff)
             if not np.abs(angle) < np.pi/2:
                 continue
