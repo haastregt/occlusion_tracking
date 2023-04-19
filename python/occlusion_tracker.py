@@ -103,3 +103,6 @@ class OcclusionTracker:
             dynamic_obstacles.append(dynamic_obstacle)
 
         return dynamic_obstacles
+
+    def get_shadows(self):
+        return self.occlusion_handler.export_shadows()

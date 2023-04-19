@@ -9,7 +9,6 @@ from commonroad.geometry.shape import Rectangle
 from planner import Planner
 from sensor import Sensor
 from occlusion_tracker import OcclusionTracker
-from py_occlusions import ReachabilityParams
 
 from tqdm import tqdm
 
@@ -120,4 +119,4 @@ def step_simulation(scenario, configuration):
     driven_trajectory_pred = TrajectoryPrediction(
         driven_trajectory, ego_vehicle.obstacle_shape)
     ego_vehicle.prediction = driven_trajectory_pred
-    return ego_vehicle, percieved_scenarios, sensor_views
+    return ego_vehicle, percieved_scenarios, sensor_views, occ_track.get_shadows()

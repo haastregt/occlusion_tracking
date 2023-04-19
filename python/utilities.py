@@ -194,9 +194,6 @@ def create_lane_shapes(lane):
     assert len(original_lane.exterior.coords[:]) == len(
         mapped_lane.exterior.coords[:]), "Number of vertices for original and mapped polygons have to be the same"
 
-    plot_polygon(original_lane)
-    plot_polygon(mapped_lane)
-
     return original_lane, mapped_lane
 
 

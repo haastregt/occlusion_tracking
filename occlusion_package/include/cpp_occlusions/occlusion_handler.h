@@ -10,8 +10,14 @@ class OcclusionHandler
 {
   private:
     int _time_step;
+    int _ID_allocator;
+
     ReachabilityParams _params;
+    
     std::list<std::list<OccludedVolume>> _shadow_list_by_corridor;
+
+    // List of shadowlist by ID, shadowlist has a shadow for each timestep
+    std::list<std::tuple<int, std::list<std::tuple<int, Polyhedron>>>> _shadow_saves;
 
   public:
     OcclusionHandler(std::list<Polygon> driving_corridor_polygons, std::list<Polygon> mapped_driving_corridor_polygons,
@@ -26,6 +32,11 @@ class OcclusionHandler
     /// Get the reachable sets for future time intervals
     /// @return List of Polygon arrays for occupancy of each time interval
     std::list<std::list<Polygon>> GetReachableSets();
+
+    void SaveShadow(int ID, Polyhedron polyhedron);
+
+    // This type is needed to convert to python types
+    std::list<std::tuple<int, std::list<std::tuple<int, std::list<std::list<float>>>>>> ExportShadows();
 };
 
 } // namespace cpp_occlusions

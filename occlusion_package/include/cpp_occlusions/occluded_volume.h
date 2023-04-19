@@ -40,7 +40,9 @@ class OccludedVolume
     Nef_polyhedron AccelerationAbstractionObsolete(float dt, Polyhedron polyhedron);
 
   public:
-    OccludedVolume(Polyhedron initial_polyhedron, DrivingCorridor *driving_corridor, const ReachabilityParams params);
+    const int _ID;
+    
+    OccludedVolume(Polyhedron initial_polyhedron, DrivingCorridor *driving_corridor, const ReachabilityParams params, int ID);
 
     ~OccludedVolume();
 

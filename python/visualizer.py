@@ -1,4 +1,8 @@
 import matplotlib.pyplot as plt
+from scipy.spatial import ConvexHull
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 
 from commonroad.scenario.obstacle import ObstacleType
 from commonroad.visualization.mp_renderer import MPRenderer
@@ -45,7 +49,7 @@ class Visualizer:
             tint_factor = 0.005**(1/(i+1))
             Ri = int(R + (255 - R) * tint_factor)
             Gi = int(G + (255 - G) * tint_factor)
-            Bi = int(B + (255 - G) * tint_factor)
+            Bi = int(B + (255 - B) * tint_factor)
             color = rgb2hex(Ri, Gi, Bi)
 
             draw_params.time_begin = time_begin+i
@@ -99,3 +103,38 @@ class Visualizer:
                 scenario.add_objects(ego_vehicle)
 
         rnd.render()
+
+    def plot_polyhedron_hull(self, polyhedron, color, figure):
+        hull = ConvexHull(polyhedron)
+        for s in hull.simplices:
+            tri = Poly3DCollection([polyhedron[s]])
+            tri.set_color(color)
+            tri.set_alpha(0.5)
+            figure.add_collection3d(tri)
+
+    def plot_3D_shadows(self, shadow, sim_length):
+        ID = shadow[0]
+        polyhedra = shadow[1]
+
+        figure = plt.figure()
+        ax = figure.add_subplot(111, projection="3d")
+        R = int(255)
+        G = int(0)
+        B = int(0)
+
+        for polyhedron in polyhedra[::5]:
+            timestep = polyhedron[0]
+            poly = np.array(polyhedron[1])
+
+            tint_factor = timestep/sim_length
+            Ri = int(R - 255 * tint_factor)
+            Bi = int(B + 255 * tint_factor)
+            color = rgb2hex(Ri, G, Bi)
+
+            hull = ConvexHull(poly)
+            for s in hull.simplices:
+                tri = Poly3DCollection([poly[s]])
+                tri.set_color(color)
+                tri.set_alpha(0.1)
+                ax.add_collection3d(tri)
+        plt.show()

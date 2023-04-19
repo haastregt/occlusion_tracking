@@ -14,7 +14,8 @@ PYBIND11_MODULE(py_occlusions, m)
         .def(py::init<std::list<cpp_occlusions::Polygon>, std::list<cpp_occlusions::Polygon>, cpp_occlusions::Polygon,
                       int, cpp_occlusions::ReachabilityParams>())
         .def("update", &cpp_occlusions::OcclusionHandler::Update)
-        .def("get_reachable_sets", &cpp_occlusions::OcclusionHandler::GetReachableSets, py::return_value_policy::copy);
+        .def("get_reachable_sets", &cpp_occlusions::OcclusionHandler::GetReachableSets, py::return_value_policy::copy)
+        .def("export_shadows", &cpp_occlusions::OcclusionHandler::ExportShadows, py::return_value_policy::copy);
 
     py::class_<cpp_occlusions::ReachabilityParams>(m, "ReachabilityParams")
         .def(py::init<>())

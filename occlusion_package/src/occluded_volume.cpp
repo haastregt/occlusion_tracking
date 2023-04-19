@@ -22,8 +22,8 @@ namespace cpp_occlusions
 {
 
 OccludedVolume::OccludedVolume(Polyhedron initial_polyhedron, DrivingCorridor *driving_corridor,
-                               const ReachabilityParams params)
-    : _shadow_polyhedron(initial_polyhedron), _driving_corridor(driving_corridor), _params(params)
+                               const ReachabilityParams params, int ID)
+    : _shadow_polyhedron(initial_polyhedron), _driving_corridor(driving_corridor), _params(params), _ID(ID)
 {
 }
 
@@ -242,7 +242,7 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
             copy.convert_to_polyhedron(P);
 
             // DissolveCloseVertices(P, 0.01);
-            new_shadow_list.push_back(OccludedVolume(P, _driving_corridor, _params));
+            new_shadow_list.push_back(OccludedVolume(P, _driving_corridor, _params, _ID));
         }
     }
 

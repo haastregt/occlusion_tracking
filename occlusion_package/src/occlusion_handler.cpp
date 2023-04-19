@@ -12,7 +12,7 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
                                    int init_time_step, ReachabilityParams params)
     : _params(params), _time_step(init_time_step)
 {
-    int num_shadows = 0;
+    _ID_allocator = 0;
     _time_step = 0;
 
     Polyhedron P;
@@ -57,20 +57,17 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
 
             assert(P.is_closed() && "Polyhedra should be closed in order for conversion to Nef");
 
-            corridor.push_back(OccludedVolume(P, driving_corridor, _params));
+            ++_ID_allocator;
+            corridor.push_back(OccludedVolume(P, driving_corridor, _params, _ID_allocator));
         }
 
         if (!corridor.empty())
         {
-            num_shadows += corridor.size();
             _shadow_list_by_corridor.push_back(corridor);
         }
 
         ++mapped_it;
     }
-
-    // for debugging exploding shadows
-    // std::cout << "Initialised with " << num_shadows << " initial shadows" << std::endl;
 }
 
 OcclusionHandler::~OcclusionHandler()
@@ -81,8 +78,6 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
 {
     float dt = _params.dt * (new_time_step - _time_step);
     _time_step = new_time_step;
-
-    int num_shadows = 0;
 
     // Check this since first time step of simulation is 0, while time at initialisation is also at 0.
     if (dt == 0)
@@ -100,6 +95,7 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
         DrivingCorridor *driving_corridor = corridor.begin()->GetDrivingCorridor();
 
         std::list<Nef_polyhedron> nef_list;
+        std::list<int> ID_list;
         for (OccludedVolume shadow : corridor)
         {
             for (OccludedVolume new_shadow : shadow.Propagate(dt, sensor_view))
@@ -120,25 +116,33 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
                 if (!is_double)
                 {
                     nef_list.push_back(nef_new);
+                    if(std::find(ID_list.begin(), ID_list.end(), new_shadow._ID) != ID_list.end())
+                    {
+                        ID_list.push_back(new_shadow._ID);
+                    }
+                    else
+                    {
+                        ++_ID_allocator;
+                        ID_list.push_back(new_shadow._ID);
+                    }
                 }
             }
         }
 
         std::list<OccludedVolume> new_corridor;
 
+        std::list<int>::iterator ID_it = ID_list.begin();
         for (Nef_polyhedron nef : nef_list)
         {
             Polyhedron P;
             nef.convert_to_polyhedron(P);
-            new_corridor.push_back(OccludedVolume(P, driving_corridor, _params));
+            new_corridor.push_back(OccludedVolume(P, driving_corridor, _params, *ID_it));
+            SaveShadow(*ID_it, P);
+            ++ID_it;
         }
-        num_shadows += new_corridor.size();
 
         _shadow_list_by_corridor.push_back(new_corridor);
     }
-
-    // for debuggind exploding shadows
-    // std::cout << "At time step " << new_time_step << "s we have " << num_shadows << " shadows" << std::endl;
 }
 
 std::list<std::list<Polygon>> OcclusionHandler::GetReachableSets()
@@ -153,5 +157,64 @@ std::list<std::list<Polygon>> OcclusionHandler::GetReachableSets()
     }
     return occupancy_lists;
 }
+
+void OcclusionHandler::SaveShadow(int ID, Polyhedron polyhedron)
+{
+    bool exists = false;
+
+    for (auto it = _shadow_saves.begin(); it != _shadow_saves.end(); ++it) {
+        if (std::get<0>(*it) == ID) {
+            std::get<1>(*it).push_back(std::tuple<int, Polyhedron>{_time_step, polyhedron}); 
+            exists = true;
+            break;
+        }
+    }
+    if (!exists)
+    {
+        std::tuple<int, std::list<std::tuple<int,Polyhedron>>> shadow;
+        std::get<0>(shadow) = ID;
+        std::get<1>(shadow).push_back(std::tuple<int, Polyhedron>{_time_step, polyhedron});
+        _shadow_saves.push_back(shadow);
+    }
+}
+
+std::list<std::tuple<int, std::list<std::tuple<int, std::list<std::list<float>>>>>> OcclusionHandler::ExportShadows()
+{
+    std::list<std::tuple<int, std::list<std::tuple<int, std::list<std::list<float>>>>>> export_results;
+    for(auto item : _shadow_saves)
+    {
+        std::tuple<int, std::list<std::tuple<int, std::list<std::list<float>>>>> shadow_list;
+        std::get<0>(shadow_list) = std::get<0>(item);
+
+        std::list<std::tuple<int, std::list<std::list<float>>>> shadows;
+        for (auto poly : std::get<1>(item))
+        {
+            std::tuple<int, std::list<std::list<float>>> export_poly;
+            std::get<0>(export_poly) = std::get<0>(poly);
+
+            std::list<std::list<float>> export_point_list;
+            for(auto it = std::get<1>(poly).points_begin(); it != std::get<1>(poly).points_end(); ++it)
+            {
+                std::list<float> export_point;
+                
+                export_point.push_back(CGAL::to_double(it->x()));
+                export_point.push_back(CGAL::to_double(it->y()));
+                export_point.push_back(CGAL::to_double(it->z()));
+
+                export_point_list.push_back(export_point);
+            }
+
+            std::get<1>(export_poly) = export_point_list;
+
+            shadows.push_back(export_poly);
+        }
+        std::get<1>(shadow_list) = shadows;
+
+        export_results.push_back(shadow_list);
+    }
+
+    return export_results;
+}
+
 
 } // namespace cpp_occlusions
