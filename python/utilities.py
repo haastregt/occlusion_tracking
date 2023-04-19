@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from shapely.geometry import Polygon as ShapelyPolygon
 from shapely.geometry import MultiPolygon as ShapelyMultiPolygon
 from shapely.geometry import GeometryCollection as ShapelyGeometryCollection
-from shapely.geometry import MultiPoint
+from shapely.geometry import MultiPoint, Point
 from commonroad.geometry.shape import Polygon as CommonRoadPolygon
 from commonroad.scenario.scenario import Lanelet
 
@@ -203,3 +203,56 @@ def plot_polygon(shapely_polygon):
         plt.text(shapely_polygon.exterior.xy[0][i],
                  shapely_polygon.exterior.xy[1][i], str(i))
     plt.show()
+
+def find_RSS_distance(ego_vehicle, scenario, config):
+    # First, we need to find the lane from ego vehicle to goal location
+    initial_state = [config.get('initial_state_x'), config.get('initial_state_y')]
+    goal_point = [config.get('goal_point_x'), config.get('goal_point_y')]
+
+    starting_lanelet_ids = scenario.lanelet_network.find_lanelet_by_position(
+        [initial_state])[0]
+    
+    starting_lanelets = []
+    for lanelet_id in starting_lanelet_ids:
+        starting_lanelets.append(
+            scenario.lanelet_network.find_lanelet_by_id(lanelet_id))
+        
+    ego_lane = []
+    for lanelet in starting_lanelets:
+        starting_lanes = lanelet.all_lanelets_by_merging_successors_from_lanelet(
+            lanelet, scenario.lanelet_network)[0]
+        for lane in starting_lanes:
+            lane_shape = Lanelet2ShapelyPolygon(lane)
+            if lane_shape.intersects(Point(*goal_point)):
+                ego_lane = lane_shape
+                break
+        else:
+            continue
+        break
+
+    # Then for each timestep, find all objects that are on this lane AND in front of the ego vehicle
+    # Compute distances to these objects and lowest distance is RSS distance
+    RSS = []
+    for t in range(1,config.get('simulation_duration')):
+        distances = []
+        for traffic in scenario.obstacle_states_at_time_step(t).values():
+            traffic_pos = traffic.position
+            if not ego_lane.intersects(Point(*traffic_pos)):
+                continue
+
+            ego_pos = ego_vehicle.prediction.trajectory.state_list[t].position
+            ego_ori = ego_vehicle.prediction.trajectory.state_list[t].orientation
+
+            diff = traffic_pos - ego_pos
+            angle = np.arctan(diff[1]/diff[0]) - ego_ori
+            distance = np.linalg.norm(diff)
+            if not np.abs(angle) < np.pi/2:
+                continue
+            distances.append(distance)
+
+        if distances:
+            RSS.append(min(distances))
+        else:
+            RSS.append(0)
+
+    return RSS
