@@ -281,7 +281,10 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
         P = Polyhedron();
         occupancy.convert_to_Polyhedron(P);
 
-        occupancy_set.push_back(ProjectXY(P));
+        if(occupancy != Nef_polyhedron::EMPTY)
+        {
+            occupancy_set.push_back(ProjectXY(P));
+        }
     }
 
     return occupancy_set;
