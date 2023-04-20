@@ -304,7 +304,7 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
     int num_predictions = _params.prediction_horizon / _params.prediction_interval;
     for (int i = 1; i <= num_predictions; i++)
     {
-        std::pair<float, float> interval{_params.dt*_params.prediction_interval*(i-1), _params.dt*_params.prediction_interval*i};
+        std::pair<float, float> interval(_params.dt*_params.prediction_interval*(i-1), _params.dt*_params.prediction_interval*i);
         
         Nef_polyhedron occupancy(Nef_polyhedron::COMPLETE);
 
@@ -324,10 +324,11 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
         P = Polyhedron();
         occupancy.convert_to_Polyhedron(P);
 
-        if(occupancy != Nef_polyhedron::EMPTY)
+        if(occupancy == Nef_polyhedron::EMPTY)
         {
-            occupancy_set.push_back(ProjectXY(P));
+            break;
         }
+        occupancy_set.push_back(ProjectXY(P));
     }
 
     return occupancy_set;
