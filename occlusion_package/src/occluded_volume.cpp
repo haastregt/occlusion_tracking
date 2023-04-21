@@ -32,43 +32,6 @@ OccludedVolume::~OccludedVolume()
 {
 }
 
-Nef_polyhedron OccludedVolume::VelocityAbstractionObsolete(float dt, Polyhedron polyhedron)
-{
-    int n = 4;                                   // Number of vertices to approximate the halfcircle
-    float R = _params.vmax * dt / cos(M_PI / n); // Use apothem to make sure we have an over-approximation of the circle
-    Polygon disk_polygon;
-    for (int i = 0; i <= n; ++i)
-    {
-        float angle = i * M_PI / n - 0.5 * M_PI;
-        float x = R * cos(angle);
-        float y = R * sin(angle);
-        disk_polygon.push_back(Point2(x, y));
-    }
-    Polyhedron disk;
-
-    ExtrudeZ<HalfedgeDS> make_polyhedron(disk_polygon, std::pair<float, float>{0, 1E-15});
-    disk.delegate(make_polyhedron);
-
-    // TODO: Some double conversions happening? Probably the transformations can use
-    // Nef as inputs and outputs
-    Polyhedron mapped_polyhedron = _driving_corridor->TransformOriginalToMapped(polyhedron);
-    Polyhedron convex_mapped;
-    CGAL::convex_hull_3(mapped_polyhedron.points_begin(), mapped_polyhedron.points_end(), convex_mapped);
-
-    Nef_polyhedron nef_disk(disk);
-    Nef_polyhedron nef(convex_mapped);
-
-    Nef_polyhedron minkowski_sum = CGAL::minkowski_sum_3(nef, nef_disk);
-
-    Polyhedron mapped_result;
-    minkowski_sum.convert_to_polyhedron(mapped_result);
-    Polyhedron result = _driving_corridor->TransformMappedToOriginal(mapped_result);
-
-    Polyhedron convex_result;
-    CGAL::convex_hull_3(result.points_begin(), result.points_end(), convex_result);
-    return Nef_polyhedron(convex_result);
-}
-
 Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedron)
 {
     int n = 4;                                   // Number of vertices to approximate the circle section
@@ -87,7 +50,7 @@ Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedr
 
     xy = CGAL::minkowski_sum_2(xy, sum).outer_boundary();
 
-    ExtrudeZ<HalfedgeDS> extrude(xy, std::pair<float, float>{-999, 999});
+    ExtrudeZ<HalfedgeDS> extrude(xy, std::pair<float, float>{-9999, 9999});
     polyhedron = Polyhedron();
     polyhedron.delegate(extrude);
 
@@ -99,59 +62,6 @@ Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedr
 Nef_polyhedron OccludedVolume::VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron)
 {
     return VelocityAbstraction(time_interval.second, polyhedron);
-}
-
-Nef_polyhedron OccludedVolume::AccelerationAbstractionObsolete(float dt, Polyhedron polyhedron)
-{
-    // Acceleration abstraction: P = A*P + B*Ubounds, with A = [1,0,dt; 0,1,0; 0,0,1] and B = [0.5dt^2, 0; 0, dt; dt, 0]
-    CGAL::Aff_transformation_3<Kernel> A(Kernel::RT(1), Kernel::RT(0), Kernel::RT(dt), Kernel::RT(0), Kernel::RT(1),
-                                         Kernel::RT(0), Kernel::RT(0), Kernel::RT(0), Kernel::RT(1));
-
-    // B*Ubounds is a rectangular cuboid:
-    float xu = 0.5 * pow(dt, 2) * _params.amax;
-    float xl = 0.5 * pow(dt, 2) * _params.amin;
-    float yu = dt * _params.vlatmax;
-    float yl = -dt * _params.vlatmax;
-    float vu = dt * _params.amax;
-    float vl = dt * _params.amin;
-
-    Polygon rect;
-    rect.push_back(Point2(xu, yu));
-    rect.push_back(Point2(xl, yu));
-    rect.push_back(Point2(xl, yl));
-    rect.push_back(Point2(xu, yl));
-
-    Polyhedron input;
-    ExtrudeZ<HalfedgeDS> make_cuboid(rect, std::pair<float, float>{vl, vu});
-    input.delegate(make_cuboid);
-
-    // Also make a cuboid for the velocity bounds (This should maybe be its own abstraction for clarity)
-    Polygon full;
-    full.push_back(Point2(1E10, 1E10));
-    full.push_back(Point2(-1E10, 1E10));
-    full.push_back(Point2(-1E10, -1E10));
-    full.push_back(Point2(1E10, -1E10));
-
-    Polyhedron vbounds;
-    make_cuboid.polygon = full;
-    make_cuboid.bounds = std::pair<float, float>{_params.vmin, _params.vmax};
-    vbounds.delegate(make_cuboid);
-
-    // Now compute the abstraction
-    Polyhedron P = _driving_corridor->TransformOriginalToMapped(polyhedron);
-    CGAL::convex_hull_3(P.points_begin(), P.points_end(), P);
-
-    std::transform(P.points_begin(), P.points_end(), P.points_begin(), A);
-
-    Nef_polyhedron P_nef(P);
-    Nef_polyhedron input_nef(input);
-    P_nef = CGAL::minkowski_sum_3(P_nef, input_nef);
-
-    P_nef.convert_to_polyhedron(P);
-    P = _driving_corridor->TransformMappedToOriginal(P);
-    CGAL::convex_hull_3(P.points_begin(), P.points_end(), P);
-
-    return Nef_polyhedron(P);
 }
 
 Nef_polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron polyhedron)
@@ -175,7 +85,7 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron poly
     xv = CGAL::transform(A, xv);
     xv = CGAL::minkowski_sum_2(xv, sum).outer_boundary();
 
-    ExtrudeY<HalfedgeDS> extrude(xv, std::pair<float, float>{-99, 99});
+    ExtrudeY<HalfedgeDS> extrude(xv, std::pair<float, float>{-9999, 9999});
     polyhedron = Polyhedron();
     polyhedron.delegate(extrude);
 
@@ -222,7 +132,7 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(std::pair<float, float> t
     
     xv = CGAL::minkowski_sum_2(xv, sum).outer_boundary();
 
-    ExtrudeY<HalfedgeDS> extrude(xv, std::pair<float, float>{-99, 99});
+    ExtrudeY<HalfedgeDS> extrude(xv, std::pair<float, float>{-9999, 9999});
     polyhedron = Polyhedron();
     polyhedron.delegate(extrude);
 
@@ -230,6 +140,50 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(std::pair<float, float> t
     CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     return Nef_polyhedron(polyhedron);
 }
+
+Nef_polyhedron OccludedVolume::ExplicitNoReversingAbstraction(float x_prev)
+{
+    // Construct positive side of previous x value and map it to lane shape
+    // TODO: CHANGE X VALUES TO HIGH, NOW JUST LOW TO WORK FOR CIRCULAR EXAMPLE ROAD
+    Polygon rect;
+    if (x_prev == 0)
+    {
+        rect.push_back(Point2(x_prev, -9999));
+        rect.push_back(Point2(9999, -9999));
+        rect.push_back(Point2(9999, 9999));
+        rect.push_back(Point2(x_prev, 9999));
+    }
+    else
+    {
+        rect.push_back(Point2(x_prev, -9999));
+        rect.push_back(Point2(x_prev + 100, -9999));
+        rect.push_back(Point2(x_prev + 100, 9999));
+        rect.push_back(Point2(x_prev, 9999));
+    }
+
+    ExtrudeZ<HalfedgeDS> extrude(rect, std::pair<float, float>{-9999, 9999});
+    Polyhedron positive_space;
+    positive_space.delegate(extrude);
+
+    positive_space = _driving_corridor->TransformMappedToOriginal(positive_space);
+    CGAL::convex_hull_3(positive_space.points_begin(), positive_space.points_end(), positive_space);
+    return Nef_polyhedron(positive_space);
+}
+
+double OccludedVolume::GetMinX(Polyhedron polyhedron)
+{
+    polyhedron = _driving_corridor->TransformOriginalToMapped(polyhedron);
+    
+    double x_min = 9999;
+    for(auto it = polyhedron.points_begin(); it != polyhedron.points_end(); ++it)
+    {
+        double x = CGAL::to_double(it->x());
+        x_min = std::min(x_min, x);
+    }
+
+    return x_min;
+}
+
 
 std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_view)
 {
@@ -301,6 +255,7 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
     P.delegate(extrude);
     Nef_polyhedron nef_road(P);
 
+    double min_x = 0;
     int num_predictions = _params.prediction_horizon / _params.prediction_interval;
     for (int i = 1; i <= num_predictions; i++)
     {
@@ -319,6 +274,9 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
             VelocityAbstraction(interval, _shadow_polyhedron);
         occupancy *= velocity_abstraction;
 
+        Nef_polyhedron no_reversing = ExplicitNoReversingAbstraction(min_x);
+        occupancy *= no_reversing;
+        
         occupancy *= nef_road;
 
         P = Polyhedron();
@@ -328,6 +286,8 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
         {
             break;
         }
+
+        min_x = GetMinX(P);
         occupancy_set.push_back(ProjectXY(P));
     }
 

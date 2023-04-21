@@ -112,7 +112,7 @@ class Visualizer:
             tri.set_alpha(0.5)
             figure.add_collection3d(tri)
 
-    def plot_3D_shadows(self, shadow, sim_length):
+    def plot_3D_shadows(self, shadow, sim_length, interval):
         ID = shadow[0]
         polyhedra = shadow[1]
 
@@ -122,7 +122,7 @@ class Visualizer:
         G = int(0)
         B = int(0)
 
-        for polyhedron in polyhedra[::5]:
+        for polyhedron in polyhedra[::interval]:
             timestep = polyhedron[0]
             poly = np.array(polyhedron[1])
 
@@ -135,6 +135,6 @@ class Visualizer:
             for s in hull.simplices:
                 tri = Poly3DCollection([poly[s]])
                 tri.set_color(color)
-                tri.set_alpha(0.1)
+                tri.set_alpha(0.5)
                 ax.add_collection3d(tri)
         plt.show()

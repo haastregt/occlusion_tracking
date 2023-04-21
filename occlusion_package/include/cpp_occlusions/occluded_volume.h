@@ -36,8 +36,14 @@ class OccludedVolume
     /// @param polyhedron The initial set of states
     Nef_polyhedron AccelerationAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron);
 
-    Nef_polyhedron VelocityAbstractionObsolete(float dt, Polyhedron polyhedron);
-    Nef_polyhedron AccelerationAbstractionObsolete(float dt, Polyhedron polyhedron);
+    /// @brief Computes polyhedron only containing space on the positive side of the previous minimal x
+    /// @param x_prev The minimal value of x of the previously timestep
+    Nef_polyhedron ExplicitNoReversingAbstraction(float x_prev);
+
+    /// @brief Gets the minimal x value in the mapped frame
+    /// @param polyhedron the set to analyze
+    /// @return the minimal x of the set
+    double GetMinX(Polyhedron polyhedron);
 
   public:
     const int _ID;
