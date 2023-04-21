@@ -1,5 +1,5 @@
 #GENERAL
-simulation_duration : 1
+simulation_duration : 25
 
 #EGO_VEHICLE
 initial_state_x : 70
@@ -28,13 +28,14 @@ view_range : 50
 #OCCLUSION_TRACKER
 occlusion_params:
   vmin : 0
-  vmax : 10
+  vmax : 12
   amin : -5
   amax : 7
   vlatmax : 2
   dt : 0.1
   prediction_interval : 5
-  prediction_horizon : 20
+  prediction_horizon : 25
   min_shadow_volume : 1.0
   mapping_quality : 1
-  velocity_tracking_enabled : True
+  simplification_precision: 0.1
+  velocity_tracking_enabled : False

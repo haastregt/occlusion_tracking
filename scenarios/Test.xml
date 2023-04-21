@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="utf-8"?>
+<commonRoad affiliation="Technical University of Munich, Germany" author="Hans Bibel, Markus Koschi, Sebastian Lutz" benchmarkID="ZAM_Merge-1_1_T-1" commonRoadVersion="2018b" date="2018-10-26" source="" tags="urban single_lane no_oncoming_traffic merging_lanes lane_following comfort speed_limit" timeStepSize="0.1">
+  <lanelet id="20">
+    <leftBound>
+      <point>
+        <x>-0.0000</x>
+        <y>1.5</y>
+      </point>
+      <point>
+        <x>9.3840</x>
+        <y>2.2575</y>
+      </point>
+      <point>
+        <x>18.5250</x>
+        <y>4.5106</y>
+      </point>
+      <point>
+        <x>27.1863</x>
+        <y>8.2008</y>
+      </point>
+      <point>
+        <x>35.1434</x>
+        <y>13.2325</y>
+      </point>
+      <point>
+        <x>42.1903</x>
+        <y>19.4756</y>
+      </point>
+      <point>
+        <x>48.1445</x>
+        <y>26.7682</y>
+      </point>
+      <point>
+        <x>52.8518</x>
+        <y>34.9214</y>
+      </point>
+      <point>
+        <x>56.1903</x>
+        <y>43.7242</y>
+      </point>
+      <point>
+        <x>58.0734</x>
+        <y>52.9486</y>
+      </point>
+      <point>
+        <x>58.4525</x>
+        <y>62.3555</y>
+      </point>
+      <point>
+        <x>57.3177</x>
+        <y>71.7015</y>
+      </point>
+      <point>
+        <x>54.6984</x>
+        <y>80.7443</y>
+      </point>
+      <point>
+        <x>50.6624</x>
+        <y>89.2499</y>
+      </point>
+      <point>
+        <x>45.3143</x>
+        <y>96.9980</y>
+      </point>
+      <point>
+        <x>38.7926</x>
+        <y>103.7878</y>
+      </point>
+      <point>
+        <x>31.2662</x>
+        <y>109.4436</y>
+      </point>
+      <point>
+        <x>22.9300</x>
+        <y>113.8187</y>
+      </point>
+      <point>
+        <x>13.9999</x>
+        <y>116.8000</y>
+      </point>
+      <point>
+        <x>4.7072</x>
+        <y>118.3103</y>
+      </point>
+      <point>
+        <x>-4.7072</x>
+        <y>118.3103</y>
+      </point>
+      <point>
+        <x>-13.9999</x>
+        <y>116.8000</y>
+      </point>
+      <point>
+        <x>-22.9300</x>
+        <y>113.8187</y>
+      </point>
+      <point>
+        <x>-31.2662</x>
+        <y>109.4436</y>
+      </point>
+      <point>
+        <x>-38.7926</x>
+        <y>103.7878</y>
+      </point>
+      <point>
+        <x>-45.3143</x>
+        <y>96.9980</y>
+      </point>
+      <point>
+        <x>-50.6624</x>
+        <y>89.2500</y>
+      </point>
+      <point>
+        <x>-54.6984</x>
+        <y>80.7443</y>
+      </point>
+      <point>
+        <x>-57.3177</x>
+        <y>71.7015</y>
+      </point>
+      <point>
+        <x>-58.4525</x>
+        <y>62.3555</y>
+      </point>
+      <point>
+        <x>-58.0734</x>
+        <y>52.9486</y>
+      </point>
+      <point>
+        <x>-56.1903</x>
+        <y>43.7242</y>
+      </point>
+      <point>
+        <x>-52.8518</x>
+        <y>34.9214</y>
+      </point>
+      <point>
+        <x>-48.1445</x>
+        <y>26.7682</y>
+      </point>
+      <point>
+        <x>-42.1903</x>
+        <y>19.4756</y>
+      </point>
+      <point>
+        <x>-35.1434</x>
+        <y>13.2325</y>
+      </point>
+      <point>
+        <x>-27.1863</x>
+        <y>8.2008</y>
+      </point>
+      <point>
+        <x>-18.5250</x>
+        <y>4.5106</y>
+      </point>
+      <point>
+        <x>-9.3840</x>
+        <y>2.2575</y>
+      </point>
+    </leftBound>
+       <rightBound>
+      <point>
+        <x>0.0000</x>
+        <y>-1.5</y>
+      </point>
+      <point>
+        <x>9.8652</x>
+        <y>-0.7035</y>
+      </point>
+      <point>
+        <x>19.4750</x>
+        <y>1.6650</y>
+      </point>
+      <point>
+        <x>28.5804</x>
+        <y>5.5444</y>
+      </point>
+      <point>
+        <x>36.9456</x>
+        <y>10.8342</y>
+      </point>
+      <point>
+        <x>44.3539</x>
+        <y>17.3974</y>
+      </point>
+      <point>
+        <x>50.6135</x>
+        <y>25.0640</y>
+      </point>
+      <point>
+        <x>55.5622</x>
+        <y>33.6354</y>
+      </point>
+      <point>
+        <x>59.0718</x>
+        <y>42.8896</y>
+      </point>
+      <point>
+        <x>61.0515</x>
+        <y>52.5869</y>
+      </point>
+      <point>
+        <x>61.4501</x>
+        <y>62.4763</y>
+      </point>
+      <point>
+        <x>60.2571</x>
+        <y>72.3015</y>
+      </point>
+      <point>
+        <x>57.5034</x>
+        <y>81.8082</y>
+      </point>
+      <point>
+        <x>53.2605</x>
+        <y>90.7499</y>
+      </point>
+      <point>
+        <x>47.6382</x>
+        <y>98.8953</y>
+      </point>
+      <point>
+        <x>40.7820</x>
+        <y>106.0334</y>
+      </point>
+      <point>
+        <x>32.8696</x>
+        <y>111.9791</y>
+      </point>
+      <point>
+        <x>24.1059</x>
+        <y>116.5787</y>
+      </point>
+      <point>
+        <x>14.7179</x>
+        <y>119.7129</y>
+      </point>
+      <point>
+        <x>4.9486</x>
+        <y>121.3005</y>
+      </point>
+      <point>
+        <x>-4.9486</x>
+        <y>121.3005</y>
+      </point>
+      <point>
+        <x>-14.7179</x>
+        <y>119.7129</y>
+      </point>
+      <point>
+        <x>-24.1059</x>
+        <y>116.5787</y>
+      </point>
+      <point>
+        <x>-32.8696</x>
+        <y>111.9791</y>
+      </point>
+      <point>
+        <x>-40.7820</x>
+        <y>106.0334</y>
+      </point>
+      <point>
+        <x>-47.6382</x>
+        <y>98.8953</y>
+      </point>
+      <point>
+        <x>-53.2605</x>
+        <y>90.7500</y>
+      </point>
+      <point>
+        <x>-57.5034</x>
+        <y>81.8082</y>
+      </point>
+      <point>
+        <x>-60.2571</x>
+        <y>72.3015</y>
+      </point>
+      <point>
+        <x>-61.4501</x>
+        <y>62.4763</y>
+      </point>
+      <point>
+        <x>-61.0515</x>
+        <y>52.5869</y>
+      </point>
+      <point>
+        <x>-59.0718</x>
+        <y>42.8896</y>
+      </point>
+      <point>
+        <x>-55.5622</x>
+        <y>33.6354</y>
+      </point>
+      <point>
+        <x>-50.6135</x>
+        <y>25.0640</y>
+      </point>
+      <point>
+        <x>-44.3539</x>
+        <y>17.3974</y>
+      </point>
+      <point>
+        <x>-36.9456</x>
+        <y>10.8342</y>
+      </point>
+      <point>
+        <x>-28.5804</x>
+        <y>5.5444</y>
+      </point>
+      <point>
+        <x>-19.4750</x>
+        <y>1.6650</y>
+      </point>
+      <point>
+        <x>-9.8652</x>
+        <y>-0.7035</y>
+      </point>
+    </rightBound>
+    <laneletType>unknown</laneletType>
+  </lanelet>
+  <obstacle id="1">
+    <role>dynamic</role>
+    <type>car</type>
+    <shape>
+        <rectangle>
+          <length>4</length>
+          <width>2</width>
+        </rectangle>
+    </shape>
+    <initialState>
+        <position><point><x> 57.67773585747021 </x><y> 43.46885405194496 </y></point></position><orientation><exact> 1.2916666666666667 </exact></orientation><time><exact> 0 </exact></time><velocity><exact> 25 </exact></velocity>
+    </initialState>
+    <trajectory>
+<state><position><point><x> 58.316274081798774 </x><y> 45.885745601820645 </y></point></position><orientation><exact> 1.3333333333333335 </exact></orientation><time><exact> 1 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 58.853583421389345 </x><y> 48.32713752066077 </y></point></position><orientation><exact> 1.375 </exact></orientation><time><exact> 2 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 59.288731182477406 </x><y> 50.788791894005904 </y></point></position><orientation><exact> 1.4166666666666667 </exact></orientation><time><exact> 3 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 59.6209620094912 </x><y> 53.26643563461327 </y></point></position><orientation><exact> 1.4583333333333335 </exact></orientation><time><exact> 4 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 59.84969919624326 </x><y> 55.75576789993784 </y></point></position><orientation><exact> 1.5 </exact></orientation><time><exact> 5 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 59.974545687011535 </x><y> 58.25246755779258 </y></point></position><orientation><exact> 1.5416666666666667 </exact></orientation><time><exact> 6 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 59.995284765772496 </x><y> 60.75220068722886 </y></point></position><orientation><exact> 1.5833333333333335 </exact></orientation><time><exact> 7 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 59.9118804323899 </x><y> 63.250628101616186 </y></point></position><orientation><exact> 1.625 </exact></orientation><time><exact> 8 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 59.72447746510589 </x><y> 65.74341288086255 </y></point></position><orientation><exact> 1.6666666666666667 </exact></orientation><time><exact> 9 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 59.433401169226315 </x><y> 68.22622789970026 </y></point></position><orientation><exact> 1.7083333333333335 </exact></orientation><time><exact> 10 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 59.03915681243622 </x><y> 70.69476333896954 </y></point></position><orientation><exact> 1.75 </exact></orientation><time><exact> 11 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 58.54242874772589 </x><y> 73.14473416686081 </y></point></position><orientation><exact> 1.7916666666666667 </exact></orientation><time><exact> 12 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 57.94407922545 </x><y> 75.57188757713001 </y></point></position><orientation><exact> 1.8333333333333335 </exact></orientation><time><exact> 13 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 57.24514689658163 </x><y> 77.97201037137447 </y></point></position><orientation><exact> 1.8750000000000002 </exact></orientation><time><exact> 14 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 56.44684500975976 </x><y> 80.34093627255538 </y></point></position><orientation><exact> 1.916666666666667 </exact></orientation><time><exact> 15 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 55.55055930525947 </x><y> 82.67455315707124 </y></point></position><orientation><exact> 1.9583333333333335 </exact></orientation><time><exact> 16 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 54.557845609540884 </x><y> 84.96881019282856 </y></point></position><orientation><exact> 2.0 </exact></orientation><time><exact> 17 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 53.470427134552374 </x><y> 87.21972487091895 </y></point></position><orientation><exact> 2.041666666666667 </exact></orientation><time><exact> 18 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 52.29019148647591 </x><y> 89.42338991869701 </y></point></position><orientation><exact> 2.0833333333333335 </exact></orientation><time><exact> 19 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 51.01918738910711 </x><y> 91.57598008225831 </y></point></position><orientation><exact> 2.125 </exact></orientation><time><exact> 20 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 49.65962112755763 </x><y> 93.6737587665445 </y></point></position><orientation><exact> 2.166666666666667 </exact></orientation><time><exact> 21 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 48.2138527184532 </x><y> 95.713084521549 </y></point></position><orientation><exact> 2.2083333333333335 </exact></orientation><time><exact> 22 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 46.684391813275276 </x><y> 97.69041736336435 </y></point></position><orientation><exact> 2.25 </exact></orientation><time><exact> 23 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 45.07389334195758 </x><y> 99.60232491909828 </y></point></position><orientation><exact> 2.291666666666667 </exact></orientation><time><exact> 24 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 43.38515290429948 </x><y> 101.44548838499259 </y></point></position><orientation><exact> 2.3333333333333335 </exact></orientation><time><exact> 25 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 41.621101917196306 </x><y> 103.21670828740152 </y></point></position><orientation><exact> 2.375 </exact></orientation><time><exact> 26 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 39.784802526110155 </x><y> 104.91291003663 </y></point></position><orientation><exact> 2.4166666666666665 </exact></orientation><time><exact> 27 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 37.87944228961419 </x><y> 106.53114926399076 </y></point></position><orientation><exact> 2.458333333333333 </exact></orientation><time><exact> 28 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 35.908328646237386 </x><y> 108.06861693281603 </y></point></position><orientation><exact> 2.5 </exact></orientation><time><exact> 29 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 33.87488317321446 </x><y> 109.52264421455172 </y></point></position><orientation><exact> 2.5416666666666665 </exact></orientation><time><exact> 30 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 31.782635647106915 </x><y> 110.89070712147011 </y></point></position><orientation><exact> 2.583333333333333 </exact></orientation><time><exact> 31 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 29.63521791660535 </x><y> 112.17043088795907 </y></point></position><orientation><exact> 2.625 </exact></orientation><time><exact> 32 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 27.436357598148703 </x><y> 113.35959409278249 </y></point></position><orientation><exact> 2.666666666666667 </exact></orientation><time><exact> 33 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 25.18987160530419 </x><y> 114.45613251515654 </y></point></position><orientation><exact> 2.7083333333333335 </exact></orientation><time><exact> 34 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 22.89965952313989 </x><y> 115.45814271794782 </y></point></position><orientation><exact> 2.75 </exact></orientation><time><exact> 35 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 20.569696839091183 </x><y> 116.36388535177363 </y></point></position><orientation><exact> 2.791666666666667 </exact></orientation><time><exact> 36 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 18.20402804207135 </x><y> 117.17178817426895 </y></point></position><orientation><exact> 2.833333333333334 </exact></orientation><time><exact> 37 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 15.806759601805224 </x><y> 117.88044877927899 </y></point></position><orientation><exact> 2.8750000000000004 </exact></orientation><time><exact> 38 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 13.382052840572843 </x><y> 118.48863703123982 </y></point></position><orientation><exact> 2.916666666666667 </exact></orientation><time><exact> 39 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 10.934116709736776 </x><y> 118.99529720052146 </y></point></position><orientation><exact> 2.958333333333334 </exact></orientation><time><exact> 40 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 8.467200483591991 </x><y> 119.39954979602673 </y></point></position><orientation><exact> 3.000000000000001 </exact></orientation><time><exact> 41 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 5.985586383220799 </x><y> 119.70069309186454 </y></point></position><orientation><exact> 3.0416666666666674 </exact></orientation><time><exact> 42 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 3.4935821431567584 </x><y> 119.89820434544777 </y></point></position><orientation><exact> 3.083333333333334 </exact></orientation><time><exact> 43 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> 0.9955135337608173 </x><y> 119.9917407049012 </y></point></position><orientation><exact> 3.125000000000001 </exact></orientation><time><exact> 44 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -1.5042831477102154 </x><y> 119.98113980420443 </y></point></position><orientation><exact> 3.166666666666668 </exact></orientation><time><exact> 45 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -4.001468604308424 </x><y> 119.86642004503638 </y></point></position><orientation><exact> 3.2083333333333344 </exact></orientation><time><exact> 46 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -6.491708071806573 </x><y> 119.64778056483277 </y></point></position><orientation><exact> 3.250000000000001 </exact></orientation><time><exact> 47 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -8.970678843241735 </x><y> 119.32560089111121 </y></point></position><orientation><exact> 3.291666666666668 </exact></orientation><time><exact> 48 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -11.434077772529193 </x><y> 118.90044028266473 </y></point></position><orientation><exact> 3.333333333333335 </exact></orientation><time><exact> 49 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -13.877628744121392 </x><y> 118.37303675876677 </y></point></position><orientation><exact> 3.3750000000000013 </exact></orientation><time><exact> 50 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -16.297090095745677 </x><y> 117.74430581807309 </y></point></position><orientation><exact> 3.416666666666668 </exact></orientation><time><exact> 51 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -18.688261981335952 </x><y> 117.0153388494443 </y></point></position><orientation><exact> 3.458333333333335 </exact></orientation><time><exact> 52 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -21.046993661377282 </x><y> 116.18740123744774 </y></point></position><orientation><exact> 3.5000000000000018 </exact></orientation><time><exact> 53 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -23.36919070800839 </x><y> 115.26193016582695 </y></point></position><orientation><exact> 3.5416666666666683 </exact></orientation><time><exact> 54 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -25.65082211237497 </x><y> 114.24053212275203 </y></point></position><orientation><exact> 3.583333333333335 </exact></orientation><time><exact> 55 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -27.887927281896612 </x><y> 113.12498011218119 </y></point></position><orientation><exact> 3.6250000000000013 </exact></orientation><time><exact> 56 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -30.076622915300753 </x><y> 111.91721057617411 </y></point></position><orientation><exact> 3.666666666666668 </exact></orientation><time><exact> 57 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -32.213109743489895 </x><y> 110.61932003349982 </y></point></position><orientation><exact> 3.7083333333333344 </exact></orientation><time><exact> 58 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -34.29367912454067 </x><y> 109.23356144037362 </y></point></position><orientation><exact> 3.750000000000001 </exact></orientation><time><exact> 59 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -36.314719481386796 </x><y> 107.76234027964068 </y></point></position><orientation><exact> 3.7916666666666674 </exact></orientation><time><exact> 60 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -38.27272257101113 </x><y> 106.20821038519469 </y></point></position><orientation><exact> 3.833333333333334 </exact></orientation><time><exact> 61 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -40.16428957426418 </x><y> 104.57386950887991 </y></point></position><orientation><exact> 3.8750000000000004 </exact></orientation><time><exact> 62 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -41.98613699573816 </x><y> 102.86215463757168 </y></point></position><orientation><exact> 3.916666666666667 </exact></orientation><time><exact> 63 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -43.73510236345518 </x><y> 101.07603706856466 </y></point></position><orientation><exact> 3.9583333333333335 </exact></orientation><time><exact> 64 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -45.408149718475705 </x><y> 99.21861725181671 </y></point></position><orientation><exact> 4.0 </exact></orientation><time><exact> 65 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -47.00237488489807 </x><y> 97.2931194080021 </y></point></position><orientation><exact> 4.041666666666666 </exact></orientation><time><exact> 66 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -48.51501051110115 </x><y> 95.3028859317159 </y></point></position><orientation><exact> 4.083333333333333 </exact></orientation><time><exact> 67 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -49.94343087347923 </x><y> 93.25137158954502 </y></point></position><orientation><exact> 4.125 </exact></orientation><time><exact> 68 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -51.28515643433037 </x><y> 91.14213752307734 </y></point></position><orientation><exact> 4.166666666666666 </exact></orientation><time><exact> 69 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -52.53785814598671 </x><y> 88.97884506725858 </y></point></position><orientation><exact> 4.208333333333332 </exact></orientation><time><exact> 70 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -53.69936149371498 </x><y> 86.7652493948276 </y></point></position><orientation><exact> 4.249999999999999 </exact></orientation><time><exact> 71 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -54.76765027036956 </x><y> 84.50519299786248 </y></point></position><orientation><exact> 4.291666666666666 </exact></orientation><time><exact> 72 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -55.74087007624569 </x><y> 82.20259901775233 </y></point></position><orientation><exact> 4.333333333333332 </exact></orientation><time><exact> 73 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -56.61733153805773 </x><y> 79.86146443517332 </y></point></position><orientation><exact> 4.374999999999998 </exact></orientation><time><exact> 74 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -57.395513241454466 </x><y> 77.48585313188997 </y></point></position><orientation><exact> 4.416666666666665 </exact></orientation><time><exact> 75 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -58.074064371981486 </x><y> 75.07988883642554 </y></point></position><orientation><exact> 4.458333333333332 </exact></orientation><time><exact> 76 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -58.651807059905806 </x><y> 72.64774796584689 </y></point></position><orientation><exact> 4.499999999999998 </exact></orientation><time><exact> 77 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -59.127738424832806 </x><y> 70.19365237608926 </y></point></position><orientation><exact> 4.541666666666664 </exact></orientation><time><exact> 78 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -59.501032316566125 </x><y> 67.7218620334057 </y></point></position><orientation><exact> 4.583333333333331 </exact></orientation><time><exact> 79 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -59.771040749188735 </x><y> 65.23666761966223 </y></point></position><orientation><exact> 4.624999999999998 </exact></orientation><time><exact> 80 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -59.9372950258757 </x><y> 62.74238308431498 </y></point></position><orientation><exact> 4.666666666666664 </exact></orientation><time><exact> 81 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -59.99950655248621 </x><y> 60.24333815599819 </y></point></position><orientation><exact> 4.70833333333333 </exact></orientation><time><exact> 82 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -59.95756733852269 </x><y> 57.74387082672156 </y></point></position><orientation><exact> 4.749999999999997 </exact></orientation><time><exact> 83 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -59.81155018458706 </x><y> 55.24831982172374 </y></point></position><orientation><exact> 4.791666666666664 </exact></orientation><time><exact> 84 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -59.56170855600917 </x><y> 52.76101706805288 </y></point></position><orientation><exact> 4.83333333333333 </exact></orientation><time><exact> 85 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -59.208476142866495 </x><y> 50.286280174947976 </y></point></position><orientation><exact> 4.8749999999999964 </exact></orientation><time><exact> 86 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -58.752466107158774 </x><y> 47.82840493907392 </y></point></position><orientation><exact> 4.916666666666663 </exact></orientation><time><exact> 87 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -58.194470018444775 </x><y> 45.39165788762008 </y></point></position><orientation><exact> 4.95833333333333 </exact></orientation><time><exact> 88 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -57.53545647978838 </x><y> 42.98026887220662 </y></point></position><orientation><exact> 4.9999999999999964 </exact></orientation><time><exact> 89 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -56.77656944639925 </x><y> 40.5984237264545 </y></point></position><orientation><exact> 5.0416666666666625 </exact></orientation><time><exact> 90 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -55.91912623988688 </x><y> 38.25025699996446 </y></point></position><orientation><exact> 5.0833333333333295 </exact></orientation><time><exact> 91 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -54.96461526157471 </x><y> 35.93984478131805 </y></point></position><orientation><exact> 5.1249999999999964 </exact></orientation><time><exact> 92 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -53.91469340884389 </x><y> 33.671197622558594 </y></point></position><orientation><exact> 5.1666666666666625 </exact></orientation><time><exact> 93 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -52.77118319899148 </x><y> 31.448253577434556 </y></point></position><orientation><exact> 5.208333333333329 </exact></orientation><time><exact> 94 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -51.53606960559566 </x><y> 29.27487136548979 </y></point></position><orientation><exact> 5.249999999999996 </exact></orientation><time><exact> 95 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -50.21149661287956 </x><y> 27.154823673866737 </y></point></position><orientation><exact> 5.2916666666666625 </exact></orientation><time><exact> 96 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -48.79976349405496 </x><y> 25.091790608449983 </y></point></position><orientation><exact> 5.333333333333329 </exact></orientation><time><exact> 97 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -47.30332082010598 </x><y> 23.089353305717758 </y></point></position><orientation><exact> 5.374999999999995 </exact></orientation><time><exact> 98 </exact></time><velocity><exact> 25 </exact></velocity></state>
+<state><position><point><x> -45.72476620594102 </x><y> 21.150987716390595 </y></point></position><orientation><exact> 5.416666666666662 </exact></orientation><time><exact> 99 </exact></time><velocity><exact> 25 </exact></velocity></state>
+    </trajectory>
+  </obstacle>
+</commonRoad>
