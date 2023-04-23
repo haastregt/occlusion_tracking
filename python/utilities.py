@@ -6,7 +6,7 @@ from shapely.geometry import MultiPolygon as ShapelyMultiPolygon
 from shapely.geometry import GeometryCollection as ShapelyGeometryCollection
 from shapely.geometry import MultiPoint, Point
 from commonroad.geometry.shape import Polygon as CommonRoadPolygon
-from commonroad.scenario.scenario import Lanelet
+from commonroad.scenario.scenario import Lanelet, LaneletNetwork
 
 from shapely.geometry import LineString
 import matplotlib.pyplot as plt
@@ -98,7 +98,7 @@ def ShapelyRemoveDoublePoints(polygon, tolerance):
 def process_vertices(points, tolerance):
     # The processing does the following to a sequence of points:
     # - Remove double points
-    # - If point 3 is on the same line as between point 1 and 2, remove point 2
+    # - If point 3 is on the line passing through point 1 and 2, remove point 2
     new_points = [points[0]]
     for point in points[1:]:
         if not (point[0]-new_points[-1][0])**2 + (point[1]-new_points[-1][1])**2 > tolerance**2:
@@ -196,6 +196,206 @@ def create_lane_shapes(lane):
 
     return original_lane, mapped_lane
 
+def create_dc_shapes(lanelet_network: LaneletNetwork):
+    # Find the leftmost initial lanelets
+    initial_lanelets = []
+    initial_lanelets_and_neighbours = []
+    for lanelet in lanelet_network.lanelets:
+        if lanelet.predecessor:
+            continue
+        if lanelet.lanelet_id in initial_lanelets_and_neighbours:
+            continue
+        initial_lanelets_and_neighbours.append(lanelet.lanelet_id)
+
+        current = lanelet
+        while current.adj_left_same_direction:
+            current = lanelet_network.find_lanelet_by_id(current.adj_left)
+            initial_lanelets_and_neighbours.append(current.lanelet_id)
+
+        initial_lanelets.append(current)
+        
+        current = lanelet
+        while current.adj_right_same_direction:
+            current = lanelet_network.find_lanelet_by_id(current.adj_right)
+            initial_lanelets_and_neighbours.append(current.lanelet_id)
+
+    # Find driving corridors, which consist of a sequence of parallel slices of lanelets from leftmost to rightmost
+    driving_corridors = []
+    for lanelet in initial_lanelets:
+        stack = [[[], lanelet]] #Stack of [Unfinised driving corridors, successor list at that point]
+        
+        while stack:
+            current_from_stack = stack.pop(0)
+            driving_corridor = [current_from_stack[0]] if current_from_stack[0] else []
+
+            previous_successors = [current_from_stack[1].lanelet_id]
+
+            while True:
+                leftmost_lanelet = lanelet_network.find_lanelet_by_id(previous_successors.pop(0))
+                parallel_slice = [leftmost_lanelet]
+
+                current = leftmost_lanelet
+                if current.successor:
+                    successors_list = current.successor
+                    # Make sure next parallel slice will have leftmost as first again
+                    while lanelet_network.find_lanelet_by_id(successors_list[0]).adj_left_same_direction:
+                        successors_list[0] = lanelet_network.find_lanelet_by_id(successors_list[0]).adj_left
+                else:
+                    successors_list = []
+                    
+                while current.adj_right_same_direction:
+                    current = lanelet_network.find_lanelet_by_id(current.adj_right)
+                    parallel_slice.append(current)
+                    if current.lanelet_id in previous_successors:
+                        previous_successors.remove(current.lanelet_id)
+                    if current.successor:
+                        successors_list.extend(current.successor)
+
+                driving_corridor.append(parallel_slice)
+
+                if previous_successors:
+                    #Then dc has split, duplicate current driving corridor state and the remaining previous successors
+                    #to a stack to find later
+                    stack.append([driving_corridor, previous_successors])
+                    pass
+
+                if not successors_list:
+                    break
+
+                previous_successors = successors_list
+
+                
+            driving_corridors.append(driving_corridor)
+
+    # Now that the driving corridors have been found, they can be processed to get the shapes
+    original_lanes = []
+    mapped_lanes = []
+    for dc in driving_corridors:
+        left_original = [dc[0][0].left_vertices[0]]
+        right_original = [dc[0][-1].right_vertices[0]]
+        
+        # Keep track of end of previous end-vertices
+        prev_left = dc[0][0].left_vertices[0]
+        prev_right = dc[0][-1].right_vertices[0]
+        # Width for mapped version, compute first width prior to loop
+        y_min = 0
+        y_max = np.linalg.norm(dc[0][0].left_vertices[0] - dc[0][-1].right_vertices[0])
+        xbegin = 0
+        left_mapped = [[xbegin, y_max]]
+        right_mapped = [[xbegin, y_min]]
+        for parallel_slice in dc:
+            left = process_vertices(parallel_slice[0].left_vertices, 0.1)
+            right = process_vertices(parallel_slice[-1].right_vertices, 0.1)
+
+            change_left = np.linalg.norm(prev_left - left[0])
+            v1 = left[1] - left[0]
+            v2 = prev_left - left[0]
+            direction = np.arctan2(v1[0]*v2[1]-v1[1]*v2[0], v1[0]*v2[0]+v1[1]*v2[1])
+            if change_left < 0.01:
+                left_original.extend(left[1:])
+            else:
+                left_original.extend(left)
+                y_max -= np.sign(direction)*change_left
+
+            change_right = np.linalg.norm(prev_right - right[0])
+            v1 = right[1] - right[0]
+            v2 = prev_right - right[0]
+            direction = np.arctan2(v1[0]*v2[1]-v1[1]*v2[0], v1[0]*v2[0]+v1[1]*v2[1])
+            if change_right < 0.01:
+                right_original.extend(right[1:])
+            else:
+                right_original.extend(right)
+                y_min -= np.sign(direction)*change_right
+            
+            left_bound_mapped, right_bound_mapped = create_mapped_bounds(left, right, y_min, y_max, xbegin)
+            xbegin = left_bound_mapped[-1][0]
+            if change_left < 0.01:
+                left_mapped.extend(left_bound_mapped[1:])
+            else:
+                left_mapped.extend(left_bound_mapped)
+            if change_right < 0.01:
+                right_mapped.extend(right_bound_mapped[1:])
+            else:
+                right_mapped.extend(right_bound_mapped)
+
+            prev_left = left[-1]
+            prev_right = right[-1]
+
+        left_original.reverse()
+        original_lane_shape = np.concatenate((right_original, left_original))
+        original_lane = ShapelyPolygon(original_lane_shape)
+        original_lanes.append(original_lane)
+
+        left_mapped.reverse()
+        mapped_lane_shape = np.concatenate((right_mapped, left_mapped))
+        mapped_lane = ShapelyPolygon(mapped_lane_shape)
+        mapped_lanes.append(mapped_lane)
+
+        plot_polygon(original_lane)
+        plot_polygon(mapped_lane)
+
+        assert len(original_lane.exterior.coords[:]) == len(
+        mapped_lane.exterior.coords[:]), "Number of vertices for original and mapped polygons have to be the same"
+    
+    return original_lanes, mapped_lanes
+
+def create_mapped_bounds(left, right, ymin, ymax, xbegin):
+    previous_vertex = right[0]
+    right_edges = np.zeros((len(right)-1,))
+    right_factors = np.zeros((len(right),))
+    for ind, vertex in enumerate(right[1:]):
+        right_edges[ind] = np.linalg.norm(vertex-previous_vertex)
+        if ind < len(right) - 2:
+            previous_edge = vertex - previous_vertex 
+            next_edge = right[ind + 2] - vertex
+            angle = np.arccos(np.dot(previous_edge,next_edge)/(np.linalg.norm(previous_edge)*np.linalg.norm(next_edge)))
+            right_factors[ind + 1] = angle/np.max([np.linalg.norm(previous_edge), np.linalg.norm(next_edge)])
+
+        previous_vertex = vertex
+
+    right_bound_length = np.sum(right_edges)
+    if np.sum(right_factors) == 0: #This happens if there are only two vertices
+        right_factors = np.ones((len(right),))/len(right)
+    else:
+        right_factors = right_factors/np.sum(right_factors)
+
+    previous_vertex = left[0]
+    left_edges = np.zeros((len(left)-1,))
+    left_factors = np.zeros((len(left),))
+    for ind, vertex in enumerate(left[1:]):
+        left_edges[ind] = np.linalg.norm(vertex-previous_vertex)
+        if ind < len(left) - 2:
+            previous_edge = vertex - previous_vertex 
+            next_edge = left[ind + 2] - vertex
+            angle = np.arccos(np.dot(previous_edge,next_edge)/(np.linalg.norm(previous_edge)*np.linalg.norm(next_edge)))
+            left_factors[ind + 1] = angle/np.max([np.linalg.norm(previous_edge), np.linalg.norm(next_edge)])
+
+        previous_vertex = vertex
+
+    left_bound_length = np.sum(left_edges)
+    if np.sum(left_factors) == 0: #This happens if there are only two vertices
+        left_factors = np.ones((len(left),))/len(left)
+    else:
+        left_factors = left_factors/np.sum(left_factors)
+
+    lane_length = 0.5*(left_bound_length + right_bound_length)
+    left_difference = lane_length - left_bound_length
+    right_difference = lane_length - right_bound_length
+
+    mapped_right = [[xbegin, ymin]]
+    for previous_ind, vertex in enumerate(right[1:]):
+        distance = np.sqrt(
+            (vertex[0]-right[previous_ind][0])**2 + (vertex[1]-right[previous_ind][1])**2)
+        mapped_right.append([mapped_right[-1][0]+distance + right_difference*right_factors[previous_ind+1], ymin])
+
+    mapped_left = [[xbegin, ymax]]
+    for previous_ind, vertex in enumerate(left[1:]):
+        distance = np.sqrt(
+            (vertex[0]-left[previous_ind][0])**2 + (vertex[1]-left[previous_ind][1])**2)   
+        mapped_left.append(
+            [mapped_left[-1][0]+distance + left_difference*left_factors[previous_ind + 1], ymax])
+
+    return mapped_left, mapped_right
 
 def plot_polygon(shapely_polygon):
     plt.plot(*shapely_polygon.exterior.xy)
