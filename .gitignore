@@ -12,3 +12,5 @@ install/
 figs/
 test.cpp
 __pycache__/
+datasets
+highd_loc*
