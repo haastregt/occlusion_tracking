@@ -1,4 +1,7 @@
 """
+IN ORDER TO USE, ENTER THIS FOLDER IN COMMAND LINE AND RUN:
+    python3 create_scenarios.py ../../datasets/data ../
+
 What we want to do:
 
 Load the files from the HighD dataset, per location

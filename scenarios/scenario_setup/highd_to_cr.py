@@ -17,7 +17,6 @@ from commonroad.planning.planning_problem import PlanningProblemSet
 from commonroad.geometry.shape import Rectangle
 from commonroad.prediction.prediction import TrajectoryPrediction
 
-
 class Direction(Enum):
     """
     Enum for representing upper or lower interstate road
@@ -34,104 +33,6 @@ AUTHOR = "Jonne"
 AFFILIATION = "KTH Royal Institute of Technology"
 SOURCE = "HighD Highway Drone Dataset"
 TAGS = {}
-
-# def create_highd_scenarios(input_dir: str, output_dir: str, num_time_steps_scenario: int,
-#                            num_vertices: int = 10):
-#     """
-#     Iterates over all dataset files and generates CommonRoad scenarios
-
-#     :param input_dir: path to dataset files
-#     :param output_dir: path to store generated CommonRoad scenario files
-#     :param num_time_steps_scenario: number of time steps per CommonRoad scenario
-#     :param num_planning_problems: number of planning problems per CommonRoad scenario
-#     :param keep_ego: boolean indicating if vehicles selected for planning problem should be kept in scenario
-#     :param obstacle_start_at_zero: boolean indicating if the initial state of an obstacle has to have time step zero
-#     :param num_processes: number of parallel processes to convert raw data (Optimal=60)
-#     :param downsample: resample states of trajectories of dynamic obstacles every downsample steps
-#     :param num_vertices: number of waypoints of lanes
-#     """
-#     # generate path to highd data files
-#     path_tracks = os.path.join(input_dir, "data/*_tracks.csv")
-#     path_metas = os.path.join(input_dir, "data/*_tracksMeta.csv")
-#     path_recording = os.path.join(input_dir, "data/*_recordingMeta.csv")
-
-#     # get all file names
-#     listing_tracks = sorted(glob.glob(path_tracks))
-#     listing_metas = sorted(glob.glob(path_metas))
-#     listing_recording = sorted(glob.glob(path_recording))
-
-#     for index, (recording_meta_fn, tracks_meta_fn, tracks_fn) in \
-#             enumerate(zip(listing_recording, listing_metas, listing_tracks)):
-#         print("=" * 80)
-#         print("Processing file {}...".format(tracks_fn), end='\n')
-#         generate_scenarios_for_record(recording_meta_fn, tracks_meta_fn, tracks_fn, num_time_steps_scenario,
-#                                         output_dir, num_vertices)
-
-# def generate_scenarios_for_record(recording_meta_fn: str, tracks_meta_fn: str, tracks_fn: str,
-#                                   num_time_steps_scenario: int,
-#                                   output_dir: str,
-#                                   num_vertices: int):
-#     """
-#     Generate CommonRoad scenarios with given paths to highD for a high-D recording
-
-#     :param recording_meta_fn: path to *_recordingMeta.csv
-#     :param tracks_meta_fn: path to *_tracksMeta.csv
-#     :param tracks_fn: path to *_tracks.csv
-#     :param num_time_steps_scenario: maximal number of time steps per CommonRoad scenario
-#     :param num_planning_problems: number of planning problems per CommonRoad scenario
-#     :param keep_ego: boolean indicating if vehicles selected for planning problem should be kept in scenario
-#     :param output_dir: path to store generated CommonRoad scenario files
-#     :param highd_config: dictionary with configuration parameters for highD scenario generation
-#     :param obstacle_start_at_zero: boolean indicating if the initial state of an obstacle has to have time step zero
-#     :param downsample: resample states of trajectories of dynamic obstacles every downsample steps
-#     :param num_vertices: number of waypoints of lanes
-#     """
-
-#     keep_ego = False #We simulate ego vehicle ourselves
-#     obstacle_start_at_zero = True #This way, no vehicles spawning in behind (probably still need to do a check)
-#     downsample = 1
-
-#     # read data frames from the three files
-#     recording_meta_df = pd.read_csv(recording_meta_fn, header=0)
-#     tracks_meta_df = pd.read_csv(tracks_meta_fn, header=0)
-#     tracks_df = pd.read_csv(tracks_fn, header=0)
-
-#     # generate meta scenario with lanelet network 
-#     # (So that we dont need to regenerate for scenarios from the same recording)
-#     dt = get_dt(recording_meta_df)
-#     speed_limit = get_speed_limit(recording_meta_df)
-#     upper_lane_markings, lower_lane_markings = get_lane_markings(recording_meta_df)
-#     meta_scenario_upper = get_meta_scenario(dt, "DEU_MetaScenarioUpper-0_0_T-1", upper_lane_markings, speed_limit,
-#                                             ROAD_LENGTH, Direction.UPPER,
-#                                             ROAD_OFFSET, num_vertices=num_vertices)
-#     meta_scenario_lower = get_meta_scenario(dt, "DEU_MetaScenarioLower-0_0_T-1", lower_lane_markings, speed_limit,
-#                                             ROAD_LENGTH, Direction.LOWER,
-#                                             ROAD_OFFSET, num_vertices=num_vertices)
-
-#     # separate record and generate scenario for each separated part for each direction
-#     # (upper interstate direction / lower interstate direction)
-#     num_time_steps_scenario_original_dt = num_time_steps_scenario
-#     num_scenarios = math.ceil(max(tracks_meta_df.finalFrame) / num_time_steps_scenario_original_dt)
-#     for idx_1 in range(num_scenarios):
-#         # benchmark id format: COUNTRY_SCENE_CONFIG_PRED
-#         frame_start = idx_1 * num_time_steps_scenario_original_dt + (idx_1 + 1)
-#         frame_end = frame_start + num_time_steps_scenario_original_dt
-#         benchmark_id = "HighD_{0}-{1}_{2}".format(
-#             "Location" + recording_meta_df.locationId.values[0] + "Upper",
-#             int(recording_meta_df.id), idx_1 + 1)
-
-#         generate_single_scenario(keep_ego, output_dir, tracks_df,
-#                                     tracks_meta_df, meta_scenario_upper, benchmark_id, Direction.UPPER, frame_start,
-#                                     frame_end, obstacle_start_at_zero, downsample)
-
-#         benchmark_id = "HighD_{0}-{1}_{2}".format(
-#             "Location" + recording_meta_df.locationId.values[0] + "Lower",
-#             int(recording_meta_df.id), idx_1 + 1)
-
-#         generate_single_scenario(keep_ego,
-#                                     output_dir, tracks_df, tracks_meta_df, meta_scenario_lower, benchmark_id,
-#                                     Direction.LOWER, frame_start, frame_end, obstacle_start_at_zero, downsample)
-
 
 def generate_single_scenario(ego_id: int, to_remove_ids: List[int], output_dir: str,
                              tracks_df: pd.DataFrame, tracks_meta_df: pd.DataFrame, meta_scenario: Scenario,
