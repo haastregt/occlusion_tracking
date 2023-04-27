@@ -32,7 +32,7 @@ dynamic_obstacle:
       time_end: 1
       antialiased: true
       opacity: 1.0
-      facecolor: '#ffff00'
+      facecolor: '#0000FF'
       edgecolor: '#000000'
       linewidth: 0.5
       zorder: 20
@@ -47,8 +47,8 @@ dynamic_obstacle:
         time_end: 1
         antialiased: true
         opacity: 0.5
-        facecolor: '#ffff00'
-        edgecolor: '#ffff00'
+        facecolor: '#0000FF'
+        edgecolor: '#0000FF'
         linewidth: 0.5
         zorder: 100
         draw_mesh: false

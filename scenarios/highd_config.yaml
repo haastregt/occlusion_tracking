@@ -12,8 +12,8 @@ initial_state_velocity: ~
 vehicle_type : ~
 vehicle_length : ~
 vehicle_width : ~
-goal_point_x : 420
-goal_point_y : 10
+goal_point_x : ~
+goal_point_y : ~
 
 #PLANNER
 reference_speed : ~

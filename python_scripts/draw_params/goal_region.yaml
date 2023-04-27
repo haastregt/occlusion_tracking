@@ -1,0 +1,9 @@
+  time_begin: 0
+  time_end: 1
+  antialiased: true
+  opacity: 0.5
+  facecolor: '#FFFF00'
+  edgecolor: '#FFFF00'
+  linewidth: 0.5
+  zorder: 1
+  draw_mesh: false
