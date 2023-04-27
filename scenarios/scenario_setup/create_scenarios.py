@@ -51,18 +51,26 @@ from pandas import DataFrame
 from typing import Union
 import numpy as np
 import glob
+import yaml
 from highd_to_cr import Direction, get_meta_scenario, generate_single_scenario
 
 data_path = sys.argv[1]
 scenario_path = sys.argv[2]
 
+pd.options.mode.chained_assignment = None
+
 ROAD_LENGTH = 420  # For all scenarios
 ROAD_OFFSET = 20  # To add before and after, avoiding traffic outside of lane
-MAX_DEC = 5  # Maximum deceleration of ego to filter out any infeasible initial states
+MAX_DEC = 4  # Maximum deceleration of ego to filter out any infeasible initial states
 
-# Metrics for results of conversions
+FPS = 25 # frames per second of the video
+DESIRED_FREQ = 5 # desired simulation frequency
+DOWNSAMPLING = int(FPS/DESIRED_FREQ) # highD framerate is 25 fps, we want to simulate at 5Hz
+
+TIME_BEFORE = 3 # Time before a lane change that the scenario begins
+TIME_AFTER = 5 #Time after a lane change that the scenario ends
+
 total_scenarios = 0
-rejected_due_to_initial_state = 0
 
 
 def find_valid_scenarios(tracks_meta_df, tracks_df):
@@ -78,37 +86,53 @@ def find_valid_scenarios(tracks_meta_df, tracks_df):
         if 0.5*velocity**2/MAX_DEC < distance:
             return True
 
-        rejected_due_to_initial_state += 1
         return False
+
+    def find_lane_change_interval(vehicle_df):
+        vehicle_df['change'] = vehicle_df['laneId'].diff()
+        change_frame = vehicle_df[vehicle_df['change'] != 0].frame.values[1]
+        first_frame = change_frame - TIME_BEFORE*FPS
+        last_frame = change_frame + TIME_AFTER*FPS
+        return first_frame, last_frame
 
     first_frames = []
     final_frames = []
     ego_ids = []
-    directions = []
     remove_ids = []
-    for vehicle_id in tracks_meta_df[tracks_meta_df.numLaneChanges > 0].id:
+    for vehicle_id in tracks_meta_df[tracks_meta_df.numLaneChanges == 1].id:
         final_frame = tracks_meta_df[tracks_meta_df.id ==
                                      vehicle_id].finalFrame.values[0]
         ego_id = tracks_df[(tracks_df.id == vehicle_id) & (
             tracks_df.frame == final_frame)].followingId.values
+        
+        # Check that there was a car behind (which will be the ego vehicle)
         if not ego_id:
             continue
         ego_id = ego_id[0]
 
-        first_frame = tracks_meta_df[tracks_meta_df.id ==
-                                     ego_id].initialFrame.values[0]
-        final_frame = tracks_meta_df[tracks_meta_df.id ==
-                                     ego_id].finalFrame.values[0]
+        # Check that ego vehicle existed X seconds before lane-change
+        first_frame, final_frame = find_lane_change_interval(tracks_df[tracks_df.id == vehicle_id])
+        if first_frame < 0:
+            continue
 
+        if len(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)].index) == 0:
+            continue
+
+        # The ego vehicle should not have lane-changes itself to ensure it was actually a cut-in
+        if tracks_meta_df[tracks_meta_df.id == ego_id].numLaneChanges.values[0] != 0:
+            continue
+
+        # For ease, just consider to direction to the right (we have cut-ins in abundance anyways)
+        if tracks_meta_df[tracks_meta_df.id == ego_id].drivingDirection.values[0] == 1:
+            continue
+
+        # Initial state still assumes stationary vehicle, so on initial state need enough distance to be feasible
         if not has_valid_initial_state(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]):
             continue
 
-        # TODO: Check that the merging happens close enough to the vehicle
-
-        if tracks_meta_df[tracks_meta_df.id == ego_id].maxXVelocity.values[0] > 0:
-            direction = Direction.LOWER
-        else:
-            direction = Direction.UPPER
+        # Check that the merging happens close enough to the vehicle, otherwise it is not really a cut-in
+        if tracks_df[tracks_df.id == ego_id].dhw.min() > 120:
+            continue
 
         remove_id = tracks_df[(tracks_df.id == ego_id) & (
             tracks_df.frame == first_frame)].followingId.values
@@ -116,14 +140,36 @@ def find_valid_scenarios(tracks_meta_df, tracks_df):
         first_frames.append(first_frame)
         final_frames.append(final_frame)
         ego_ids.append(ego_id)
-        directions.append(direction)
         remove_ids.append(remove_id)
 
-    return first_frames, final_frames, directions, ego_ids, remove_ids
+    return first_frames, final_frames, ego_ids, remove_ids
 
 
-def generate_yaml():
-    pass
+def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, first_frame, final_frame, downsampling, output_filename):
+    if video_meta_df["speedLimit"].values[0] == -1:
+        speed_limit = 50
+    else:
+        speed_limit = 1.2*video_meta_df["speedLimit"].values[0]
+
+    data = dict(
+        simulation_duration = int((final_frame - first_frame) // downsampling),
+        
+        initial_state_x = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["x"].values[0]),
+        initial_state_y = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["y"].values[0]),
+        initial_state_orientation = 0,
+        initial_state_velocity = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0]),
+        
+        reference_velocity = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0]),
+        vmax = int(speed_limit),
+
+        planning_horizon = int(max((tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0] + 4.99) // 5 * 5, 30)),
+
+        vehicle_type = tracks_meta_df[tracks_meta_df.id == ego_id]["class"].values[0],
+        vehicle_length = float(tracks_meta_df[tracks_meta_df.id == ego_id]["width"].values[0]),
+        vehicle_width = float(tracks_meta_df[tracks_meta_df.id == ego_id]["height"].values[0])
+    )
+    with open(output_filename, 'w') as outfile:
+        yaml.dump(data, outfile, default_flow_style=False)
 
 
 def get_lane_markings(recording_df: DataFrame, extend_width=2.):
@@ -192,41 +238,33 @@ if __name__ == "__main__":
         tracks_meta_df = pd.read_csv(tracks_meta_fn, header=0)
         tracks_df = pd.read_csv(tracks_fn, header=0)
 
-        start_times, stop_times, directions, ego_ids, to_remove_ids = find_valid_scenarios(
+        start_times, stop_times, ego_ids, to_remove_ids = find_valid_scenarios(
             tracks_meta_df, tracks_df)
 
         if not ego_ids:
             continue
 
         recording_meta_df = pd.read_csv(recording_meta_fn, header=0)
-        dt = get_dt(recording_meta_df)
+        FPS = 1/get_dt(recording_meta_df)
+        dt = get_dt(recording_meta_df)*DOWNSAMPLING
         speed_limit = get_speed_limit(recording_meta_df)
         upper_lane_markings, lower_lane_markings = get_lane_markings(
             recording_meta_df)
 
-        meta_scenario_upper = get_meta_scenario(
-            dt, "MetaUpper", upper_lane_markings, speed_limit, ROAD_LENGTH, Direction.UPPER, ROAD_OFFSET)
-        meta_scenario_lower = get_meta_scenario(
+        meta_scenario = get_meta_scenario(
             dt, "MetaLower", upper_lane_markings, speed_limit, ROAD_LENGTH, Direction.LOWER, ROAD_OFFSET)
 
         output_dir = os.path.join(
             scenario_path, "highd_loc{0}".format(index1+1))
         os.makedirs(output_dir, exist_ok=True)
 
-        for index2, (start, stop, direction, ego, to_remove) in enumerate(zip(start_times, stop_times, directions, ego_ids, to_remove_ids)):
-            if direction == Direction.UPPER:
-                meta_scenario = meta_scenario_upper
-            else:
-                meta_scenario = meta_scenario_lower
-            
-            # TODO: use their naming convention, it gets overwritten otherwise..
-            scenario_id = "highd_loc{0}_{1}".format(index1+1, index2+1)
+        for index2, (start, stop, ego, to_remove) in enumerate(zip(start_times, stop_times, ego_ids, to_remove_ids)):
+            scenario_id = "ZAM_{0}-{1}_{2}_T-1".format("HighD", index1+1, index2+1)
+            yaml_filepath = os.path.join(output_dir, scenario_id + ".yaml")
             generate_single_scenario(ego, to_remove, output_dir, tracks_df, tracks_meta_df,
-                                     meta_scenario, scenario_id, direction, start, stop, True, 1)
-            generate_yaml()
+                                     meta_scenario, scenario_id, Direction.LOWER, start, stop, True, DOWNSAMPLING)
+            generate_yaml(recording_meta_df, tracks_df, tracks_meta_df, ego, start, stop, DOWNSAMPLING, yaml_filepath)
 
             total_scenarios += 1
 
     print("Total scenarios: ", total_scenarios)
-    print("Scenarios rejected due to invalid initial state: ",
-          rejected_due_to_initial_state)
