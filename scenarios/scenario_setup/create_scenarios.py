@@ -67,8 +67,8 @@ FPS = 25 # frames per second of the video
 DESIRED_FREQ = 5 # desired simulation frequency
 DOWNSAMPLING = int(FPS/DESIRED_FREQ) # highD framerate is 25 fps, we want to simulate at 5Hz
 
-TIME_BEFORE = 3 # Time before a lane change that the scenario begins
-TIME_AFTER = 5 #Time after a lane change that the scenario ends
+TIME_BEFORE = 2 # Time before a lane change that the scenario begins
+TIME_AFTER = 4 #Time after a lane change that the scenario ends
 
 total_scenarios = 0
 
@@ -99,7 +99,7 @@ def find_valid_scenarios(tracks_meta_df, tracks_df):
     final_frames = []
     ego_ids = []
     remove_ids = []
-    for vehicle_id in tracks_meta_df[tracks_meta_df.numLaneChanges == 1].id:
+    for vehicle_id in tracks_meta_df[tracks_meta_df.numLaneChanges == 1].id.values:
         final_frame = tracks_meta_df[tracks_meta_df.id ==
                                      vehicle_id].finalFrame.values[0]
         ego_id = tracks_df[(tracks_df.id == vehicle_id) & (
@@ -110,13 +110,17 @@ def find_valid_scenarios(tracks_meta_df, tracks_df):
             continue
         ego_id = ego_id[0]
 
-        # Check that ego vehicle exists over the whole time interval
+        # Check that ego and merging vehicle exist over the whole time interval
         first_frame, final_frame = find_lane_change_interval(tracks_df[tracks_df.id == vehicle_id])
         if first_frame < 0:
             continue
         if len(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)].index) == 0:
             continue
         if len(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == final_frame)].index) == 0:
+            continue
+        if len(tracks_df[(tracks_df.id == vehicle_id) & (tracks_df.frame == first_frame)].index) == 0:
+            continue
+        if len(tracks_df[(tracks_df.id == vehicle_id) & (tracks_df.frame == final_frame)].index) == 0:
             continue
 
         # The ego vehicle should not have lane-changes itself to ensure it was actually a cut-in

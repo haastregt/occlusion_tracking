@@ -1,0 +1,45 @@
+# ~ means that the scenario specific yaml file with set the value
+
+#GENERAL
+simulation_duration : ~
+
+#EGO_VEHICLE
+initial_state_x : ~
+initial_state_y : ~
+initial_state_orientation: ~
+initial_state_velocity: ~
+
+vehicle_type : ~
+vehicle_length : ~
+vehicle_width : ~
+goal_point_x : 420
+goal_point_y : 10
+
+#PLANNER
+reference_speed : ~
+max_acceleration : 5
+max_deceleration : 5
+planning_horizon : ~
+safety_margin : 1.2
+
+#SENSOR
+field_of_view_degrees : 360
+min_resolution : 1
+view_range : 100
+
+#OCCLUSION_TRACKER
+occlusion_params:
+  vmin : 0
+  vmax : ~
+  amin : -8
+  amax : 3
+  vlatmax : 2
+  dt : 0.2
+  prediction_interval : 5
+  prediction_horizon : ~
+  min_shadow_volume : 1.0
+  mapping_quality : 1
+  simplification_precision: 0.1
+  
+
+  velocity_tracking_enabled : True

@@ -8,7 +8,7 @@ from commonroad.scenario.trajectory import State
 from commonroad_dc.collision.collision_detection.pycrcc_collision_dispatch import create_collision_object
 
 from shapely.geometry import Polygon as ShapelyPolygon
-from utilities import polygon_union
+from .utilities import polygon_union
 
 
 class Sensor:

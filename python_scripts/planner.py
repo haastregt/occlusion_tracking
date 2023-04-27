@@ -6,7 +6,7 @@ from commonroad.prediction.prediction import TrajectoryPrediction
 from commonroad.geometry.shape import Rectangle
 from commonroad_dc.collision.collision_detection.pycrcc_collision_dispatch import create_collision_checker, create_collision_object
 
-from utilities import Lanelet2ShapelyPolygon
+from .utilities import Lanelet2ShapelyPolygon
 from shapely.geometry import Point
 
 

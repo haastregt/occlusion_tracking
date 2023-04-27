@@ -6,9 +6,9 @@ from commonroad.prediction.prediction import TrajectoryPrediction
 from commonroad.scenario.obstacle import DynamicObstacle, ObstacleType
 from commonroad.geometry.shape import Rectangle
 
-from planner import Planner
-from sensor import Sensor
-from occlusion_tracker import OcclusionTracker
+from .planner import Planner
+from .sensor import Sensor
+from .occlusion_tracker import OcclusionTracker
 
 from tqdm import tqdm
 

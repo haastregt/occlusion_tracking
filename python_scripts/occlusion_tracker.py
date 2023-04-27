@@ -5,7 +5,7 @@ from commonroad.scenario.scenario import Lanelet
 from commonroad.scenario.trajectory import InitialState
 from commonroad.prediction.prediction import SetBasedPrediction, Occupancy
 
-from utilities import Lanelet2ShapelyPolygon, ShapelyPolygon2Polygon, ShapelyRemoveDoublePoints, create_lane_shapes, create_dc_shapes
+from .utilities import Lanelet2ShapelyPolygon, ShapelyPolygon2Polygon, ShapelyRemoveDoublePoints, create_lane_shapes, create_dc_shapes
 
 from py_occlusions import ReachabilityParams, OcclusionHandler
 

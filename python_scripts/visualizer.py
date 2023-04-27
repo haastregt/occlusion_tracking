@@ -7,7 +7,7 @@ import numpy as np
 from commonroad.scenario.obstacle import ObstacleType
 from commonroad.visualization.mp_renderer import MPRenderer
 from commonroad.visualization.draw_params import MPDrawParams, DynamicObstacleParams, ShapeParams
-from utilities import ShapelyPolygon2Polygon, rgb2hex
+from .utilities import ShapelyPolygon2Polygon, rgb2hex
 
 
 class Visualizer:
