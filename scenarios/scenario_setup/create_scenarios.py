@@ -110,12 +110,13 @@ def find_valid_scenarios(tracks_meta_df, tracks_df):
             continue
         ego_id = ego_id[0]
 
-        # Check that ego vehicle existed X seconds before lane-change
+        # Check that ego vehicle exists over the whole time interval
         first_frame, final_frame = find_lane_change_interval(tracks_df[tracks_df.id == vehicle_id])
         if first_frame < 0:
             continue
-
         if len(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)].index) == 0:
+            continue
+        if len(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == final_frame)].index) == 0:
             continue
 
         # The ego vehicle should not have lane-changes itself to ensure it was actually a cut-in
