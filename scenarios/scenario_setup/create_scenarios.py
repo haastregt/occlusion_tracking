@@ -93,25 +93,26 @@ def find_valid_scenarios(tracks_meta_df, tracks_df):
         change_frame = vehicle_df[vehicle_df['change'] != 0].frame.values[1]
         first_frame = change_frame - TIME_BEFORE*FPS
         last_frame = change_frame + TIME_AFTER*FPS
-        return first_frame, last_frame
+        return first_frame, last_frame, change_frame
 
     first_frames = []
     final_frames = []
     ego_ids = []
     remove_ids = []
-    for vehicle_id in tracks_meta_df[tracks_meta_df.numLaneChanges == 1].id.values:
-        final_frame = tracks_meta_df[tracks_meta_df.id ==
-                                     vehicle_id].finalFrame.values[0]
-        ego_id = tracks_df[(tracks_df.id == vehicle_id) & (
-            tracks_df.frame == final_frame)].followingId.values
-        
+    for vehicle_id in tracks_meta_df[tracks_meta_df.numLaneChanges == 1].id.values:        
         # Check that there was a car behind (which will be the ego vehicle)
+        first_frame, final_frame, change_frame = find_lane_change_interval(tracks_df[tracks_df.id == vehicle_id])
+        ego_id = tracks_df[(tracks_df.id == vehicle_id) & (
+            tracks_df.frame == change_frame)].followingId.values
         if not ego_id:
             continue
         ego_id = ego_id[0]
 
+        # Check that the merging happens close enough to the vehicle, otherwise it is not really a cut-in
+        if tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == change_frame)].dhw.values[0] > 100:
+            continue
+
         # Check that ego and merging vehicle exist over the whole time interval
-        first_frame, final_frame = find_lane_change_interval(tracks_df[tracks_df.id == vehicle_id])
         if first_frame < 0:
             continue
         if len(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)].index) == 0:
@@ -135,9 +136,6 @@ def find_valid_scenarios(tracks_meta_df, tracks_df):
         if not has_valid_initial_state(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]):
             continue
 
-        # Check that the merging happens close enough to the vehicle, otherwise it is not really a cut-in
-        if tracks_df[tracks_df.id == ego_id].dhw.min() > 120:
-            continue
 
         # Remove anything behind the ego vehicle
         remove_id = []
