@@ -139,8 +139,25 @@ def find_valid_scenarios(tracks_meta_df, tracks_df):
         if tracks_df[tracks_df.id == ego_id].dhw.min() > 120:
             continue
 
-        remove_id = tracks_df[(tracks_df.id == ego_id) & (
-            tracks_df.frame == first_frame)].followingId.values
+        # Remove anything behind the ego vehicle
+        remove_id = []
+        recursive_id = ego_id
+        while True:
+            new_id = tracks_df[(tracks_df.id == recursive_id) & (
+                tracks_df.frame == first_frame)].followingId.values   
+            if len(new_id) == 0:
+                break
+            recursive_id = new_id[0]
+            remove_id.append(recursive_id)
+
+        recursive_id = ego_id
+        while True:
+            new_id = tracks_df[(tracks_df.id == recursive_id) & (
+                tracks_df.frame == final_frame)].followingId.values   
+            if len(new_id) == 0:
+                break
+            recursive_id = new_id[0]
+            remove_id.append(recursive_id)
 
         first_frames.append(first_frame)
         final_frames.append(final_frame)
@@ -160,7 +177,7 @@ def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, first_frame,
         simulation_duration = int((final_frame - first_frame) // downsampling),
         
         initial_state_x = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["x"].values[0]),
-        initial_state_y = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["y"].values[0]),
+        initial_state_y = float(-tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["y"].values[0]),
         initial_state_orientation = 0,
         initial_state_velocity = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0]),
         
@@ -171,7 +188,10 @@ def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, first_frame,
 
         vehicle_type = tracks_meta_df[tracks_meta_df.id == ego_id]["class"].values[0],
         vehicle_length = float(tracks_meta_df[tracks_meta_df.id == ego_id]["width"].values[0]),
-        vehicle_width = float(tracks_meta_df[tracks_meta_df.id == ego_id]["height"].values[0])
+        vehicle_width = float(tracks_meta_df[tracks_meta_df.id == ego_id]["height"].values[0]),
+
+        goal_point_x = ROAD_LENGTH,
+        goal_point_y = float(-tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["y"].values[0])
     )
     with open(output_filename, 'w') as outfile:
         yaml.dump(data, outfile, default_flow_style=False)
@@ -257,7 +277,7 @@ if __name__ == "__main__":
             recording_meta_df)
 
         meta_scenario = get_meta_scenario(
-            dt, "MetaLower", upper_lane_markings, speed_limit, ROAD_LENGTH, Direction.LOWER, ROAD_OFFSET)
+            dt, "MetaLower", lower_lane_markings, speed_limit, ROAD_LENGTH, Direction.LOWER, ROAD_OFFSET)
 
         output_dir = os.path.join(
             scenario_path, "highd_loc{0}".format(index1+1))
