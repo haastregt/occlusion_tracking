@@ -72,7 +72,8 @@ def step_simulation(scenario, configuration):
                       reference_speed=configuration.get('reference_speed'),
                       max_acceleration=configuration.get('max_acceleration'),
                       max_deceleration=configuration.get('max_deceleration'),
-                      time_horizon=configuration.get('planning_horizon'))
+                      time_horizon=configuration.get('planning_horizon'),
+                      dt = scenario.dt)
 
     simulation_steps = configuration.get('simulation_duration')
     for step in tqdm(range(simulation_steps+1), desc="Running simulation"):
