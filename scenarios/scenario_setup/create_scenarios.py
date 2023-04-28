@@ -200,6 +200,8 @@ def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, merging_id, 
         other_velocity = float(v_other),
 
         legal_merge = bool(safe_merge),
+        merge_dhw = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == change_frame)]["dhw"].values[0]),
+        merge_ttc = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == change_frame)]["ttc"].values[0]),
 
         planning_horizon = int(max((tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0] + 4.99) // 5 * 5, 30)),
 
