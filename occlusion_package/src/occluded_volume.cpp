@@ -32,24 +32,39 @@ OccludedVolume::~OccludedVolume()
 {
 }
 
-Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedron)
+Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedron, bool no_lateral_expansion /*=false*/)
 {
-    int n = 4;                                   // Number of vertices to approximate the circle section
-    float R = _params.vmax * dt / cos(M_PI / n); // Use apothem to make sure we have an over-approximation of the circle
+    int n;
+    float R;
+    float phi;
+    if (no_lateral_expansion)
+    {
+        // Circle section with ~0 angle
+        n = 2;
+        R = _params.vmax * dt; 
+        phi = 0.00001;
+    }
+    else
+    {
+        n = 2; // Number of vertices to approximate the circle section
+        phi = _params.phi / 180 * M_PI;
+        R = _params.vmax * dt / cos(M_PI / (n*(M_PI/phi))); // Use apothem to make sure we have an over-approximation of the circle section
+    }
 
     Polygon sum;
+    sum.push_back(Point2(0,0));
     for (int i = 0; i <= n; i++)
     {
-        float angle = i * M_PI / n - 0.5 * M_PI;
+        float angle = i * 2*phi / n - phi;
         sum.push_back(Point2(R * cos(angle), R * sin(angle)));
     }
 
     if (_params.requires_mapping)
     {
         polyhedron = _driving_corridor->TransformOriginalToMapped(polyhedron);
+        CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     }
 
-    CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     Polygon xy = ProjectXY(polyhedron);
 
     xy = CGAL::minkowski_sum_2(xy, sum).outer_boundary();
@@ -61,15 +76,15 @@ Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedr
     if (_params.requires_mapping)
     {
         polyhedron = _driving_corridor->TransformMappedToOriginal(polyhedron);
+        CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     }
 
-    CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     return Nef_polyhedron(polyhedron);
 }
 
-Nef_polyhedron OccludedVolume::VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron)
+Nef_polyhedron OccludedVolume::VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron, bool no_lateral_expansion /*=false*/)
 {
-    return VelocityAbstraction(time_interval.second, polyhedron);
+    return VelocityAbstraction(time_interval.second, polyhedron, no_lateral_expansion);
 }
 
 Nef_polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron polyhedron)
@@ -89,9 +104,9 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron poly
     if (_params.requires_mapping)
     {
         polyhedron = _driving_corridor->TransformOriginalToMapped(polyhedron);
+        CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     }
 
-    CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     Polygon xv = ProjectXZ(polyhedron);
 
     xv = CGAL::transform(A, xv);
@@ -104,9 +119,9 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron poly
     if (_params.requires_mapping)
     {
         polyhedron = _driving_corridor->TransformMappedToOriginal(polyhedron);
+        CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     }
 
-    CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     return Nef_polyhedron(polyhedron);
 }
 
@@ -131,9 +146,9 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(std::pair<float, float> t
     if (_params.requires_mapping)
     {
         polyhedron = _driving_corridor->TransformOriginalToMapped(polyhedron);
+        CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     }
 
-    CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     Polygon xv = ProjectXZ(polyhedron);
 
     Polygon xv_lower = CGAL::transform(A_lower, xv);
@@ -159,16 +174,15 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(std::pair<float, float> t
     if (_params.requires_mapping)
     {
         polyhedron = _driving_corridor->TransformMappedToOriginal(polyhedron);
+        CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     }
 
-    CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     return Nef_polyhedron(polyhedron);
 }
 
 Nef_polyhedron OccludedVolume::ExplicitNoReversingAbstraction(float x_prev)
 {
     // Construct positive side of previous x value and map it to lane shape
-    // TODO: CHANGE X VALUES TO HIGH, NOW JUST LOW TO WORK FOR CIRCULAR EXAMPLE ROAD
     Polygon rect;
     if (x_prev == 0)
     {
@@ -180,8 +194,8 @@ Nef_polyhedron OccludedVolume::ExplicitNoReversingAbstraction(float x_prev)
     else
     {
         rect.push_back(Point2(x_prev, -9999));
-        rect.push_back(Point2(x_prev + 100, -9999));
-        rect.push_back(Point2(x_prev + 100, 9999));
+        rect.push_back(Point2(x_prev + 9999, -9999));
+        rect.push_back(Point2(x_prev + 9999, 9999));
         rect.push_back(Point2(x_prev, 9999));
     }
 
@@ -192,9 +206,9 @@ Nef_polyhedron OccludedVolume::ExplicitNoReversingAbstraction(float x_prev)
     if (_params.requires_mapping)
     {
         positive_space = _driving_corridor->TransformMappedToOriginal(positive_space);
+        CGAL::convex_hull_3(positive_space.points_begin(), positive_space.points_end(), positive_space);
     }
 
-    CGAL::convex_hull_3(positive_space.points_begin(), positive_space.points_end(), positive_space);
     return Nef_polyhedron(positive_space);
 }
 
@@ -302,7 +316,7 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
         }
 
         Nef_polyhedron velocity_abstraction =
-            VelocityAbstraction(interval, _shadow_polyhedron);
+            VelocityAbstraction(interval, _shadow_polyhedron, true);
         occupancy *= velocity_abstraction;
 
         Nef_polyhedron no_reversing = ExplicitNoReversingAbstraction(min_x);

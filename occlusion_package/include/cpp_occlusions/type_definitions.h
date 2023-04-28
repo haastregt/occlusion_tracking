@@ -25,7 +25,7 @@ struct ReachabilityParams
     float vmax;
     float amin;
     float amax;
-    float vlatmax;
+    float phi;
 
     float dt;
     int prediction_interval;

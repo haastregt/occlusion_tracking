@@ -23,7 +23,7 @@ class OcclusionTracker:
         params.vmax = config.get('vmax')
         params.amin = config.get('amin')
         params.amax = config.get('amax')
-        params.vlatmax = config.get('vlatmax')
+        params.phi = config.get('phi')
         params.dt = config.get('dt')
         params.prediction_interval = config.get('prediction_interval')
         params.prediction_horizon = config.get('prediction_horizon')

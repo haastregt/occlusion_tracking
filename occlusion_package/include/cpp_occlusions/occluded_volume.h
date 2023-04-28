@@ -19,12 +19,14 @@ class OccludedVolume
     /// @brief Computes the reachability of the velocity abstraction: R_Mvel(P)
     /// @param dt The time step into the future for which the reachability is computed
     /// @param polyhedron The initial set of states
-    Nef_polyhedron VelocityAbstraction(float dt, Polyhedron polyhedron);
+    /// @param no_lateral_expansion Wether the abstraction considers lateral movement
+    Nef_polyhedron VelocityAbstraction(float dt, Polyhedron polyhedron, bool no_lateral_expansion = false);
 
     /// @brief Computes the reachability of the velocity abstraction: R_Mvel(P)
     /// @param time_interval The time interval over which the reachability is computed
     /// @param polyhedron The initial set of states
-    Nef_polyhedron VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron);
+    /// @param no_lateral_expansion Wether the abstraction considers lateral movement
+    Nef_polyhedron VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron, bool no_lateral_expansion = false);
 
     /// @brief Computes the reachability of the acceleration abstraction: R_Macc(P)
     /// @param dt The time step into the future for which the reachability is computed

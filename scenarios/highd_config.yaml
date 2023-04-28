@@ -33,7 +33,7 @@ occlusion_params:
   vmax : ~
   amin : -8
   amax : 3
-  vlatmax : 2
+  phi : 15
   dt : 0.2
   prediction_interval : 5
   prediction_horizon : ~
