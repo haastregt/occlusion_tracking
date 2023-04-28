@@ -40,6 +40,6 @@ occlusion_params:
   min_shadow_volume : 1.0
   mapping_quality : 1
   simplification_precision: 0.1
-  
+  requires_mapping: False
 
   velocity_tracking_enabled : True

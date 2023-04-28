@@ -33,6 +33,7 @@ struct ReachabilityParams
     float min_shadow_volume;
     float mapping_quality;
     float simplification_precision;
+    bool requires_mapping;
 
     bool velocity_tracking_enabled;
 };

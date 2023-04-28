@@ -30,6 +30,7 @@ class OcclusionTracker:
         params.min_shadow_volume = config.get('min_shadow_volume')
         params.mapping_quality = config.get('mapping_quality')
         params.simplification_precision = config.get('simplification_precision')
+        params.requires_mapping = config.get('requires_mapping')
         params.velocity_tracking_enabled = config.get(
             'velocity_tracking_enabled')
         self.params = params
@@ -89,7 +90,6 @@ class OcclusionTracker:
 
  
             for i in range(self.params.prediction_horizon, self.planning_horizon):
-                #occupancy = Occupancy(self.time_step+i+1, ShapelyPolygon2Polygon((occupancy_set[-1])))
                 occupancy_set.append(occupancy)
 
             obstacle_id = scenario.generate_object_id()

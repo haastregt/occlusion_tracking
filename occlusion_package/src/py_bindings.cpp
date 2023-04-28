@@ -31,6 +31,7 @@ PYBIND11_MODULE(py_occlusions, m)
         .def_readwrite("min_shadow_volume", &cpp_occlusions::ReachabilityParams::min_shadow_volume)
         .def_readwrite("mapping_quality", &cpp_occlusions::ReachabilityParams::mapping_quality)
         .def_readwrite("simplification_precision", &cpp_occlusions::ReachabilityParams::simplification_precision)
+        .def_readwrite("requires_mapping", &cpp_occlusions::ReachabilityParams::requires_mapping)
         .def_readwrite("velocity_tracking_enabled", &cpp_occlusions::ReachabilityParams::velocity_tracking_enabled);
 }
 
