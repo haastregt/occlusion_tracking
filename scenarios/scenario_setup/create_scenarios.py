@@ -70,6 +70,9 @@ DOWNSAMPLING = int(FPS/DESIRED_FREQ) # highD framerate is 25 fps, we want to sim
 TIME_BEFORE = 2 # Time before a lane change that the scenario begins
 TIME_AFTER = 4 #Time after a lane change that the scenario ends
 
+MAX_ACC_EGO = 2 # To detect legal merges
+MAX_ACC_OTHER = 3 # To detect legal merges
+
 total_scenarios = 0
 
 
@@ -99,6 +102,7 @@ def find_valid_scenarios(tracks_meta_df, tracks_df):
     final_frames = []
     ego_ids = []
     remove_ids = []
+    merging_ids = []
     for vehicle_id in tracks_meta_df[tracks_meta_df.numLaneChanges == 1].id.values:        
         # Check that there was a car behind (which will be the ego vehicle)
         first_frame, final_frame, change_frame = find_lane_change_interval(tracks_df[tracks_df.id == vehicle_id])
@@ -161,18 +165,30 @@ def find_valid_scenarios(tracks_meta_df, tracks_df):
         final_frames.append(final_frame)
         ego_ids.append(ego_id)
         remove_ids.append(remove_id)
+        merging_ids.append(vehicle_id)
 
-    return first_frames, final_frames, ego_ids, remove_ids
+    return first_frames, final_frames, ego_ids, remove_ids, merging_ids
 
 
-def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, first_frame, final_frame, downsampling, output_filename):
+def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, merging_id, first_frame, final_frame, output_filename):
     if video_meta_df["speedLimit"].values[0] == -1:
         speed_limit = 50
     else:
         speed_limit = 1.2*video_meta_df["speedLimit"].values[0]
 
+    change_frame = first_frame + FPS*TIME_AFTER
+
+    v_other = tracks_df[(tracks_df.id == merging_id) & (tracks_df.frame == change_frame)]["xVelocity"].values[0]
+    v_ego = tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == change_frame)]["xVelocity"].values[0]
+    merge_distance = tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == change_frame)]["dhw"].values[0]
+    # safe merge distance: v_ego**2/2a_max_ego - v_other**2/2a_max_other.
+    if v_ego**2/MAX_ACC_EGO - v_other**2/MAX_ACC_OTHER < merge_distance:
+        safe_merge = True
+    else:
+        safe_merge = True
+
     data = dict(
-        simulation_duration = int((final_frame - first_frame) // downsampling),
+        simulation_duration = int((final_frame - first_frame) // DOWNSAMPLING),
         
         initial_state_x = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["x"].values[0]),
         initial_state_y = float(-tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["y"].values[0]),
@@ -181,6 +197,9 @@ def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, first_frame,
         
         reference_velocity = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0]),
         vmax = int(speed_limit),
+        other_velocity = float(v_other),
+
+        legal_merge = bool(safe_merge),
 
         planning_horizon = int(max((tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0] + 4.99) // 5 * 5, 30)),
 
@@ -261,7 +280,7 @@ if __name__ == "__main__":
         tracks_meta_df = pd.read_csv(tracks_meta_fn, header=0)
         tracks_df = pd.read_csv(tracks_fn, header=0)
 
-        start_times, stop_times, ego_ids, to_remove_ids = find_valid_scenarios(
+        start_times, stop_times, ego_ids, to_remove_ids, merging_ids = find_valid_scenarios(
             tracks_meta_df, tracks_df)
 
         if not ego_ids:
@@ -281,12 +300,12 @@ if __name__ == "__main__":
             scenario_path, "highd_loc{0}".format(index1+1))
         os.makedirs(output_dir, exist_ok=True)
 
-        for index2, (start, stop, ego, to_remove) in enumerate(zip(start_times, stop_times, ego_ids, to_remove_ids)):
+        for index2, (start, stop, ego, to_remove, merging) in enumerate(zip(start_times, stop_times, ego_ids, to_remove_ids, merging_ids)):
             scenario_id = "ZAM_{0}-{1}_{2}_T-1".format("HighD", index1+1, index2+1)
             yaml_filepath = os.path.join(output_dir, scenario_id + ".yaml")
             generate_single_scenario(ego, to_remove, output_dir, tracks_df, tracks_meta_df,
                                      meta_scenario, scenario_id, Direction.LOWER, start, stop, True, DOWNSAMPLING)
-            generate_yaml(recording_meta_df, tracks_df, tracks_meta_df, ego, start, stop, DOWNSAMPLING, yaml_filepath)
+            generate_yaml(recording_meta_df, tracks_df, tracks_meta_df, ego, merging, start, stop, yaml_filepath)
 
             total_scenarios += 1
 
