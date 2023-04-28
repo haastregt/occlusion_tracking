@@ -175,7 +175,7 @@ class Visualizer:
         goal_x = configuration.get('goal_point_x')
         goal_y = configuration.get('goal_point_y')
         width = 5 # times 2
-        height = 10 # times 2
+        height = 5 # times 2
         goal_polygon = ShapelyPolygon([[goal_x + width, goal_y + height],
                                        [goal_x - width, goal_y + height],
                                        [goal_x - width, goal_y - height],
