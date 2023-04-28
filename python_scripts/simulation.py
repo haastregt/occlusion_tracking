@@ -38,6 +38,7 @@ def step_simulation(scenario, configuration):
     driven_state_list = []
     percieved_scenarios = []
     sensor_views = []
+    emergency_brakes = []
 
     ego_shape = Rectangle(configuration.get('vehicle_length'),
                           configuration.get('vehicle_width'))
@@ -99,7 +100,7 @@ def step_simulation(scenario, configuration):
         # Update the planner and plan a trajectory
         # Optionally, generate a no-stop zone on intersections to avoid having trajectories that stop on an intersection.
         planner.update(ego_vehicle.initial_state)
-        collision_free_trajectory = planner.plan(percieved_scenario)
+        collision_free_trajectory, emergency_stop = planner.plan(percieved_scenario)
         if collision_free_trajectory:
             ego_vehicle.prediction = collision_free_trajectory
         # else, if no trajectory found, keep previous collision free trajectory
@@ -110,6 +111,7 @@ def step_simulation(scenario, configuration):
         percieved_scenarios.append(percieved_scenario)
         sensor_views.append(sensor_view)
         driven_state_list.append(ego_vehicle.initial_state)
+        emergency_brakes.append(emergency_stop)
 
         ego_vehicle = step_vehicle(ego_vehicle)
         scenario = step_scenario(scenario)
@@ -120,4 +122,4 @@ def step_simulation(scenario, configuration):
     driven_trajectory_pred = TrajectoryPrediction(
         driven_trajectory, ego_vehicle.obstacle_shape)
     ego_vehicle.prediction = driven_trajectory_pred
-    return ego_vehicle, percieved_scenarios, sensor_views, occ_track.get_shadows()
+    return ego_vehicle, percieved_scenarios, sensor_views, occ_track.get_shadows(), emergency_brakes

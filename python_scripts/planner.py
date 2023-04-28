@@ -40,7 +40,19 @@ class Planner:
         trajectories = self.generate_trajectories(scenario.lanelet_network)
         safe_trajectories = self.get_safe_trajectories(trajectories, scenario)
         optimal_trajectory = self.get_optimal_trajectory(safe_trajectories)
-        return optimal_trajectory
+        infeasible = False
+        
+        if not optimal_trajectory:
+            optimal_trajectory = self.generate_emergency_braking_trajectory()
+            infeasible = True
+        return optimal_trajectory, infeasible
+
+    def generate_emergency_braking_trajectory(self):
+        velocity_decs = self.initial_state.velocity - \
+            self.max_dec * self.dt * np.arange(self.time_horizon)
+        trajectory = self.create_trajectory(velocity_decs.clip(0))
+        prediction = TrajectoryPrediction(trajectory, self.vehicle_shape)
+        return prediction
 
     def generate_trajectories(self, lanelet_network):
         if not self.waypoints:
