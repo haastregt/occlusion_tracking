@@ -331,9 +331,6 @@ def create_dc_shapes(lanelet_network: LaneletNetwork):
         mapped_lane = ShapelyPolygon(mapped_lane_shape)
         mapped_lanes.append(mapped_lane)
 
-        plot_polygon(original_lane)
-        plot_polygon(mapped_lane)
-
         assert len(original_lane.exterior.coords[:]) == len(
         mapped_lane.exterior.coords[:]), "Number of vertices for original and mapped polygons have to be the same"
     

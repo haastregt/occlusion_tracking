@@ -122,4 +122,4 @@ def step_simulation(scenario, configuration):
     driven_trajectory_pred = TrajectoryPrediction(
         driven_trajectory, ego_vehicle.obstacle_shape)
     ego_vehicle.prediction = driven_trajectory_pred
-    return ego_vehicle, percieved_scenarios, sensor_views, occ_track.get_shadows(), emergency_brakes
+    return ego_vehicle, percieved_scenarios, sensor_views, occ_track.get_shadows(), emergency_brakes, occ_track.get_computational_time()

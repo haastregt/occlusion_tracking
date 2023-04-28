@@ -113,3 +113,6 @@ class OcclusionTracker:
 
     def get_shadows(self):
         return self.occlusion_handler.export_shadows()
+    
+    def get_computational_time(self):
+        return self.occlusion_handler.export_computational_time()

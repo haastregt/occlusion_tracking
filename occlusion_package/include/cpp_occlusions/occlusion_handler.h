@@ -12,6 +12,11 @@ class OcclusionHandler
     int _time_step;
     int _ID_allocator;
 
+    double _update_time;
+    double _prediction_time;
+    int _num_updates;
+    int _num_predictions;
+
     ReachabilityParams _params;
     
     std::list<std::list<OccludedVolume>> _shadow_list_by_corridor;
@@ -37,6 +42,8 @@ class OcclusionHandler
 
     // This type is needed to convert to python types
     std::list<std::tuple<int, std::list<std::tuple<int, std::list<std::list<float>>>>>> ExportShadows();
+
+    std::tuple<double, double> ExportComputationalTime();
 };
 
 } // namespace cpp_occlusions

@@ -3,6 +3,7 @@
 #include "cpp_occlusions/utility.h"
 
 #include <CGAL/Boolean_set_operations_2.h>
+#include <chrono>
 
 namespace cpp_occlusions
 {
@@ -14,6 +15,11 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
 {
     _ID_allocator = 0;
     _time_step = 0;
+
+    _update_time = 0;
+    _prediction_time = 0;
+    _num_updates = 0;
+    _num_predictions = 0;
 
     Polyhedron P;
     std::list<CGAL::Polygon_with_holes_2<Kernel>> output_list;
@@ -76,6 +82,9 @@ OcclusionHandler::~OcclusionHandler()
 
 void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
 {
+    _num_updates++;
+    std::chrono::steady_clock::time_point t_start = std::chrono::steady_clock::now();
+
     float dt = _params.dt * (new_time_step - _time_step);
     _time_step = new_time_step;
 
@@ -143,10 +152,16 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
 
         _shadow_list_by_corridor.push_back(new_corridor);
     }
+
+    std::chrono::steady_clock::time_point t_end = std::chrono::steady_clock::now();
+    _update_time += std::chrono::duration_cast<std::chrono::duration<double>>(t_end - t_start).count();
 }
 
 std::list<std::list<Polygon>> OcclusionHandler::GetReachableSets()
 {
+    _num_predictions++;
+    std::chrono::steady_clock::time_point t_start = std::chrono::steady_clock::now();
+
     std::list<std::list<Polygon>> occupancy_lists;
     for (auto shadow_list : _shadow_list_by_corridor)
     {
@@ -155,6 +170,10 @@ std::list<std::list<Polygon>> OcclusionHandler::GetReachableSets()
             occupancy_lists.push_back(shadow.ComputeFutureOccupancies());
         }
     }
+    
+    std::chrono::steady_clock::time_point t_end = std::chrono::steady_clock::now();
+    _prediction_time += std::chrono::duration_cast<std::chrono::duration<double>>(t_end - t_start).count();
+    
     return occupancy_lists;
 }
 
@@ -214,6 +233,11 @@ std::list<std::tuple<int, std::list<std::tuple<int, std::list<std::list<float>>>
     }
 
     return export_results;
+}
+
+std::tuple<double, double> OcclusionHandler::ExportComputationalTime()
+{
+    return std::tuple<double,double>{_update_time/_num_updates, _prediction_time/_num_predictions};
 }
 
 
