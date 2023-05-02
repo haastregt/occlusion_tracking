@@ -57,12 +57,13 @@ class OcclusionTracker:
         #         lanes.append(original)
         #         mapped_lanes.append(mapped)
         
-        lanes, mapped_lanes = create_dc_shapes(scenario.lanelet_network)
+        # lanes, mapped_lanes = create_dc_shapes(scenario.lanelet_network)
+        dc, mapped_dc, lanes = create_dc_shapes(scenario.lanelet_network)
 
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
 
         self.occlusion_handler = OcclusionHandler(
-            lanes, mapped_lanes, sensor_view_processed, self.time_step, self.params)
+            dc, mapped_dc, lanes, sensor_view_processed, self.time_step, self.params)
 
     def update(self, sensor_view, new_time_step):
         self.time_step = new_time_step
@@ -75,6 +76,7 @@ class OcclusionTracker:
 
         dynamic_obstacles = []
         for occupancy_set in occupancy_sets:
+            # print("Number of occupancies: ", len(occupancy_set))
             # plt.figure()
             # for polygon in occupancy_set:
             #     plt.plot(*polygon.exterior.xy)

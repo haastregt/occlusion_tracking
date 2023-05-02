@@ -50,7 +50,9 @@ class DrivingCorridor
   public:
     Polygon original_polygon;
 
-    DrivingCorridor(Polygon lane_polygon, Polygon transformed_polygon, float max_triangulation_edge_lenth = 1);
+    std::list<Polygon> lanes;
+
+    DrivingCorridor(Polygon lane_polygon, Polygon transformed_polygon, std::list<Polygon> dc_lanes, float max_triangulation_edge_lenth = 1);
 
     ~DrivingCorridor();
 

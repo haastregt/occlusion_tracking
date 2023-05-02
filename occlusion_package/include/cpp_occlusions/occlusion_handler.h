@@ -26,7 +26,8 @@ class OcclusionHandler
 
   public:
     OcclusionHandler(std::list<Polygon> driving_corridor_polygons, std::list<Polygon> mapped_driving_corridor_polygons,
-                     Polygon initial_sensor_view, int init_time_step, ReachabilityParams params);
+                     std::list<std::list<Polygon>> lanes_in_driving_corridors, Polygon initial_sensor_view, 
+                     int init_time_step, ReachabilityParams params);
 
     ~OcclusionHandler();
 

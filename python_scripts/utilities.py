@@ -267,6 +267,18 @@ def create_dc_shapes(lanelet_network: LaneletNetwork):
                 
             driving_corridors.append(driving_corridor)
 
+    # Now find the list of lanes in each driving corridor
+    lanes_in_dc = []
+    for dc in driving_corridors:
+        initial_lanelets = dc[0]
+        this_dc_lanes = []
+        for lanelet in initial_lanelets:
+            lanes, _ = Lanelet.all_lanelets_by_merging_successors_from_lanelet(
+                    lanelet, lanelet_network, max_length=500)
+            for lane in lanes:
+                this_dc_lanes.append(Lanelet2ShapelyPolygon(lane))
+        lanes_in_dc.append(this_dc_lanes)
+
     # Now that the driving corridors have been found, they can be processed to get the shapes
     original_lanes = []
     mapped_lanes = []
@@ -334,7 +346,7 @@ def create_dc_shapes(lanelet_network: LaneletNetwork):
         assert len(original_lane.exterior.coords[:]) == len(
         mapped_lane.exterior.coords[:]), "Number of vertices for original and mapped polygons have to be the same"
     
-    return original_lanes, mapped_lanes
+    return original_lanes, mapped_lanes, lanes_in_dc
 
 def create_mapped_bounds(left, right, ymin, ymax, xbegin):
     previous_vertex = right[0]

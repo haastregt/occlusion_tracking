@@ -9,7 +9,9 @@ namespace cpp_occlusions
 {
 
 OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
-                                   std::list<Polygon> mapped_driving_corridor_polygons, Polygon initial_sensor_view,
+                                   std::list<Polygon> mapped_driving_corridor_polygons, 
+                                   std::list<std::list<Polygon>> lanes_in_driving_corridors,
+                                   Polygon initial_sensor_view,
                                    int init_time_step, ReachabilityParams params)
     : _params(params), _time_step(init_time_step)
 {
@@ -31,6 +33,7 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
     }
 
     std::list<Polygon>::iterator mapped_it = mapped_driving_corridor_polygons.begin();
+    std::list<std::list<Polygon>>::iterator lanes_it = lanes_in_driving_corridors.begin();
     for (Polygon driving_corridor_poly : driving_corridor_polygons)
     {
         if (!driving_corridor_poly.is_counterclockwise_oriented())
@@ -45,7 +48,7 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
         // for which each element will be deleted in the OcclusionHandler destructor. However
         // since there is just one Occlusion Handler per simulation, it should not really matter.
         DrivingCorridor *driving_corridor =
-            new DrivingCorridor(driving_corridor_poly, *mapped_it, 1 / _params.mapping_quality);
+            new DrivingCorridor(driving_corridor_poly, *mapped_it, *lanes_it, 1 / _params.mapping_quality);
 
         std::list<OccludedVolume> corridor;
 

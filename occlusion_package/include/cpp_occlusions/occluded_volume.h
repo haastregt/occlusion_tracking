@@ -42,6 +42,10 @@ class OccludedVolume
     /// @param x_prev The minimal value of x of the previously timestep
     Nef_polyhedron ExplicitNoReversingAbstraction(float x_prev);
 
+    /// @brief Find which lanes the occluded volume is covering
+    /// @return A polyhedron which is an extrusion of the union of lanes covered by the occlusion
+    Nef_polyhedron GetLanes();
+
     /// @brief Gets the minimal x value in the mapped frame
     /// @param polyhedron the set to analyze
     /// @return the minimal x of the set

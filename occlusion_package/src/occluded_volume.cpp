@@ -18,6 +18,7 @@
 #include <CGAL/draw_nef_3.h>
 #include <CGAL/draw_polygon_2.h>
 #include <CGAL/draw_polyhedron.h>
+#include <CGAL/draw_polygon_with_holes_2.h>
 
 namespace cpp_occlusions
 {
@@ -229,6 +230,28 @@ double OccludedVolume::GetMinX(Polyhedron polyhedron)
     return x_min;
 }
 
+Nef_polyhedron OccludedVolume::GetLanes()
+{
+    Polygon_wh occupied_lanes = Polygon_wh();
+    Polygon shadow_projection = ProjectXY(_shadow_polyhedron);
+    for (Polygon lane : _driving_corridor->lanes)
+    {
+        if(CGAL::do_intersect(shadow_projection,lane))
+        {
+            if (occupied_lanes.outer_boundary().is_empty())
+            {
+                occupied_lanes = Polygon_wh(lane);
+                continue;
+            }
+            CGAL::join(lane,occupied_lanes.outer_boundary(),occupied_lanes);
+        }
+    }
+    ExtrudeZ<HalfedgeDS> extrude(occupied_lanes.outer_boundary(), std::pair<float,float>{_params.vmin, _params.vmax});
+    Polyhedron extruded_lanes;
+    extruded_lanes.delegate(extrude);
+    return Nef_polyhedron(extruded_lanes);
+}
+
 
 std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_view)
 {
@@ -294,11 +317,7 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
     std::list<Polygon> occupancy_set;
     occupancy_set.push_back(ProjectXY(_shadow_polyhedron));
 
-    Polyhedron P;
-    ExtrudeZ<HalfedgeDS> extrude(_driving_corridor->original_polygon,
-                                 std::pair<float, float>{_params.vmin, _params.vmax});
-    P.delegate(extrude);
-    Nef_polyhedron nef_road(P);
+    Nef_polyhedron occupied_lanes = GetLanes();
 
     double min_x = 0;
     int num_predictions = _params.prediction_horizon / _params.prediction_interval;
@@ -316,15 +335,15 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
         }
 
         Nef_polyhedron velocity_abstraction =
-            VelocityAbstraction(interval, _shadow_polyhedron, true);
+            VelocityAbstraction(interval, _shadow_polyhedron);
         occupancy *= velocity_abstraction;
 
         Nef_polyhedron no_reversing = ExplicitNoReversingAbstraction(min_x);
         occupancy *= no_reversing;
         
-        occupancy *= nef_road;
+        occupancy *= occupied_lanes;
 
-        P = Polyhedron();
+        Polyhedron P;
         occupancy.convert_to_Polyhedron(P);
 
         if(occupancy == Nef_polyhedron::EMPTY)
