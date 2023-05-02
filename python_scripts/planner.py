@@ -49,7 +49,7 @@ class Planner:
 
     def generate_emergency_braking_trajectory(self):
         velocity_decs = self.initial_state.velocity - \
-            self.max_dec * self.dt * np.arange(self.time_horizon)
+            self.max_dec * self.dt * np.arange(self.time_horizon+1)[1:]
         trajectory = self.create_trajectory(velocity_decs.clip(0))
         prediction = TrajectoryPrediction(trajectory, self.vehicle_shape)
         return prediction
