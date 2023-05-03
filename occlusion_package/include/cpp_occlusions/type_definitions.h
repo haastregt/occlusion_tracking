@@ -36,6 +36,7 @@ struct ReachabilityParams
     bool requires_mapping;
 
     bool velocity_tracking_enabled;
+    bool export_shadows;
 };
 
 } // namespace cpp_occlusions

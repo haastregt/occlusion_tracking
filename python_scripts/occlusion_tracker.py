@@ -33,6 +33,7 @@ class OcclusionTracker:
         params.requires_mapping = config.get('requires_mapping')
         params.velocity_tracking_enabled = config.get(
             'velocity_tracking_enabled')
+        params.export_shadows = config.get('save_shadows')
         self.params = params
 
     def __init__(self, scenario, sensor_view, params, planning_horizon, initial_time_step=0):

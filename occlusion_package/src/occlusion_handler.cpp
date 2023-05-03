@@ -68,6 +68,10 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
 
             ++_ID_allocator;
             corridor.push_back(OccludedVolume(P, driving_corridor, _params, _ID_allocator));
+            if (_params.export_shadows)
+            {
+                SaveShadow(_ID_allocator, P);
+            }
         }
 
         if (!corridor.empty())
@@ -149,7 +153,10 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
             Polyhedron P;
             nef.convert_to_polyhedron(P);
             new_corridor.push_back(OccludedVolume(P, driving_corridor, _params, *ID_it));
-            SaveShadow(*ID_it, P);
+            if (_params.export_shadows)
+            {
+                SaveShadow(*ID_it, P);
+            }
             ++ID_it;
         }
 
