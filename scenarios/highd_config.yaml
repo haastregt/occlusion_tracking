@@ -17,23 +17,22 @@ goal_point_y : ~
 
 #PLANNER
 reference_speed : ~
-max_acceleration : 5
+max_acceleration : 3
 max_deceleration : 5
 planning_horizon : ~
-safety_margin : 1.2
 
 #SENSOR
 field_of_view_degrees : 360
 min_resolution : 1
-view_range : 100
+view_range : 250
 
 #OCCLUSION_TRACKER
 occlusion_params:
   vmin : 0
   vmax : ~
-  amin : -8
+  amin : -5
   amax : 3
-  phi : 15
+  phi : 10
   dt : 0.2
   prediction_interval : 5
   prediction_horizon : ~

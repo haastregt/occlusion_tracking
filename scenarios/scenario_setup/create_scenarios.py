@@ -67,8 +67,8 @@ FPS = 25 # frames per second of the video
 DESIRED_FREQ = 5 # desired simulation frequency
 DOWNSAMPLING = int(FPS/DESIRED_FREQ) # highD framerate is 25 fps, we want to simulate at 5Hz
 
-TIME_BEFORE = 2 # Time before a lane change that the scenario begins
-TIME_AFTER = 4 #Time after a lane change that the scenario ends
+TIME_BEFORE = 3.6 # Time before a lane change that the scenario begins
+TIME_AFTER = 5.4 #Time after a lane change that the scenario ends
 
 MAX_ACC_EGO = 2 # To detect legal merges
 MAX_ACC_OTHER = 3 # To detect legal merges
@@ -79,8 +79,6 @@ total_scenarios = 0
 def find_valid_scenarios(tracks_meta_df, tracks_df):
 
     def has_valid_initial_state(initial_state):
-        global rejected_due_to_initial_state
-
         distance = np.abs(initial_state.dhw).values[0]
         if not distance:
             return True
@@ -172,7 +170,7 @@ def find_valid_scenarios(tracks_meta_df, tracks_df):
 
 def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, merging_id, first_frame, final_frame, output_filename):
     if video_meta_df["speedLimit"].values[0] == -1:
-        speed_limit = 50
+        speed_limit = 42 # Slightly over 150 km/h
     else:
         speed_limit = 1.2*video_meta_df["speedLimit"].values[0]
 
@@ -299,7 +297,7 @@ if __name__ == "__main__":
             dt, "MetaLower", lower_lane_markings, speed_limit, ROAD_LENGTH, Direction.LOWER, ROAD_OFFSET)
 
         output_dir = os.path.join(
-            scenario_path, "highd_loc{0}".format(index1+1))
+            scenario_path, "highd_scenarios")
         os.makedirs(output_dir, exist_ok=True)
 
         for index2, (start, stop, ego, to_remove, merging) in enumerate(zip(start_times, stop_times, ego_ids, to_remove_ids, merging_ids)):

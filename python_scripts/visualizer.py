@@ -48,8 +48,8 @@ class Visualizer:
         # Draw the shadow predictions
         draw_params = DynamicObstacleParams.load(
             file_path="python_scripts/draw_params/shadow_prediction.yaml", validate_types=False)
-        for i in reversed(range(time_horizon)):
-            tint_factor = 0.005**(1/(i+1))
+        for i in reversed(range(time_horizon-1)):
+            tint_factor = 0.5 #0.005**(1/(i+1))
             Ri = int(R + (255 - R) * tint_factor)
             Gi = int(G + (255 - G) * tint_factor)
             Bi = int(B + (255 - B) * tint_factor)
@@ -61,6 +61,19 @@ class Visualizer:
             draw_params.occupancy.shape.edgecolor = color
             for shadow in shadows:
                 shadow.draw(rnd, draw_params=draw_params)
+
+        tint_factor = 0
+        Ri = int(R + (255 - R) * tint_factor)
+        Gi = int(G + (255 - G) * tint_factor)
+        Bi = int(B + (255 - B) * tint_factor)
+        color = rgb2hex(Ri, Gi, Bi)
+
+        draw_params.time_begin = time_begin+time_horizon
+        draw_params.time_end = time_begin+time_horizon+1
+        draw_params.occupancy.shape.facecolor = color
+        draw_params.occupancy.shape.edgecolor = color
+        for shadow in shadows:
+            shadow.draw(rnd, draw_params=draw_params)
 
     def plot(self,
              scenario=None,
@@ -98,7 +111,7 @@ class Visualizer:
                 obstacle_type=ObstacleType.UNKNOWN)
             scenario.remove_obstacle(shadow_obstacles)
 
-            self.draw_shadows(rnd, shadow_obstacles, time_begin, 20)
+            self.draw_shadows(rnd, shadow_obstacles, time_begin, 30)
             scenario.draw(rnd)
 
             scenario.add_objects(shadow_obstacles)
@@ -115,17 +128,18 @@ class Visualizer:
             tri.set_alpha(0.5)
             figure.add_collection3d(tri)
 
-    def plot_3D_shadows(self, shadow, sim_length, interval):
+    def plot_3D_shadows(self, shadow, sim_length, timesteps):
         ID = shadow[0]
         polyhedra = shadow[1]
 
-        figure = plt.figure()
+        figure = plt.figure(111, figsize=(12,12))
+        figure.subplots_adjust(left=0, right=1, bottom=0, top=1)
         ax = figure.add_subplot(111, projection="3d")
         R = int(255)
         G = int(0)
         B = int(0)
 
-        for polyhedron in polyhedra[::interval]:
+        for polyhedron in [polyhedra[timestep] for timestep in timesteps]:
             timestep = polyhedron[0]
             poly = np.array(polyhedron[1])
 
@@ -140,6 +154,13 @@ class Visualizer:
                 tri.set_color(color)
                 tri.set_alpha(0.5)
                 ax.add_collection3d(tri)
+        ax.axes.set_xlim3d(left=0, right=420)
+        ax.axes.set_ylim3d(bottom=-45, top=-15)
+        ax.axes.set_zlim3d(bottom=0, top=50)
+        ax.azim = -90
+        ax.dist = 10
+        ax.elev = 45
+        ax.set_box_aspect((420, 80, 160))
         plt.show()
 
     def plot_unsimulated(self, scenario, configuration, timestep):
