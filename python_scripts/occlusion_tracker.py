@@ -95,6 +95,9 @@ class OcclusionTracker:
             for i in range(self.params.prediction_horizon, self.planning_horizon):
                 occupancy_set.append(occupancy)
 
+            if not occupancies:
+                continue
+
             obstacle_id = scenario.generate_object_id()
             obstacle_type = ObstacleType.UNKNOWN
             obstacle_shape = ShapelyPolygon2Polygon(occupancy_set[0])
