@@ -244,13 +244,23 @@ Nef_polyhedron OccludedVolume::GetLanes()
                 occupied_lanes = Polygon_wh(lane);
                 continue;
             }
-            CGAL::join(lane,occupied_lanes.outer_boundary(),occupied_lanes);
+            else 
+            {
+                CGAL::join(lane,occupied_lanes.outer_boundary(), occupied_lanes);
+            }
         }
     }
-    ExtrudeZ<HalfedgeDS> extrude(occupied_lanes.outer_boundary(), std::pair<float,float>{_params.vmin, _params.vmax});
-    Polyhedron extruded_lanes;
-    extruded_lanes.delegate(extrude);
-    return Nef_polyhedron(extruded_lanes);
+    if (occupied_lanes.outer_boundary().is_empty())
+    {
+        return Nef_polyhedron::EMPTY;
+    }
+    else
+    {
+        ExtrudeZ<HalfedgeDS> extrude(occupied_lanes.outer_boundary(), std::pair<float,float>{_params.vmin, _params.vmax});
+        Polyhedron extruded_lanes;
+        extruded_lanes.delegate(extrude);
+        return Nef_polyhedron(extruded_lanes);
+    }
 }
 
 
