@@ -61,7 +61,6 @@ pd.options.mode.chained_assignment = None
 
 ROAD_LENGTH = 420  # For all scenarios
 ROAD_OFFSET = 20  # To add before and after, avoiding traffic outside of lane
-MAX_DEC = 4  # Maximum deceleration of ego to filter out any infeasible initial states
 
 FPS = 25 # frames per second of the video
 DESIRED_FREQ = 5 # desired simulation frequency
@@ -70,13 +69,15 @@ DOWNSAMPLING = int(FPS/DESIRED_FREQ) # highD framerate is 25 fps, we want to sim
 TIME_BEFORE = 3.6 # Time before a lane change that the scenario begins
 TIME_AFTER = 5.4 #Time after a lane change that the scenario ends
 
+SPEED_LIMIT = 37.5 # m/s = 135 km/h. This is 120 km/h (most highways speed limits in europe) + 12,5% speeding margin
+MAX_DEC = 4  # Maximum deceleration of ego to filter out any infeasible initial states
 MAX_ACC_EGO = 2 # To detect legal merges
 MAX_ACC_OTHER = 3 # To detect legal merges
 
 total_scenarios = 0
 
 
-def find_valid_scenarios(tracks_meta_df, tracks_df):
+def find_valid_scenarios(tracks_meta_df, tracks_df, video_meta_df):
 
     def has_valid_initial_state(initial_state):
         distance = np.abs(initial_state.dhw).values[0]
@@ -101,7 +102,17 @@ def find_valid_scenarios(tracks_meta_df, tracks_df):
     ego_ids = []
     remove_ids = []
     merging_ids = []
+
+    if video_meta_df["speedLimit"].values[0] == -1:
+        speed_limit = SPEED_LIMIT
+    else:
+        speed_limit = min([SPEED_LIMIT, 1.125*video_meta_df["speedLimit"].values[0]])
+    
     for vehicle_id in tracks_meta_df[tracks_meta_df.numLaneChanges == 1].id.values:        
+        # Check that vehicle is not above our artificial speed limit
+        if tracks_meta_df[tracks_meta_df.id == vehicle_id].maxXVelocity.values[0] > speed_limit:
+            continue
+        
         # Check that there was a car behind (which will be the ego vehicle)
         first_frame, final_frame, change_frame = find_lane_change_interval(tracks_df[tracks_df.id == vehicle_id])
         ego_id = tracks_df[(tracks_df.id == vehicle_id) & (
@@ -170,9 +181,9 @@ def find_valid_scenarios(tracks_meta_df, tracks_df):
 
 def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, merging_id, first_frame, final_frame, output_filename):
     if video_meta_df["speedLimit"].values[0] == -1:
-        speed_limit = 42 # Slightly over 150 km/h
+        speed_limit = SPEED_LIMIT
     else:
-        speed_limit = 1.2*video_meta_df["speedLimit"].values[0]
+        speed_limit = min([SPEED_LIMIT, 1.125*video_meta_df["speedLimit"].values[0]])
 
     change_frame = first_frame + FPS*TIME_AFTER
 
@@ -194,7 +205,7 @@ def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, merging_id, 
         initial_state_velocity = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0]),
         
         reference_velocity = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0]),
-        vmax = int(speed_limit),
+        vmax = float(speed_limit),
         other_velocity = float(v_other),
 
         legal_merge = bool(safe_merge),
@@ -222,19 +233,17 @@ def get_lane_markings(recording_df: DataFrame, extend_width=2.):
     :param recording_df: data frame of the recording meta information
     :return: speed limit
     """
-    upper_lane_markings = [-float(x)
+    # Offset the markings by 1 because otherwise vehicles are driving on lane boundaries, there seems to be
+    # an offset error somewhere in the commonroad conversion
+    upper_lane_markings = [-float(x) + 1
                            for x in recording_df.upperLaneMarkings.values[0].split(";")]
-    lower_lane_markings = [-float(x)
+    lower_lane_markings = [-float(x) + 1
                            for x in recording_df.lowerLaneMarkings.values[0].split(";")]
     len_upper = len(upper_lane_markings)
     len_lower = len(lower_lane_markings)
-    # -8 + 1 = -7
     upper_lane_markings[0] += extend_width
-    # -16 -1 = -17
     upper_lane_markings[len_upper - 1] += -extend_width
-    # -22 + 1 = -21
     lower_lane_markings[0] += extend_width
-    # -30 -1 = -31
     lower_lane_markings[len_lower - 1] += -extend_width
     return upper_lane_markings, lower_lane_markings
 
@@ -279,14 +288,14 @@ if __name__ == "__main__":
 
         tracks_meta_df = pd.read_csv(tracks_meta_fn, header=0)
         tracks_df = pd.read_csv(tracks_fn, header=0)
+        recording_meta_df = pd.read_csv(recording_meta_fn, header=0)
 
         start_times, stop_times, ego_ids, to_remove_ids, merging_ids = find_valid_scenarios(
-            tracks_meta_df, tracks_df)
+            tracks_meta_df, tracks_df, recording_meta_df)
 
         if not ego_ids:
             continue
 
-        recording_meta_df = pd.read_csv(recording_meta_fn, header=0)
         FPS = 1/get_dt(recording_meta_df)
         dt = get_dt(recording_meta_df)*DOWNSAMPLING
         speed_limit = get_speed_limit(recording_meta_df)

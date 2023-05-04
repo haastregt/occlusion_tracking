@@ -2,6 +2,7 @@
 
 #GENERAL
 simulation_duration : ~
+scenario_name : ~
 
 #EGO_VEHICLE
 initial_state_x : ~
