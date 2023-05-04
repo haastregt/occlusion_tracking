@@ -13,6 +13,7 @@ figs/
 test.cpp
 __pycache__/
 datasets
+offenders
 highd_loc*
 highd_scenarios/
 pseudocode.cpp

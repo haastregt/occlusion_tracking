@@ -149,26 +149,36 @@ def find_valid_scenarios(tracks_meta_df, tracks_df, video_meta_df):
         if not has_valid_initial_state(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]):
             continue
 
-
         # Remove anything behind the ego vehicle
         remove_id = []
-        recursive_id = ego_id
-        while True:
-            new_id = tracks_df[(tracks_df.id == recursive_id) & (
-                tracks_df.frame == first_frame)].followingId.values   
-            if len(new_id) == 0:
-                break
-            recursive_id = new_id[0]
-            remove_id.append(recursive_id)
+        all_ids = tracks_df[tracks_df.frame == first_frame]["id"].unique()
+        for traffic_id in all_ids:
+            if tracks_df[(tracks_df.frame == first_frame) & (tracks_df.id == traffic_id)]["x"].values[0] < tracks_df[(tracks_df.frame == first_frame) & (tracks_df.id == ego_id)]["x"].values[0]:
+                remove_id.append(traffic_id)
+        
+        # Sometimes the merging vehicle starts behind, but we want to keep this one
+        try:
+            remove_id.remove(vehicle_id)
+        except:
+            pass
+        
+        # recursive_id = ego_id
+        # while True:
+        #     new_id = tracks_df[(tracks_df.id == recursive_id) & (
+        #         tracks_df.frame == first_frame)].followingId.values   
+        #     if len(new_id) == 0:
+        #         break
+        #     recursive_id = new_id[0]
+        #     remove_id.append(recursive_id)
 
-        recursive_id = ego_id
-        while True:
-            new_id = tracks_df[(tracks_df.id == recursive_id) & (
-                tracks_df.frame == final_frame)].followingId.values   
-            if len(new_id) == 0:
-                break
-            recursive_id = new_id[0]
-            remove_id.append(recursive_id)
+        # recursive_id = ego_id
+        # while True:
+        #     new_id = tracks_df[(tracks_df.id == recursive_id) & (
+        #         tracks_df.frame == final_frame)].followingId.values   
+        #     if len(new_id) == 0:
+        #         break
+        #     recursive_id = new_id[0]
+        #     remove_id.append(recursive_id)
 
         first_frames.append(first_frame)
         final_frames.append(final_frame)
@@ -196,6 +206,13 @@ def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, merging_id, 
     else:
         safe_merge = True
 
+    if tracks_df[tracks_df.id == ego_id]["x"].values[0] < tracks_df[tracks_df.id == merging_id]["x"].values[0] + 5:
+        overtake = False
+    else:
+        overtake = True
+
+    v_ego_complete = tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame >= first_frame) & (tracks_df.frame <= final_frame)].sort_values(by=['frame'])["xVelocity"].values
+    
     data = dict(
         simulation_duration = int((final_frame - first_frame) // DOWNSAMPLING),
         
@@ -206,13 +223,16 @@ def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, merging_id, 
         
         reference_velocity = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0]),
         vmax = float(speed_limit),
-        other_velocity = float(v_other),
+        v_other = float(v_other),
+        recorded_ego_velocity = list(map(float, v_ego_complete)),
 
         legal_merge = bool(safe_merge),
+        is_overtake = bool(overtake),
         merge_dhw = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == change_frame)]["dhw"].values[0]),
         merge_ttc = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == change_frame)]["ttc"].values[0]),
 
-        planning_horizon = int(max((tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0] + 4.99) // 5 * 5, 30)),
+        planning_horizon = int(max((tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0] + 4.99 + 1) // 5 * 5, 30)), 
+        # + 1 because passive safety braking traj is started at timestep k + 1
 
         vehicle_type = tracks_meta_df[tracks_meta_df.id == ego_id]["class"].values[0],
         vehicle_length = float(tracks_meta_df[tracks_meta_df.id == ego_id]["width"].values[0]),
