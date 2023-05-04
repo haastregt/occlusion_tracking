@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 from dataclasses import dataclass
 
 from shapely.geometry import Polygon as ShapelyPolygon
@@ -463,3 +464,61 @@ def find_RSS_distance(ego_vehicle, scenario, config):
             RSS.append(0)
 
     return RSS
+
+def merge_config(global_config, scenario_config):
+    global_config["simulation_duration"]                    = scenario_config["simulation_duration"]
+    global_config["initial_state_x"]                        = scenario_config["initial_state_x"]
+    global_config["initial_state_y"]                        = scenario_config["initial_state_y"]
+    global_config["initial_state_orientation"]              = scenario_config["initial_state_orientation"]
+    global_config["initial_state_velocity"]                 = scenario_config["initial_state_velocity"]
+    global_config["vehicle_type"]                           = scenario_config["vehicle_type"]
+    global_config["vehicle_length"]                         = scenario_config["vehicle_length"]
+    global_config["vehicle_width"]                          = scenario_config["vehicle_width"]
+    global_config["reference_speed"]                        = scenario_config["reference_velocity"]
+    global_config["planning_horizon"]                       = scenario_config["planning_horizon"]
+    global_config["goal_point_x"]                           = scenario_config["goal_point_x"]
+    global_config["goal_point_y"]                           = scenario_config["goal_point_y"]
+    global_config["occlusion_params"]["vmax"]               = scenario_config["vmax"]
+    global_config["occlusion_params"]["prediction_horizon"] = scenario_config["planning_horizon"]
+
+    return global_config
+
+def save_results(file_path, tracked_results, untracked_results, scenario, scenario_config):
+    scenario_name = str(scenario.scenario_id)
+    data = {
+        "simulation_length" : scenario_config["simulation_duration"],
+        "scenario"          : scenario,
+        "scenario_name"     : scenario_name,
+        "novel_method"      : {"ego_vehicle"        : tracked_results[0],
+                               "scenarios"          : tracked_results[1],
+                               "views"              : tracked_results[2],
+                               "shadows"            : tracked_results[3],
+                               "emergency_brakes"   : tracked_results[4],
+                               "computational_time" : {"update_step"    : tracked_results[5][0],
+                                                       "prediction_step": tracked_results[5][1]}},
+        "baseline_method"   : {"ego_vehicle"        : untracked_results[0],
+                               "scenarios"          : untracked_results[1],
+                               "views"              : untracked_results[2],
+                               "shadows"            : untracked_results[3],
+                               "emergency_brakes"   : untracked_results[4],
+                               "computational_time" : {"update_step"    : untracked_results[5][0],
+                                                       "prediction_step": untracked_results[5][1]}},
+        "vehicle_type"      : scenario_config["vehicle_type"], 
+        "ego_speed"         : scenario_config["reference_velocity"],
+        "recorded_ego_speed": scenario_config["recorded_ego_velocity"],
+        "other_speed"       : scenario_config["v_other"],
+        "legal_merge"       : scenario_config["legal_merge"],
+        "is_overtake"       : scenario_config["is_overtake"],
+        "merge_ttc"         : scenario_config["merge_ttc"],
+        "merge_dhw"         : scenario_config["merge_dhw"]
+    }
+    file = open(file_path, 'wb')
+    pickle.dump(data, file)
+    file.close()
+
+def load_results(file_path):
+    file = open(file_path, 'rb')
+    data = pickle.load(file)
+    file.close()
+    
+    return data

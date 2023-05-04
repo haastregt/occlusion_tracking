@@ -11,7 +11,6 @@ from .sensor import Sensor
 from .occlusion_tracker import OcclusionTracker
 
 from tqdm import tqdm
-from python_scripts.utilities import plot_polygon
 
 def step_scenario(scenario):
     new_scenario = copy.deepcopy(scenario)
@@ -63,7 +62,6 @@ def step_simulation(scenario, configuration):
 
     # We need the initial sensor view for initialising Occlusion Tracker
     sensor_view = sensor.get_sensor_view(scenario)
-    plot_polygon(sensor_view)
 
     occlusion_params = configuration.get('occlusion_params')
     occ_track = OcclusionTracker(scenario, sensor_view, occlusion_params, configuration.get('planning_horizon'))
