@@ -27,10 +27,9 @@ class Sensor:
         self.range = view_range
         self.angle_resolution = math.atan(min_resolution/view_range)
 
-    def update(self, state):
-        assert isinstance(state, State)
-        self.position = state.position
-        self.orientation = state.orientation
+    def update(self, ego_vehicle):
+        self.position = [ego_vehicle.initial_state.position[0] + ego_vehicle.obstacle_shape.length/2, ego_vehicle.initial_state.position[1]]
+        self.orientation = ego_vehicle.initial_state.orientation
 
     def get_extended_sensor_view_and_obstacles(self, scenario):
         sensor_view = self.get_sensor_view(scenario)

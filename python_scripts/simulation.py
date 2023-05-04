@@ -11,7 +11,7 @@ from .sensor import Sensor
 from .occlusion_tracker import OcclusionTracker
 
 from tqdm import tqdm
-
+from python_scripts.utilities import plot_polygon
 
 def step_scenario(scenario):
     new_scenario = copy.deepcopy(scenario)
@@ -53,8 +53,9 @@ def step_simulation(scenario, configuration):
     ego_vehicle = DynamicObstacle(scenario.generate_object_id(),
                                   ObstacleType.CAR, ego_shape,
                                   ego_initial_state)
-
-    sensor = Sensor(ego_vehicle.initial_state.position,
+    
+    sensor_position = [ego_vehicle.initial_state.position[0] + ego_vehicle.obstacle_shape.length/2, ego_vehicle.initial_state.position[1]]
+    sensor = Sensor(sensor_position,
                     field_of_view=configuration.get(
                         'field_of_view_degrees')*2*np.pi/360,
                     min_resolution=configuration.get('min_resolution'),
@@ -62,6 +63,7 @@ def step_simulation(scenario, configuration):
 
     # We need the initial sensor view for initialising Occlusion Tracker
     sensor_view = sensor.get_sensor_view(scenario)
+    plot_polygon(sensor_view)
 
     occlusion_params = configuration.get('occlusion_params')
     occ_track = OcclusionTracker(scenario, sensor_view, occlusion_params, configuration.get('planning_horizon'))
@@ -77,7 +79,7 @@ def step_simulation(scenario, configuration):
                       dt = scenario.dt)
 
     simulation_steps = configuration.get('simulation_duration')
-    for step in tqdm(range(simulation_steps+1), desc="Running simulation"):
+    for step in tqdm(range(simulation_steps+1), desc=str(scenario.scenario_id),position=1,leave=False):
 
         # Start with an empty percieved scenario
         percieved_scenario = copy.deepcopy(scenario)
@@ -86,7 +88,7 @@ def step_simulation(scenario, configuration):
 
         # Update the sensor and get the sensor view and the list of observed obstacles
         # initial_state is current state
-        sensor.update(ego_vehicle.initial_state)
+        sensor.update(ego_vehicle)
         sensor_view = sensor.get_sensor_view(scenario)
         observed_obstacles, _ = sensor.get_observed_obstacles(
             sensor_view, scenario)
@@ -104,6 +106,9 @@ def step_simulation(scenario, configuration):
         if collision_free_trajectory:
             ego_vehicle.prediction = collision_free_trajectory
         # else, if no trajectory found, keep previous collision free trajectory
+
+        if step == 0 and emergency_stop:
+            raise Exception("Scenario starts with emergency-brake!")
 
         # Add the ego vehicle to the perceived scenario
         percieved_scenario.add_objects(ego_vehicle)
