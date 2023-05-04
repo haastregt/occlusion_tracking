@@ -236,7 +236,8 @@ Nef_polyhedron OccludedVolume::GetLanes()
     Polygon shadow_projection = ProjectXY(_shadow_polyhedron);
     for (Polygon lane : _driving_corridor->lanes)
     {
-        if(CGAL::do_intersect(shadow_projection,lane))
+        Polygon inset_lane = InsetPolygon(lane, 0.3);
+        if(CGAL::do_intersect(shadow_projection, inset_lane))
         {
             if (occupied_lanes.outer_boundary().is_empty())
             {
