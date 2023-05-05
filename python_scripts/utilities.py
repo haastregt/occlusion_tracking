@@ -1,5 +1,9 @@
 import numpy as np
 import pickle
+import os
+import glob
+import tqdm
+import pandas as pd
 from dataclasses import dataclass
 
 from shapely.geometry import Polygon as ShapelyPolygon
@@ -522,3 +526,48 @@ def load_results(file_path):
     file.close()
     
     return data
+
+def single_to_batch_results(single_results_folder, batch_results_path):
+    TIMESTEP_CUTIN = int(3.6/0.2) # Used to find average velocities after cut-in has happened
+    
+    single_result_paths = os.path.join(single_results_folder, "*")
+    result_list = glob.glob(single_result_paths)
+
+    dict_list = []
+    for result in tqdm.tqdm(result_list):
+        scenario_id = os.path.basename(result)
+        data = load_results(result)
+
+        avg_vel_recorded = np.average(np.clip(data["recorded_ego_speed"][TIMESTEP_CUTIN-1:], a_min = 0, a_max = data["ego_speed"]))
+        avg_vel_novel = np.average([state.velocity for state in data["novel_method"]["ego_vehicle"].prediction.trajectory.state_list][TIMESTEP_CUTIN-1:])
+        avg_vel_baseline = np.average([state.velocity for state in data["baseline_method"]["ego_vehicle"].prediction.trajectory.state_list][TIMESTEP_CUTIN-1:])
+
+        n_brakes_novel = np.sum(data["novel_method"]["emergency_brakes"])
+        n_brakes_baseline = np.sum(data["baseline_method"]["emergency_brakes"])
+
+        entry_dict = {
+            "scenario_id"       : scenario_id,
+
+            "avg_vel_novel"     : avg_vel_novel,
+            "avg_vel_baseline"  : avg_vel_baseline,
+            "avg_vel_recorded"  : avg_vel_recorded,
+            
+            "n_brakes_novel"    : n_brakes_novel,
+            "n_brakes_baseline" : n_brakes_baseline,
+            
+            "comp_time_update"  : data["novel_method"]["computational_time"]["update_step"],
+            "comp_time_predict" : data["novel_method"]["computational_time"]["prediction_step"],
+
+            "vehicle_type"      : data["vehicle_type"], 
+            "ego_speed"         : data["ego_speed"],
+            "other_speed"       : data["other_speed"],
+            "legal_merge"       : data["legal_merge"],
+            "is_overtake"       : data["is_overtake"],
+            "merge_ttc"         : data["merge_ttc"],
+            "merge_dhw"         : data["merge_dhw"]
+        }
+
+        dict_list.append(entry_dict)
+
+    df = pd.DataFrame(dict_list)
+    df.to_pickle(batch_results_path)

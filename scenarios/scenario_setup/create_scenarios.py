@@ -161,7 +161,7 @@ def find_valid_scenarios(tracks_meta_df, tracks_df, video_meta_df):
             remove_id.remove(vehicle_id)
         except:
             pass
-        
+
         # recursive_id = ego_id
         # while True:
         #     new_id = tracks_df[(tracks_df.id == recursive_id) & (
@@ -206,7 +206,7 @@ def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, merging_id, 
     else:
         safe_merge = True
 
-    if tracks_df[tracks_df.id == ego_id]["x"].values[0] < tracks_df[tracks_df.id == merging_id]["x"].values[0] + 5:
+    if tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["x"].values[0] < tracks_df[(tracks_df.id == merging_id) & (tracks_df.frame == first_frame)]["x"].values[0]:
         overtake = False
     else:
         overtake = True
