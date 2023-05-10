@@ -1,6 +1,8 @@
 #include "cpp_occlusions/driving_corridor.h"
 #include "cpp_occlusions/utility.h"
 
+#include <CGAL/convex_hull_3.h>
+
 namespace cpp_occlusions
 {
 
@@ -99,6 +101,7 @@ Polyhedron DrivingCorridor::TransformOriginalToMapped(Polyhedron &input_polyhedr
         ++vert_it;
     }
 
+    CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     assert(polyhedron.is_valid());
     return polyhedron;
 }
@@ -127,6 +130,7 @@ Polyhedron DrivingCorridor::TransformMappedToOriginal(Polyhedron &input_polyhedr
         ++vert_it;
     }
 
+    CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     assert(polyhedron.is_valid());
     return polyhedron;
 }

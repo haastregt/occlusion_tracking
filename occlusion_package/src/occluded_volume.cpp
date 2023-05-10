@@ -6,7 +6,6 @@
 #include <CGAL/Aff_transformation_2.h>
 #include <CGAL/Boolean_set_operations_2.h>
 #include <CGAL/convex_hull_2.h>
-#include <CGAL/convex_hull_3.h>
 #include <CGAL/minkowski_sum_2.h>
 
 
@@ -45,7 +44,6 @@ Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedr
     if (_params.requires_mapping)
     {
         polyhedron = _driving_corridor->TransformOriginalToMapped(polyhedron);
-        CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     }
 
     Polygon xy = ProjectXY(polyhedron);
@@ -59,7 +57,6 @@ Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedr
     if (_params.requires_mapping)
     {
         polyhedron = _driving_corridor->TransformMappedToOriginal(polyhedron);
-        CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     }
 
     return Nef_polyhedron(polyhedron);
@@ -87,7 +84,6 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron poly
     if (_params.requires_mapping)
     {
         polyhedron = _driving_corridor->TransformOriginalToMapped(polyhedron);
-        CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     }
 
     Polygon xv = ProjectXZ(polyhedron);
@@ -102,7 +98,6 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron poly
     if (_params.requires_mapping)
     {
         polyhedron = _driving_corridor->TransformMappedToOriginal(polyhedron);
-        CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     }
 
     return Nef_polyhedron(polyhedron);
@@ -129,7 +124,6 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(std::pair<float, float> t
     if (_params.requires_mapping)
     {
         polyhedron = _driving_corridor->TransformOriginalToMapped(polyhedron);
-        CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     }
 
     Polygon xv = ProjectXZ(polyhedron);
@@ -157,7 +151,6 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(std::pair<float, float> t
     if (_params.requires_mapping)
     {
         polyhedron = _driving_corridor->TransformMappedToOriginal(polyhedron);
-        CGAL::convex_hull_3(polyhedron.points_begin(), polyhedron.points_end(), polyhedron);
     }
 
     return Nef_polyhedron(polyhedron);
@@ -189,7 +182,6 @@ Nef_polyhedron OccludedVolume::ExplicitNoReversingAbstraction(float x_prev)
     if (_params.requires_mapping)
     {
         positive_space = _driving_corridor->TransformMappedToOriginal(positive_space);
-        CGAL::convex_hull_3(positive_space.points_begin(), positive_space.points_end(), positive_space);
     }
 
     return Nef_polyhedron(positive_space);
