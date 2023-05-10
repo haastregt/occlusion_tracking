@@ -9,10 +9,9 @@ namespace cpp_occlusions
 {
 
 OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
-                                   std::list<Polygon> mapped_driving_corridor_polygons, 
+                                   std::list<Polygon> mapped_driving_corridor_polygons,
                                    std::list<std::list<Polygon>> lanes_in_driving_corridors,
-                                   Polygon initial_sensor_view,
-                                   int init_time_step, ReachabilityParams params)
+                                   Polygon initial_sensor_view, int init_time_step, ReachabilityParams params)
     : _params(params), _time_step(init_time_step)
 {
     _ID_allocator = 0;
@@ -44,11 +43,8 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
         assert(mapped_it->is_counterclockwise_oriented() &&
                "original and mapped driving corridors should have same orientation");
 
-        // TODO: This technically creates a memory leak. Maybe add these pointers to an array
-        // for which each element will be deleted in the OcclusionHandler destructor. However
-        // since there is just one Occlusion Handler per simulation, it should not really matter.
-        DrivingCorridor *driving_corridor =
-            new DrivingCorridor(driving_corridor_poly, *mapped_it, *lanes_it, 1 / _params.mapping_quality);
+        std::shared_ptr<DrivingCorridor> driving_corridor(
+            new DrivingCorridor(driving_corridor_poly, *mapped_it, *lanes_it, 1 / _params.mapping_quality));
 
         std::list<OccludedVolume> corridor;
 
@@ -108,7 +104,7 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
     _shadow_list_by_corridor.clear();
     for (auto corridor : copy_shadow_list_by_corridor)
     {
-        DrivingCorridor *driving_corridor = corridor.begin()->GetDrivingCorridor();
+        std::shared_ptr<DrivingCorridor> driving_corridor = corridor.begin()->GetDrivingCorridor();
 
         std::list<Nef_polyhedron> nef_list;
         std::list<int> ID_list;
@@ -132,7 +128,7 @@ void OcclusionHandler::Update(Polygon sensor_view, int new_time_step)
                 if (!is_double)
                 {
                     nef_list.push_back(nef_new);
-                    if(std::find(ID_list.begin(), ID_list.end(), new_shadow._ID) != ID_list.end())
+                    if (std::find(ID_list.begin(), ID_list.end(), new_shadow._ID) != ID_list.end())
                     {
                         ID_list.push_back(new_shadow._ID);
                     }
@@ -180,10 +176,10 @@ std::list<std::list<Polygon>> OcclusionHandler::GetReachableSets()
             occupancy_lists.push_back(shadow.ComputeFutureOccupancies());
         }
     }
-    
+
     std::chrono::steady_clock::time_point t_end = std::chrono::steady_clock::now();
     _prediction_time += std::chrono::duration_cast<std::chrono::duration<double>>(t_end - t_start).count();
-    
+
     return occupancy_lists;
 }
 
@@ -191,16 +187,18 @@ void OcclusionHandler::SaveShadow(int ID, Polyhedron polyhedron)
 {
     bool exists = false;
 
-    for (auto it = _shadow_saves.begin(); it != _shadow_saves.end(); ++it) {
-        if (std::get<0>(*it) == ID) {
-            std::get<1>(*it).push_back(std::tuple<int, Polyhedron>{_time_step, polyhedron}); 
+    for (auto it = _shadow_saves.begin(); it != _shadow_saves.end(); ++it)
+    {
+        if (std::get<0>(*it) == ID)
+        {
+            std::get<1>(*it).push_back(std::tuple<int, Polyhedron>{_time_step, polyhedron});
             exists = true;
             break;
         }
     }
     if (!exists)
     {
-        std::tuple<int, std::list<std::tuple<int,Polyhedron>>> shadow;
+        std::tuple<int, std::list<std::tuple<int, Polyhedron>>> shadow;
         std::get<0>(shadow) = ID;
         std::get<1>(shadow).push_back(std::tuple<int, Polyhedron>{_time_step, polyhedron});
         _shadow_saves.push_back(shadow);
@@ -210,7 +208,7 @@ void OcclusionHandler::SaveShadow(int ID, Polyhedron polyhedron)
 std::list<std::tuple<int, std::list<std::tuple<int, std::list<std::list<float>>>>>> OcclusionHandler::ExportShadows()
 {
     std::list<std::tuple<int, std::list<std::tuple<int, std::list<std::list<float>>>>>> export_results;
-    for(auto item : _shadow_saves)
+    for (auto item : _shadow_saves)
     {
         std::tuple<int, std::list<std::tuple<int, std::list<std::list<float>>>>> shadow_list;
         std::get<0>(shadow_list) = std::get<0>(item);
@@ -222,10 +220,10 @@ std::list<std::tuple<int, std::list<std::tuple<int, std::list<std::list<float>>>
             std::get<0>(export_poly) = std::get<0>(poly);
 
             std::list<std::list<float>> export_point_list;
-            for(auto it = std::get<1>(poly).points_begin(); it != std::get<1>(poly).points_end(); ++it)
+            for (auto it = std::get<1>(poly).points_begin(); it != std::get<1>(poly).points_end(); ++it)
             {
                 std::list<float> export_point;
-                
+
                 export_point.push_back(CGAL::to_double(it->x()));
                 export_point.push_back(CGAL::to_double(it->y()));
                 export_point.push_back(CGAL::to_double(it->z()));
@@ -247,8 +245,7 @@ std::list<std::tuple<int, std::list<std::tuple<int, std::list<std::list<float>>>
 
 std::tuple<double, double> OcclusionHandler::ExportComputationalTime()
 {
-    return std::tuple<double,double>{_update_time/_num_updates, _prediction_time/_num_predictions};
+    return std::tuple<double, double>{_update_time / _num_updates, _prediction_time / _num_predictions};
 }
-
 
 } // namespace cpp_occlusions

@@ -134,7 +134,7 @@ void DissolveCloseVertices(Polyhedron &polyhedron, float tolerance)
 {
     bool finished = false;
 
-    do 
+    do
     {
         finished = true;
         for (auto vert_it = polyhedron.vertices_begin(); vert_it != polyhedron.vertices_end(); ++vert_it)
@@ -179,7 +179,7 @@ Polygon InsetPolygon(Polygon &polygon, float inset_distance)
     return inset_polygon;
 }
 
-void SimplifyPolyhedron(Polyhedron& poly, float precision)
+void SimplifyPolyhedron(Polyhedron &poly, float precision)
 {
     for (auto vertex = poly.vertices_begin(); vertex != poly.vertices_end(); ++vertex)
     {
@@ -187,9 +187,9 @@ void SimplifyPolyhedron(Polyhedron& poly, float precision)
         Kernel::FT y = vertex->point().y();
         Kernel::FT z = vertex->point().z();
 
-        x = std::round(CGAL::to_double(x)/precision) * precision;
-        y = std::round(CGAL::to_double(y)/precision) * precision;
-        z = std::round(CGAL::to_double(z)/precision) * precision;
+        x = std::round(CGAL::to_double(x) / precision) * precision;
+        y = std::round(CGAL::to_double(y) / precision) * precision;
+        z = std::round(CGAL::to_double(z) / precision) * precision;
 
         vertex->point() = Point(x, y, z);
     }

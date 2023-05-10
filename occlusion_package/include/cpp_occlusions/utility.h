@@ -77,7 +77,6 @@ template <class HDS> class ExtrudeZ : public CGAL::Modifier_base<HDS>
     }
 };
 
-
 template <class HDS> class ExtrudeY : public CGAL::Modifier_base<HDS>
 {
   public:
@@ -155,7 +154,7 @@ void DissolveCloseVertices(Polyhedron &polyhedron, float tolerance);
 
 Polygon InsetPolygon(Polygon &polygon, float inset_distance);
 
-void SimplifyPolyhedron(Polyhedron& poly, float precision);
+void SimplifyPolyhedron(Polyhedron &poly, float precision);
 
 } // namespace cpp_occlusions
 

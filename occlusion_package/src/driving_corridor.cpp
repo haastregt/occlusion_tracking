@@ -4,10 +4,12 @@
 namespace cpp_occlusions
 {
 
-DrivingCorridor::DrivingCorridor(Polygon lane_polygon, Polygon transformed_polygon, std::list<Polygon> dc_lanes, float max_triangulation_edge_length)
+DrivingCorridor::DrivingCorridor(Polygon lane_polygon, Polygon transformed_polygon, std::list<Polygon> dc_lanes,
+                                 float max_triangulation_edge_length)
     : original_polygon(lane_polygon), _source_shape(PolygonToShape(lane_polygon)),
       _target_shape(PolygonToShape(transformed_polygon)), _source_domain(Domain(_source_shape)),
-      _target_domain(Domain(_target_shape)), _max_edge_length(IKernel::FT(max_triangulation_edge_length)), lanes(dc_lanes)
+      _target_domain(Domain(_target_shape)), _max_edge_length(IKernel::FT(max_triangulation_edge_length)),
+      lanes(dc_lanes)
 {
     assert(_source_shape.size() == _target_shape.size());
 

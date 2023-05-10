@@ -17,13 +17,13 @@
 
 #include <CGAL/draw_nef_3.h>
 #include <CGAL/draw_polygon_2.h>
-#include <CGAL/draw_polyhedron.h>
 #include <CGAL/draw_polygon_with_holes_2.h>
+#include <CGAL/draw_polyhedron.h>
 
 namespace cpp_occlusions
 {
 
-OccludedVolume::OccludedVolume(Polyhedron initial_polyhedron, DrivingCorridor *driving_corridor,
+OccludedVolume::OccludedVolume(Polyhedron initial_polyhedron, std::shared_ptr<DrivingCorridor> driving_corridor,
                                const ReachabilityParams params, int ID)
     : _shadow_polyhedron(initial_polyhedron), _driving_corridor(driving_corridor), _params(params), _ID(ID)
 {
@@ -33,30 +33,22 @@ OccludedVolume::~OccludedVolume()
 {
 }
 
-Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedron, bool no_lateral_expansion /*=false*/)
+Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedron)
 {
     int n;
     float R;
     float phi;
-    if (no_lateral_expansion)
-    {
-        // Circle section with ~0 angle
-        n = 2;
-        R = _params.vmax * dt; 
-        phi = 0.00001;
-    }
-    else
-    {
-        n = 2; // Number of vertices to approximate the circle section
-        phi = _params.phi / 180 * M_PI;
-        R = _params.vmax * dt / cos(M_PI / (n*(M_PI/phi))); // Use apothem to make sure we have an over-approximation of the circle section
-    }
+
+    n = 2; // Number of vertices to approximate the circle section
+    phi = _params.phi / 180 * M_PI;
+    // Use apothem to make sure we have an over-approximation of the circle section
+    R = _params.vmax * dt / cos(M_PI / (n * (M_PI / phi))); 
 
     Polygon sum;
-    sum.push_back(Point2(0,0));
+    sum.push_back(Point2(0, 0));
     for (int i = 0; i <= n; i++)
     {
-        float angle = i * 2*phi / n - phi;
+        float angle = i * 2 * phi / n - phi;
         sum.push_back(Point2(R * cos(angle), R * sin(angle)));
     }
 
@@ -83,9 +75,9 @@ Nef_polyhedron OccludedVolume::VelocityAbstraction(float dt, Polyhedron polyhedr
     return Nef_polyhedron(polyhedron);
 }
 
-Nef_polyhedron OccludedVolume::VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron, bool no_lateral_expansion /*=false*/)
+Nef_polyhedron OccludedVolume::VelocityAbstraction(std::pair<float, float> time_interval, Polyhedron polyhedron)
 {
-    return VelocityAbstraction(time_interval.second, polyhedron, no_lateral_expansion);
+    return VelocityAbstraction(time_interval.second, polyhedron);
 }
 
 Nef_polyhedron OccludedVolume::AccelerationAbstraction(float dt, Polyhedron polyhedron)
@@ -165,7 +157,7 @@ Nef_polyhedron OccludedVolume::AccelerationAbstraction(std::pair<float, float> t
     {
         xv.push_back(point);
     }
-    
+
     xv = CGAL::minkowski_sum_2(xv, sum).outer_boundary();
 
     ExtrudeY<HalfedgeDS> extrude(xv, std::pair<float, float>{-9999, 9999});
@@ -219,9 +211,9 @@ double OccludedVolume::GetMinX(Polyhedron polyhedron)
     {
         polyhedron = _driving_corridor->TransformOriginalToMapped(polyhedron);
     }
-    
+
     double x_min = 9999;
-    for(auto it = polyhedron.points_begin(); it != polyhedron.points_end(); ++it)
+    for (auto it = polyhedron.points_begin(); it != polyhedron.points_end(); ++it)
     {
         double x = CGAL::to_double(it->x());
         x_min = std::min(x_min, x);
@@ -237,16 +229,16 @@ Nef_polyhedron OccludedVolume::GetLanes()
     for (Polygon lane : _driving_corridor->lanes)
     {
         Polygon inset_lane = InsetPolygon(lane, 0.3);
-        if(CGAL::do_intersect(shadow_projection, inset_lane))
+        if (CGAL::do_intersect(shadow_projection, inset_lane))
         {
             if (occupied_lanes.outer_boundary().is_empty())
             {
                 occupied_lanes = Polygon_wh(lane);
                 continue;
             }
-            else 
+            else
             {
-                CGAL::join(lane,occupied_lanes.outer_boundary(), occupied_lanes);
+                CGAL::join(lane, occupied_lanes.outer_boundary(), occupied_lanes);
             }
         }
     }
@@ -256,13 +248,13 @@ Nef_polyhedron OccludedVolume::GetLanes()
     }
     else
     {
-        ExtrudeZ<HalfedgeDS> extrude(occupied_lanes.outer_boundary(), std::pair<float,float>{_params.vmin, _params.vmax});
+        ExtrudeZ<HalfedgeDS> extrude(occupied_lanes.outer_boundary(),
+                                     std::pair<float, float>{_params.vmin, _params.vmax});
         Polyhedron extruded_lanes;
         extruded_lanes.delegate(extrude);
         return Nef_polyhedron(extruded_lanes);
     }
 }
-
 
 std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_view)
 {
@@ -334,30 +326,29 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
     int num_predictions = _params.prediction_horizon / _params.prediction_interval;
     for (int i = 1; i <= num_predictions; i++)
     {
-        std::pair<float, float> interval(_params.dt*_params.prediction_interval*(i-1), _params.dt*_params.prediction_interval*i);
-        
+        std::pair<float, float> interval(_params.dt * _params.prediction_interval * (i - 1),
+                                         _params.dt * _params.prediction_interval * i);
+
         Nef_polyhedron occupancy(Nef_polyhedron::COMPLETE);
 
         if (_params.velocity_tracking_enabled)
         {
-            Nef_polyhedron acceleration_abstraction =
-                AccelerationAbstraction(interval, _shadow_polyhedron);
+            Nef_polyhedron acceleration_abstraction = AccelerationAbstraction(interval, _shadow_polyhedron);
             occupancy *= acceleration_abstraction;
         }
 
-        Nef_polyhedron velocity_abstraction =
-            VelocityAbstraction(interval, _shadow_polyhedron);
+        Nef_polyhedron velocity_abstraction = VelocityAbstraction(interval, _shadow_polyhedron);
         occupancy *= velocity_abstraction;
 
         Nef_polyhedron no_reversing = ExplicitNoReversingAbstraction(min_x);
         occupancy *= no_reversing;
-        
+
         occupancy *= occupied_lanes;
 
         Polyhedron P;
         occupancy.convert_to_Polyhedron(P);
 
-        if(occupancy == Nef_polyhedron::EMPTY)
+        if (occupancy == Nef_polyhedron::EMPTY)
         {
             break;
         }
@@ -374,7 +365,7 @@ Polyhedron OccludedVolume::GetPolyhedron()
     return _shadow_polyhedron;
 }
 
-DrivingCorridor *OccludedVolume::GetDrivingCorridor()
+std::shared_ptr<DrivingCorridor> OccludedVolume::GetDrivingCorridor()
 {
     return _driving_corridor;
 }

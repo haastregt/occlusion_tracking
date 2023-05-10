@@ -18,7 +18,7 @@ class OcclusionHandler
     int _num_predictions;
 
     ReachabilityParams _params;
-    
+
     std::list<std::list<OccludedVolume>> _shadow_list_by_corridor;
 
     // List of shadowlist by ID, shadowlist has a shadow for each timestep
@@ -26,7 +26,7 @@ class OcclusionHandler
 
   public:
     OcclusionHandler(std::list<Polygon> driving_corridor_polygons, std::list<Polygon> mapped_driving_corridor_polygons,
-                     std::list<std::list<Polygon>> lanes_in_driving_corridors, Polygon initial_sensor_view, 
+                     std::list<std::list<Polygon>> lanes_in_driving_corridors, Polygon initial_sensor_view,
                      int init_time_step, ReachabilityParams params);
 
     ~OcclusionHandler();

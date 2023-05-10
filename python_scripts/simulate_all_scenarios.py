@@ -7,8 +7,6 @@ from python_scripts.simulation import step_simulation
 from python_scripts.utilities import merge_config, save_results
 from commonroad.common.file_reader import CommonRoadFileReader
 
-import matplotlib.pyplot as plt
-
 if __name__ == "__main__":
     skip_existing = True            # Skips any scenarios that already have existing results.
     scenario_path = "/home/jvarvn/Documents/Implementations/occlusion_tracking/scenarios/highd_scenarios_no_traffic"

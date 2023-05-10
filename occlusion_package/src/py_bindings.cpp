@@ -11,12 +11,14 @@ PYBIND11_MODULE(py_occlusions, m)
     m.doc() = "Library to find bounds on states of hidden traffic and predict their future occupancies";
 
     py::class_<cpp_occlusions::OcclusionHandler>(m, "OcclusionHandler")
-        .def(py::init<std::list<cpp_occlusions::Polygon>, std::list<cpp_occlusions::Polygon>, std::list<std::list<cpp_occlusions::Polygon>>,
-                    cpp_occlusions::Polygon, int, cpp_occlusions::ReachabilityParams>())
+        .def(py::init<std::list<cpp_occlusions::Polygon>, std::list<cpp_occlusions::Polygon>,
+                      std::list<std::list<cpp_occlusions::Polygon>>, cpp_occlusions::Polygon, int,
+                      cpp_occlusions::ReachabilityParams>())
         .def("update", &cpp_occlusions::OcclusionHandler::Update)
         .def("get_reachable_sets", &cpp_occlusions::OcclusionHandler::GetReachableSets, py::return_value_policy::copy)
         .def("export_shadows", &cpp_occlusions::OcclusionHandler::ExportShadows, py::return_value_policy::copy)
-        .def("export_computational_time", &cpp_occlusions::OcclusionHandler::ExportComputationalTime, py::return_value_policy::copy);
+        .def("export_computational_time", &cpp_occlusions::OcclusionHandler::ExportComputationalTime,
+             py::return_value_policy::copy);
 
     py::class_<cpp_occlusions::ReachabilityParams>(m, "ReachabilityParams")
         .def(py::init<>())
