@@ -43,8 +43,8 @@ OcclusionHandler::OcclusionHandler(std::list<Polygon> driving_corridor_polygons,
         assert(mapped_it->is_counterclockwise_oriented() &&
                "original and mapped driving corridors should have same orientation");
 
-        std::shared_ptr<DrivingCorridor> driving_corridor(
-            new DrivingCorridor(driving_corridor_poly, *mapped_it, *lanes_it, 1 / _params.mapping_quality));
+        std::shared_ptr<DrivingCorridor> driving_corridor(new DrivingCorridor(
+            driving_corridor_poly, *mapped_it, *lanes_it, _params.requires_mapping, 1 / _params.mapping_quality));
 
         std::list<OccludedVolume> corridor;
 
@@ -181,6 +181,19 @@ std::list<std::list<Polygon>> OcclusionHandler::GetReachableSets()
     _prediction_time += std::chrono::duration_cast<std::chrono::duration<double>>(t_end - t_start).count();
 
     return occupancy_lists;
+}
+
+std::list<Polygon> OcclusionHandler::PropagateKnownObstacle(Polygon driving_corridor_poly,
+                                                            std::list<Polygon> lanes_in_corridor, Polygon initial_set,
+                                                            double velocity, ReachabilityParams params)
+{
+    std::shared_ptr<DrivingCorridor> driving_corridor(new DrivingCorridor(driving_corridor_poly, driving_corridor_poly,
+                                                                          lanes_in_corridor, params.requires_mapping));
+    Polyhedron obstacle;
+    ExtrudeZ<HalfedgeDS> extrude(initial_set, std::pair<float, float>{velocity - 0.001, velocity + 0.001});
+    obstacle.delegate(extrude);
+    OccludedVolume temp = OccludedVolume(obstacle, driving_corridor, params, 0);
+    return temp.ComputeFutureOccupancies();
 }
 
 void OcclusionHandler::SaveShadow(int ID, Polyhedron polyhedron)

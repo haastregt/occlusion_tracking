@@ -39,6 +39,17 @@ class OcclusionHandler
     /// @return List of Polygon arrays for occupancy of each time interval
     std::list<std::list<Polygon>> GetReachableSets();
 
+    /// @brief Finds the future occupancies for a known obstacle
+    /// @param driving_corridor_poly The corresponding driving corridor of the obstacle
+    /// @param lanes_in_corridor The lanes inside the corresponding driving corridor of the obstacle
+    /// @param initial_set Initial occupancy to propagate
+    /// @param velocity The velocity state of the obstacle
+    /// @param params Reachability parameters
+    /// @return A list of future occupancies as polygons
+    static std::list<Polygon> PropagateKnownObstacle(Polygon driving_corridor_poly,
+                                                     std::list<Polygon> lanes_in_corridor, Polygon initial_set,
+                                                     double velocity, ReachabilityParams params);
+
     void SaveShadow(int ID, Polyhedron polyhedron);
 
     // This type is needed to convert to python types

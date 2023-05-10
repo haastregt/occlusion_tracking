@@ -5,6 +5,8 @@ from commonroad.scenario.scenario import Lanelet
 from commonroad.scenario.trajectory import InitialState
 from commonroad.prediction.prediction import SetBasedPrediction, Occupancy
 
+from shapely import Polygon
+
 from .utilities import ShapelyPolygon2Polygon, ShapelyRemoveDoublePoints, create_dc_shapes
 
 from py_occlusions import ReachabilityParams, OcclusionHandler
@@ -32,26 +34,48 @@ class OcclusionTracker:
         params.export_shadows = config.get('save_shadows')
         self.params = params
 
-    def __init__(self, scenario, sensor_view, params, planning_horizon, initial_time_step=0):
+    def __init__(self, scenario, sensor_view, config, planning_horizon, initial_time_step=0):
         self.time_step = initial_time_step
         self.planning_horizon = planning_horizon
-        self.load_params(params)
+        self.load_params(config)
+        self.ideal_tracking_enabled = config.get('ideal_tracking_enabled')
         
         dc, mapped_dc, lanes = create_dc_shapes(scenario.lanelet_network)
-
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
 
         self.occlusion_handler = OcclusionHandler(
             dc, mapped_dc, lanes, sensor_view_processed, self.time_step, self.params)
+        
+        if self.ideal_tracking_enabled:
+            # Then we need to save the dc and lanes
+            self.dc = dc
+            self.lanes = lanes
 
     def update(self, sensor_view, new_time_step):
         self.time_step = new_time_step
+        
+        if self.ideal_tracking_enabled:
+            # Then all traffic is already available in the scenario
+            return
+
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
 
         self.occlusion_handler.update(sensor_view_processed, new_time_step)
 
     def get_dynamic_obstacles(self, scenario):
-        occupancy_sets = self.occlusion_handler.get_reachable_sets()
+        if self.ideal_tracking_enabled:
+            occupancy_sets = []
+            for obstacle in scenario.dynamic_obstacles:
+                position = obstacle.initial_state.position
+                initial_occupancy = Polygon([[position[0] + obstacle.obstacle_shape.length/2, position[1] + obstacle.obstacle_shape.width/2], 
+                                             [position[0] - obstacle.obstacle_shape.length/2, position[1] + obstacle.obstacle_shape.width/2], 
+                                             [position[0] - obstacle.obstacle_shape.length/2, position[1] - obstacle.obstacle_shape.width/2], 
+                                             [position[0] + obstacle.obstacle_shape.length/2, position[1] - obstacle.obstacle_shape.width/2]])
+                velocity = obstacle.initial_state.velocity
+                occupancy_sets.append(OcclusionHandler.propagate_known_obstacle(
+                    self.dc[0], self.lanes[0], initial_occupancy, velocity, self.params))
+        else:
+            occupancy_sets = self.occlusion_handler.get_reachable_sets()
 
         dynamic_obstacles = []
         for occupancy_set in occupancy_sets:
@@ -90,7 +114,13 @@ class OcclusionTracker:
         return dynamic_obstacles
 
     def get_shadows(self):
+        if self.ideal_tracking_enabled:
+            return None
+        
         return self.occlusion_handler.export_shadows()
     
     def get_computational_time(self):
+        if self.ideal_tracking_enabled:
+            return [[],[]]
+        
         return self.occlusion_handler.export_computational_time()

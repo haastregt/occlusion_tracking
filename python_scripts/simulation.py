@@ -39,6 +39,8 @@ def step_simulation(scenario, configuration):
     sensor_views = []
     emergency_brakes = []
 
+    ideal_tracking = configuration.get('occlusion_params').get('ideal_tracking_enabled')
+
     ego_shape = Rectangle(configuration.get('vehicle_length'),
                           configuration.get('vehicle_width'))
     ego_initial_state = InitialState(position=np.array([configuration.get('initial_state_x'),
@@ -78,19 +80,23 @@ def step_simulation(scenario, configuration):
 
     simulation_steps = configuration.get('simulation_duration')
     for step in tqdm(range(simulation_steps+1), desc=str(scenario.scenario_id),position=1,leave=False):
+        if ideal_tracking:
+            percieved_scenario = copy.deepcopy(scenario)
+            sensor.update(ego_vehicle)
+            sensor_view = sensor.get_sensor_view(scenario)
+        else:
+            # Start with an empty percieved scenario
+            percieved_scenario = copy.deepcopy(scenario)
+            for obstacle in percieved_scenario.obstacles:
+                percieved_scenario.remove_obstacle(obstacle)
 
-        # Start with an empty percieved scenario
-        percieved_scenario = copy.deepcopy(scenario)
-        for obstacle in percieved_scenario.obstacles:
-            percieved_scenario.remove_obstacle(obstacle)
-
-        # Update the sensor and get the sensor view and the list of observed obstacles
-        # initial_state is current state
-        sensor.update(ego_vehicle)
-        sensor_view = sensor.get_sensor_view(scenario)
-        observed_obstacles, _ = sensor.get_observed_obstacles(
-            sensor_view, scenario)
-        percieved_scenario.add_objects(observed_obstacles)
+            # Update the sensor and get the sensor view and the list of observed obstacles
+            # initial_state is current state
+            sensor.update(ego_vehicle)
+            sensor_view = sensor.get_sensor_view(scenario)
+            observed_obstacles, _ = sensor.get_observed_obstacles(
+                sensor_view, scenario)
+            percieved_scenario.add_objects(observed_obstacles)
 
         # Update the tracker with the new sensor view and get the prediction for the shadows
         occ_track.update(sensor_view, ego_vehicle.initial_state.time_step)
@@ -106,7 +112,7 @@ def step_simulation(scenario, configuration):
         # else, if no trajectory found, keep previous collision free trajectory
 
         if step == 0 and emergency_stop:
-            raise Exception("Scenario starts with emergency-brake!")
+           raise Exception("Scenario starts with emergency-brake!")
 
         # Add the ego vehicle to the perceived scenario
         percieved_scenario.add_objects(ego_vehicle)

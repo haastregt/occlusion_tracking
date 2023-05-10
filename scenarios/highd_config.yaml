@@ -43,4 +43,5 @@ occlusion_params:
   requires_mapping: False
 
   velocity_tracking_enabled : True
+  ideal_tracking_enabled : False
   save_shadows : False
