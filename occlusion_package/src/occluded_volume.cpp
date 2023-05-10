@@ -4,21 +4,11 @@
 #include <cmath>
 
 #include <CGAL/Aff_transformation_2.h>
-#include <CGAL/Aff_transformation_3.h>
 #include <CGAL/Boolean_set_operations_2.h>
-#include <CGAL/Polygon_mesh_processing/measure.h>
-#include <CGAL/Polygon_mesh_processing/remesh.h>
-#include <CGAL/Surface_mesh.h>
-#include <CGAL/boost/graph/convert_nef_polyhedron_to_polygon_mesh.h>
 #include <CGAL/convex_hull_2.h>
 #include <CGAL/convex_hull_3.h>
 #include <CGAL/minkowski_sum_2.h>
-#include <CGAL/minkowski_sum_3.h>
 
-#include <CGAL/draw_nef_3.h>
-#include <CGAL/draw_polygon_2.h>
-#include <CGAL/draw_polygon_with_holes_2.h>
-#include <CGAL/draw_polyhedron.h>
 
 namespace cpp_occlusions
 {
@@ -258,11 +248,7 @@ Nef_polyhedron OccludedVolume::GetLanes()
 
 std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_view)
 {
-    std::list<OccludedVolume> new_shadow_list;
-
     Nef_polyhedron new_shadow(Nef_polyhedron::COMPLETE);
-    Polyhedron P;
-    CGAL::Surface_mesh<Nef_polyhedron::Point_3> surface_mesh;
 
     if (_params.velocity_tracking_enabled)
     {
@@ -273,43 +259,28 @@ std::list<OccludedVolume> OccludedVolume::Propagate(float dt, Polygon &sensor_vi
     Nef_polyhedron velocity_abstraction = VelocityAbstraction(dt, _shadow_polyhedron);
     new_shadow *= velocity_abstraction;
 
-    new_shadow.convert_to_polyhedron(P);
-    SimplifyPolyhedron(P, _params.simplification_precision);
-    new_shadow = Nef_polyhedron(P);
-
-    Nef_polyhedron copy;
     std::list<CGAL::Polygon_with_holes_2<Kernel>> output_list;
     ExtrudeZ<HalfedgeDS> extrude(Polygon(), std::pair<float, float>{_params.vmin, _params.vmax});
     CGAL::difference(_driving_corridor->original_polygon, sensor_view, std::back_inserter(output_list));
-
+    
+    std::list<OccludedVolume> new_shadow_list;
     for (CGAL::Polygon_with_holes_2<Kernel> diff : output_list)
     {
-        assert(diff.outer_boundary().is_simple() && "Polygon has a self-intersection!");
-        assert((diff.outer_boundary().size() > 2) && "Polygon should have at least three points");
-
-        copy = Nef_polyhedron(new_shadow);
-        P = Polyhedron();
+        Nef_polyhedron copy = Nef_polyhedron(new_shadow);
 
         extrude.polygon = diff.outer_boundary();
+        Polyhedron P;
         P.delegate(extrude);
-        assert(P.is_closed() && "Polyhedra should be closed in order for conversion to Nef");
+
         copy *= Nef_polyhedron(P);
 
-        assert(copy.is_simple() && "Nef_Polyhedra should be simple in order for conversion to normal polyhedra");
+        copy.convert_to_polyhedron(P);
 
-        // We check if the minimal volume is above a treshhold to avoid small shadows due to numerical rounding
-        // TODO: Maybe not necessary since we use exact construction kernel
-        surface_mesh = CGAL::Surface_mesh<Nef_polyhedron::Point_3>();
-        CGAL::convert_nef_polyhedron_to_polygon_mesh(copy, surface_mesh, true);
+        if (P.is_empty()) {continue;}
+        if (abs(ProjectXY(P).area()) < _params.min_shadow_volume) {continue;}
 
-        if (CGAL::Polygon_mesh_processing::volume(surface_mesh) > _params.min_shadow_volume)
-        {
-            P = Polyhedron();
-            copy.convert_to_polyhedron(P);
-
-            // DissolveCloseVertices(P, 0.01);
-            new_shadow_list.push_back(OccludedVolume(P, _driving_corridor, _params, _ID));
-        }
+        SimplifyPolyhedron(P, _params.simplification_precision);
+        new_shadow_list.push_back(OccludedVolume(P, _driving_corridor, _params, _ID));
     }
 
     return new_shadow_list;
