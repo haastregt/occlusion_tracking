@@ -5,13 +5,9 @@ from commonroad.scenario.scenario import Lanelet
 from commonroad.scenario.trajectory import InitialState
 from commonroad.prediction.prediction import SetBasedPrediction, Occupancy
 
-from .utilities import Lanelet2ShapelyPolygon, ShapelyPolygon2Polygon, ShapelyRemoveDoublePoints, create_lane_shapes, create_dc_shapes
+from .utilities import ShapelyPolygon2Polygon, ShapelyRemoveDoublePoints, create_dc_shapes
 
 from py_occlusions import ReachabilityParams, OcclusionHandler
-
-import matplotlib.pyplot as plt
-
-from shapely.geometry import Polygon
 
 
 class OcclusionTracker:
@@ -40,25 +36,7 @@ class OcclusionTracker:
         self.time_step = initial_time_step
         self.planning_horizon = planning_horizon
         self.load_params(params)
-
-        # Find the initial lanelets
-        # initial_lanelets = []
-        # for lanelet in scenario.lanelet_network.lanelets:
-        #     if lanelet.predecessor == []:
-        #         initial_lanelets.append(lanelet)
-
-        # Generate lanes (Collection of lanelets from start to end of the scenario)
-        # lanes = []
-        # mapped_lanes = []
-        # for lanelet in initial_lanelets:
-        #     current_lanes, _ = Lanelet.all_lanelets_by_merging_successors_from_lanelet(
-        #         lanelet, scenario.lanelet_network, max_length=500)
-        #     for lane in current_lanes:
-        #         original, mapped = create_lane_shapes(lane)
-        #         lanes.append(original)
-        #         mapped_lanes.append(mapped)
         
-        # lanes, mapped_lanes = create_dc_shapes(scenario.lanelet_network)
         dc, mapped_dc, lanes = create_dc_shapes(scenario.lanelet_network)
 
         sensor_view_processed = ShapelyRemoveDoublePoints(sensor_view, 0.1)
@@ -77,12 +55,6 @@ class OcclusionTracker:
 
         dynamic_obstacles = []
         for occupancy_set in occupancy_sets:
-            # print("Number of occupancies: ", len(occupancy_set))
-            # plt.figure()
-            # for polygon in occupancy_set:
-            #     plt.plot(*polygon.exterior.xy)
-            # plt.show()
-
             occupancies = []
             # First element is the shape of the occlusion itself
             for i, polygon in enumerate(occupancy_set[1:]):

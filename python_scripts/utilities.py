@@ -4,7 +4,6 @@ import os
 import glob
 import tqdm
 import pandas as pd
-from dataclasses import dataclass
 
 from shapely.geometry import Polygon as ShapelyPolygon
 from shapely.geometry import MultiPolygon as ShapelyMultiPolygon
@@ -13,7 +12,6 @@ from shapely.geometry import MultiPoint, Point
 from commonroad.geometry.shape import Polygon as CommonRoadPolygon
 from commonroad.scenario.scenario import Lanelet, LaneletNetwork
 
-from shapely.geometry import LineString
 import matplotlib.pyplot as plt
 
 
@@ -79,25 +77,13 @@ def Lanelet2ShapelyPolygon(lanelet):
 
 
 def ShapelyRemoveDoublePoints(polygon, tolerance):
-    x_prev = 99999999999999
-    y_prev = 99999999999999
-
-    new_coords = []
-    for coord in polygon.exterior.coords[:-1]:
-        x = coord[0]
-        y = coord[1]
-        if abs(x-x_prev) < tolerance and abs(y - y_prev) < tolerance:
+    new_points = [polygon.exterior.coords[-1]]
+    for point in polygon.exterior.coords:
+        if not (point[0]-new_points[-1][0])**2 + (point[1]-new_points[-1][1])**2 > tolerance**2:
             continue
-        else:
-            new_coords.append(coord)
-            x_prev = x
-            y_prev = y
+        new_points.append(point)
 
-    x, y = polygon.exterior.coords[-1]
-    if abs(x-x_prev) < tolerance and abs(y - y_prev) < tolerance:
-        new_coords = new_coords[:-1]
-
-    return ShapelyPolygon(new_coords)
+    return ShapelyPolygon(new_points)
 
 
 def process_vertices(points, tolerance):
@@ -124,82 +110,6 @@ def process_vertices(points, tolerance):
 
     return np.array(new_points)
 
-
-def create_lane_shapes(lane):
-    right = process_vertices(lane.right_vertices, 0.1)
-    left = process_vertices(np.flip(lane.left_vertices, axis=0), 0.1)
-    center = process_vertices(lane.center_vertices, 0.1)
-
-    previous_vertex = center[0]
-    lane_length = 0
-    for vertex in center[1:]:
-        lane_length += np.sqrt((vertex[0] - previous_vertex[0])
-                               ** 2 + (vertex[1] - previous_vertex[1])**2)
-        previous_vertex = vertex
-
-    previous_vertex = right[0]
-    right_edges = np.zeros((len(right)-1,))
-    right_factors = np.zeros((len(right),))
-    for ind, vertex in enumerate(right[1:]):
-        right_edges[ind] = np.linalg.norm(vertex-previous_vertex)
-        if ind < len(right) - 2:
-            previous_edge = vertex - previous_vertex 
-            next_edge = right[ind + 2] - vertex
-            angle = np.arccos(np.dot(previous_edge,next_edge)/(np.linalg.norm(previous_edge)*np.linalg.norm(next_edge)))
-            right_factors[ind + 1] = angle/np.max([np.linalg.norm(previous_edge), np.linalg.norm(next_edge)])
-
-        previous_vertex = vertex
-
-    right_bound_length = np.sum(right_edges)
-    right_factors = right_factors/np.sum(right_factors)
-
-    previous_vertex = left[0]
-    left_edges = np.zeros((len(left)-1,))
-    left_factors = np.zeros((len(left),))
-    for ind, vertex in enumerate(left[1:]):
-        left_edges[ind] = np.linalg.norm(vertex-previous_vertex)
-        if ind < len(left) - 2:
-            previous_edge = vertex - previous_vertex 
-            next_edge = left[ind + 2] - vertex
-            angle = np.arccos(np.dot(previous_edge,next_edge)/(np.linalg.norm(previous_edge)*np.linalg.norm(next_edge)))
-            left_factors[ind + 1] = angle/np.max([np.linalg.norm(previous_edge), np.linalg.norm(next_edge)])
-
-        previous_vertex = vertex
-
-    left_bound_length = np.sum(left_edges)
-    left_factors = left_factors/np.sum(left_factors)
-
-    lane_width = 0.5*np.sqrt((right[-1][0]-left[0][0])**2 + (right[-1][1]-left[0][1])**2) + 0.5*np.sqrt(
-        (right[0][0]-left[-1][0])**2 + (right[0][1]-left[-1][1])**2)
-
-    left_difference = lane_length - left_bound_length
-    right_difference = lane_length - right_bound_length
-
-    mapped_right = [[0, 0]]
-    for previous_ind, vertex in enumerate(right[1:]):
-        distance = np.sqrt(
-            (vertex[0]-right[previous_ind][0])**2 + (vertex[1]-right[previous_ind][1])**2)
-        mapped_right.append([mapped_right[-1][0]+distance + right_difference*right_factors[previous_ind+1], 0])
-
-    mapped_left = [[lane_length, lane_width]]
-    for previous_ind, vertex in enumerate(left[1:]):
-        distance = np.sqrt(
-            (vertex[0]-left[previous_ind][0])**2 + (vertex[1]-left[previous_ind][1])**2)   
-        mapped_left.append(
-            [mapped_left[-1][0]-distance - left_difference*left_factors[previous_ind + 1], lane_width])
-
-    original_lane_shape = np.concatenate((right, left))
-    original_lane = ShapelyPolygon(original_lane_shape)
-    assert original_lane.is_valid, "Lane does not have a valid shape"
-
-    mapped_lane_shape = np.concatenate((mapped_right, mapped_left))
-    mapped_lane = ShapelyPolygon(mapped_lane_shape)
-    assert mapped_lane.is_valid, "Mapped lane does not have a valid shape"
-
-    assert len(original_lane.exterior.coords[:]) == len(
-        mapped_lane.exterior.coords[:]), "Number of vertices for original and mapped polygons have to be the same"
-
-    return original_lane, mapped_lane
 
 def create_dc_shapes(lanelet_network: LaneletNetwork):
     # Find the leftmost initial lanelets

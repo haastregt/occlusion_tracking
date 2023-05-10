@@ -16,6 +16,7 @@ datasets
 offenders
 highd_loc*
 highd_scenarios/
+highd_scenarios_no_traffic/
 pseudocode.cpp
 test.py
 gen_trajectory.py

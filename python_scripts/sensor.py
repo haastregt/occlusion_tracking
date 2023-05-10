@@ -4,7 +4,6 @@ import math
 import commonroad_dc.pycrcc as pycrcc
 from commonroad_dc.pycrcc import CollisionObject
 from commonroad.scenario.scenario import Scenario
-from commonroad.scenario.trajectory import State
 from commonroad_dc.collision.collision_detection.pycrcc_collision_dispatch import create_collision_object
 
 from shapely.geometry import Polygon as ShapelyPolygon

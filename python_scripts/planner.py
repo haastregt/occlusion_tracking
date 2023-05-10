@@ -1,5 +1,3 @@
-# TODO: Make another planner that allows for trajectories of the centerline
-
 import numpy as np
 from commonroad.scenario.trajectory import InitialState, Trajectory
 from commonroad.prediction.prediction import TrajectoryPrediction

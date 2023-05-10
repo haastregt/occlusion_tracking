@@ -1,47 +1,6 @@
 """
 IN ORDER TO USE, ENTER THIS FOLDER IN COMMAND LINE AND RUN:
     python3 create_scenarios.py ../../datasets/data ../
-
-What we want to do:
-
-Load the files from the HighD dataset, per location
-
-Find scenarios with the following features:
-- There is a lane-change (we need to detect when this happens)
-- There is a car behind the changing car on the new lane. This will be the ego
-- (?) The initial distance between ego and car in front of ego (if any) is according to the stand-still initialisation. This is because upon initialisation we have no info on velocity yet.
-    - I actually would like to check how many scenarios would be disqualified due to this, otherwise maybe another way has to be found
-- Find out if the merge is legal
-    - Label otherwise as illegal cut-in
-
-Convert the scenarios to XML (use cr map conversion? At least for lanes this would work well I guess). 
-    - From tl before lane change to tu after lane change
-    - Only use the lanes in the same direction.
-    - Only add obstacles in the same direction.
-    - Remove to-be-ego vehicle from dynamic obstacles
-
-Create yaml file
-    - Initial position, initial velocity
-    - reference velocity is initial velocity
-    - wether ego is truck or passenger vehicle
-    - wether it is an illegal cut-in
-
-Info such as speed limit and goal region can be put in main config yaml manually, which is per location.
-
-FILE STRUCTURE
-scenarios/
-| highd_loc1/
-| | highd_loc1_config.yaml
-| | highd_loc1_1.xml
-| | highd_loc1_1.yaml
-| | highd_loc1_2.xml
-| | highd_loc1_2.yaml
-| highd_loc2/
-| | highd_loc2_config.yaml
-| | highd_loc2_1.xml
-| | highd_loc2_1.yaml
-| | highd_loc2_2.xml
-| | highd_loc2_2.yaml
 """
 
 import os
@@ -59,20 +18,24 @@ scenario_path = sys.argv[2]
 
 pd.options.mode.chained_assignment = None
 
+REMOVE_ALL_OTHER_TRAFFIC = True
+
 ROAD_LENGTH = 420  # For all scenarios
 ROAD_OFFSET = 20  # To add before and after, avoiding traffic outside of lane
 
-FPS = 25 # frames per second of the video
-DESIRED_FREQ = 5 # desired simulation frequency
-DOWNSAMPLING = int(FPS/DESIRED_FREQ) # highD framerate is 25 fps, we want to simulate at 5Hz
+FPS = 25  # frames per second of the video
+DESIRED_FREQ = 5  # desired simulation frequency
+# highD framerate is 25 fps, we want to simulate at 5Hz
+DOWNSAMPLING = int(FPS/DESIRED_FREQ)
 
-TIME_BEFORE = 3.6 # Time before a lane change that the scenario begins
-TIME_AFTER = 5.4 #Time after a lane change that the scenario ends
+TIME_BEFORE = 3.6  # Time before a lane change that the scenario begins
+TIME_AFTER = 5.4  # Time after a lane change that the scenario ends
 
-SPEED_LIMIT = 37.5 # m/s = 135 km/h. This is 120 km/h (most highways speed limits in europe) + 12,5% speeding margin
+# m/s = 135 km/h. This is 120 km/h (most highways speed limits in europe) + 12,5% speeding margin
+SPEED_LIMIT = 37.5
 MAX_DEC = 4  # Maximum deceleration of ego to filter out any infeasible initial states
-MAX_ACC_EGO = 2 # To detect legal merges
-MAX_ACC_OTHER = 3 # To detect legal merges
+MAX_ACC_EGO = 2  # To detect legal merges
+MAX_ACC_OTHER = 3  # To detect legal merges
 
 total_scenarios = 0
 
@@ -106,15 +69,17 @@ def find_valid_scenarios(tracks_meta_df, tracks_df, video_meta_df):
     if video_meta_df["speedLimit"].values[0] == -1:
         speed_limit = SPEED_LIMIT
     else:
-        speed_limit = min([SPEED_LIMIT, 1.125*video_meta_df["speedLimit"].values[0]])
-    
-    for vehicle_id in tracks_meta_df[tracks_meta_df.numLaneChanges == 1].id.values:        
+        speed_limit = min([SPEED_LIMIT, 
+                           1.125*video_meta_df["speedLimit"].values[0]])
+
+    for vehicle_id in tracks_meta_df[tracks_meta_df.numLaneChanges == 1].id.values:
         # Check that vehicle is not above our artificial speed limit
         if tracks_meta_df[tracks_meta_df.id == vehicle_id].maxXVelocity.values[0] > speed_limit:
             continue
-        
+
         # Check that there was a car behind (which will be the ego vehicle)
-        first_frame, final_frame, change_frame = find_lane_change_interval(tracks_df[tracks_df.id == vehicle_id])
+        first_frame, final_frame, change_frame = find_lane_change_interval(
+            tracks_df[tracks_df.id == vehicle_id])
         ego_id = tracks_df[(tracks_df.id == vehicle_id) & (
             tracks_df.frame == change_frame)].followingId.values
         if not ego_id:
@@ -149,36 +114,25 @@ def find_valid_scenarios(tracks_meta_df, tracks_df, video_meta_df):
         if not has_valid_initial_state(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]):
             continue
 
-        # Remove anything behind the ego vehicle
-        remove_id = []
-        all_ids = tracks_df[tracks_df.frame == first_frame]["id"].unique()
-        for traffic_id in all_ids:
-            if tracks_df[(tracks_df.frame == first_frame) & (tracks_df.id == traffic_id)]["x"].values[0] < tracks_df[(tracks_df.frame == first_frame) & (tracks_df.id == ego_id)]["x"].values[0]:
-                remove_id.append(traffic_id)
-        
-        # Sometimes the merging vehicle starts behind, but we want to keep this one
-        try:
+        if REMOVE_ALL_OTHER_TRAFFIC:
+            remove_id = list(
+                tracks_df[tracks_df.frame == first_frame]["id"].unique())
+            # Just keep ego and merging
+            remove_id.remove(ego_id)
             remove_id.remove(vehicle_id)
-        except:
-            pass
+        else:
+            # Remove anything behind the ego vehicle
+            remove_id = []
+            all_ids = tracks_df[tracks_df.frame == first_frame]["id"].unique()
+            for traffic_id in all_ids:
+                if tracks_df[(tracks_df.frame == first_frame) & (tracks_df.id == traffic_id)]["x"].values[0] < tracks_df[(tracks_df.frame == first_frame) & (tracks_df.id == ego_id)]["x"].values[0]:
+                    remove_id.append(traffic_id)
 
-        # recursive_id = ego_id
-        # while True:
-        #     new_id = tracks_df[(tracks_df.id == recursive_id) & (
-        #         tracks_df.frame == first_frame)].followingId.values   
-        #     if len(new_id) == 0:
-        #         break
-        #     recursive_id = new_id[0]
-        #     remove_id.append(recursive_id)
-
-        # recursive_id = ego_id
-        # while True:
-        #     new_id = tracks_df[(tracks_df.id == recursive_id) & (
-        #         tracks_df.frame == final_frame)].followingId.values   
-        #     if len(new_id) == 0:
-        #         break
-        #     recursive_id = new_id[0]
-        #     remove_id.append(recursive_id)
+            # Sometimes the merging vehicle starts behind, but we want to keep this one
+            try:
+                remove_id.remove(vehicle_id)
+            except:
+                pass
 
         first_frames.append(first_frame)
         final_frames.append(final_frame)
@@ -193,13 +147,17 @@ def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, merging_id, 
     if video_meta_df["speedLimit"].values[0] == -1:
         speed_limit = SPEED_LIMIT
     else:
-        speed_limit = min([SPEED_LIMIT, 1.125*video_meta_df["speedLimit"].values[0]])
+        speed_limit = min(
+            [SPEED_LIMIT, 1.125*video_meta_df["speedLimit"].values[0]])
 
     change_frame = first_frame + FPS*TIME_AFTER
 
-    v_other = tracks_df[(tracks_df.id == merging_id) & (tracks_df.frame == change_frame)]["xVelocity"].values[0]
-    v_ego = tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == change_frame)]["xVelocity"].values[0]
-    merge_distance = tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == change_frame)]["dhw"].values[0]
+    v_other = tracks_df[(tracks_df.id == merging_id) & (
+        tracks_df.frame == change_frame)]["xVelocity"].values[0]
+    v_ego = tracks_df[(tracks_df.id == ego_id) & (
+        tracks_df.frame == change_frame)]["xVelocity"].values[0]
+    merge_distance = tracks_df[(tracks_df.id == ego_id) & (
+        tracks_df.frame == change_frame)]["dhw"].values[0]
     # safe merge distance: v_ego**2/2a_max_ego - v_other**2/2a_max_other.
     if v_ego**2/MAX_ACC_EGO - v_other**2/MAX_ACC_OTHER < merge_distance:
         safe_merge = True
@@ -211,35 +169,36 @@ def generate_yaml(video_meta_df, tracks_df, tracks_meta_df, ego_id, merging_id, 
     else:
         overtake = True
 
-    v_ego_complete = tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame >= first_frame) & (tracks_df.frame <= final_frame)].sort_values(by=['frame'])["xVelocity"].values
-    
+    v_ego_complete = tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame >= first_frame) & (
+        tracks_df.frame <= final_frame)].sort_values(by=['frame'])["xVelocity"].values
+
     data = dict(
-        simulation_duration = int((final_frame - first_frame) // DOWNSAMPLING),
-        
-        initial_state_x = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["x"].values[0]),
-        initial_state_y = float(-tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["y"].values[0]),
-        initial_state_orientation = 0,
-        initial_state_velocity = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0]),
-        
-        reference_velocity = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0]),
-        vmax = float(speed_limit),
-        v_other = float(v_other),
-        recorded_ego_velocity = list(map(float, v_ego_complete)),
+        simulation_duration         = int((final_frame - first_frame) // DOWNSAMPLING),
 
-        legal_merge = bool(safe_merge),
-        is_overtake = bool(overtake),
-        merge_dhw = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == change_frame)]["dhw"].values[0]),
-        merge_ttc = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == change_frame)]["ttc"].values[0]),
+        initial_state_x             = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["x"].values[0]),
+        initial_state_y             = float(-tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["y"].values[0]),
+        initial_state_orientation   = 0,
+        initial_state_velocity      = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0]),
 
-        planning_horizon = int(max((tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0] + 4.99 + 1) // 5 * 5, 30)), 
+        reference_velocity          = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0]),
+        vmax                        = float(speed_limit),
+        v_other                     = float(v_other),
+        recorded_ego_velocity       = list(map(float, v_ego_complete)),
+
+        legal_merge                 = bool(safe_merge),
+        is_overtake                 = bool(overtake),
+        merge_dhw                   = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == change_frame)]["dhw"].values[0]),
+        merge_ttc                   = float(tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == change_frame)]["ttc"].values[0]),
+
+        planning_horizon            = int(max((tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["xVelocity"].values[0] + 4.99 + 1) // 5 * 5, 30)),
         # + 1 because passive safety braking traj is started at timestep k + 1
 
-        vehicle_type = tracks_meta_df[tracks_meta_df.id == ego_id]["class"].values[0],
-        vehicle_length = float(tracks_meta_df[tracks_meta_df.id == ego_id]["width"].values[0]),
-        vehicle_width = float(tracks_meta_df[tracks_meta_df.id == ego_id]["height"].values[0]),
+        vehicle_type                = tracks_meta_df[tracks_meta_df.id == ego_id]["class"].values[0],
+        vehicle_length              = float(tracks_meta_df[tracks_meta_df.id == ego_id]["width"].values[0]),
+        vehicle_width               = float(tracks_meta_df[tracks_meta_df.id == ego_id]["height"].values[0]),
 
-        goal_point_x = ROAD_LENGTH,
-        goal_point_y = float(-tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["y"].values[0])
+        goal_point_x                = ROAD_LENGTH,
+        goal_point_y                = float(-tracks_df[(tracks_df.id == ego_id) & (tracks_df.frame == first_frame)]["y"].values[0])
     )
     with open(output_filename, 'w') as outfile:
         yaml.dump(data, outfile, default_flow_style=False)
@@ -325,16 +284,23 @@ if __name__ == "__main__":
         meta_scenario = get_meta_scenario(
             dt, "MetaLower", lower_lane_markings, speed_limit, ROAD_LENGTH, Direction.LOWER, ROAD_OFFSET)
 
-        output_dir = os.path.join(
-            scenario_path, "highd_scenarios")
-        os.makedirs(output_dir, exist_ok=True)
+        if REMOVE_ALL_OTHER_TRAFFIC:
+            output_dir = os.path.join(
+                scenario_path, "highd_scenarios_no_traffic")
+            os.makedirs(output_dir, exist_ok=True)
+        else:
+            output_dir = os.path.join(
+                scenario_path, "highd_scenarios")
+            os.makedirs(output_dir, exist_ok=True)
 
         for index2, (start, stop, ego, to_remove, merging) in enumerate(zip(start_times, stop_times, ego_ids, to_remove_ids, merging_ids)):
-            scenario_id = "ZAM_{0}-{1}_{2}_T-1".format("HighD", index1+1, index2+1)
+            scenario_id = "ZAM_{0}-{1}_{2}_T-1".format(
+                "HighD", index1+1, index2+1)
             yaml_filepath = os.path.join(output_dir, scenario_id + ".yaml")
             generate_single_scenario(ego, to_remove, output_dir, tracks_df, tracks_meta_df,
                                      meta_scenario, scenario_id, Direction.LOWER, start, stop, True, DOWNSAMPLING)
-            generate_yaml(recording_meta_df, tracks_df, tracks_meta_df, ego, merging, start, stop, yaml_filepath)
+            generate_yaml(recording_meta_df, tracks_df, tracks_meta_df,
+                          ego, merging, start, stop, yaml_filepath)
 
             total_scenarios += 1
 
