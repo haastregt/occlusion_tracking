@@ -67,10 +67,18 @@ class OcclusionTracker:
             occupancy_sets = []
             for obstacle in scenario.dynamic_obstacles:
                 position = obstacle.initial_state.position
-                initial_occupancy = Polygon([[position[0] + obstacle.obstacle_shape.length/2, position[1] + obstacle.obstacle_shape.width/2], 
-                                             [position[0] - obstacle.obstacle_shape.length/2, position[1] + obstacle.obstacle_shape.width/2], 
-                                             [position[0] - obstacle.obstacle_shape.length/2, position[1] - obstacle.obstacle_shape.width/2], 
-                                             [position[0] + obstacle.obstacle_shape.length/2, position[1] - obstacle.obstacle_shape.width/2]])
+                orientation = obstacle.initial_state.orientation
+                w = obstacle.obstacle_shape.width/2
+                l = obstacle.obstacle_shape.length/2
+                x1 = position[0] + l*np.cos(orientation) - w*np.sin(orientation)
+                y1 = position[1] + l*np.sin(orientation) + w*np.cos(orientation)
+                x2 = position[0] - l*np.cos(orientation) - w*np.sin(orientation)
+                y2 = position[1] - l*np.sin(orientation) + w*np.cos(orientation)
+                x3 = position[0] - l*np.cos(orientation) + w*np.sin(orientation)
+                y3 = position[1] - l*np.sin(orientation) - w*np.cos(orientation)
+                x4 = position[0] + l*np.cos(orientation) + w*np.sin(orientation)
+                y4 = position[1] + l*np.sin(orientation) - w*np.cos(orientation)
+                initial_occupancy = Polygon([[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
                 velocity = obstacle.initial_state.velocity
                 occupancy_sets.append(OcclusionHandler.propagate_known_obstacle(
                     self.dc[0], self.lanes[0], initial_occupancy, velocity, self.params))

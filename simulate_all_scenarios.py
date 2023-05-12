@@ -8,9 +8,9 @@ from python_scripts.utilities import merge_config, save_results
 from commonroad.common.file_reader import CommonRoadFileReader
 
 if __name__ == "__main__":
-    skip_existing = False            # Skips any scenarios that already have existing results.
-    scenario_path = "/home/jvarvn/Documents/Implementations/occlusion_tracking/scenarios/highd_scenarios_no_traffic"
-    results_path = "/home/jvarvn/Documents/Implementations/occlusion_tracking/results/highd_simulations_pickle_no_traffic"
+    skip_existing = True            # Skips any scenarios that already have existing results.
+    scenario_path = "/home/jvarvn/Documents/Implementations/occlusion_tracking/scenarios/highd_scenarios"
+    results_path = "/home/jvarvn/Documents/Implementations/occlusion_tracking/results/highd_simulations_pickle_new"
 
     path_xml = os.path.join(scenario_path, "*.xml")
     path_yaml = os.path.join(scenario_path, "*.yaml")
@@ -32,14 +32,18 @@ if __name__ == "__main__":
             continue
 
         try:
-            config['occlusion_params']['velocity_tracking_enabled'] = True
-            tracked_results = step_simulation(scenario1, config)
-
+            config['occlusion_params']['ideal_tracking_enabled'] = False
             config['occlusion_params']['velocity_tracking_enabled'] = False
             untracked_results = step_simulation(scenario2, config)
 
+            config['occlusion_params']['velocity_tracking_enabled'] = True
+            tracked_results = step_simulation(scenario1, config)
+
+            config['occlusion_params']['ideal_tracking_enabled'] = True
+            ideal_results = step_simulation(scenario1, config)
+
             save_path = os.path.join(results_path, str(scenario1.scenario_id))
-            save_results(save_path, tracked_results, untracked_results, scenario1, scenario_config)
+            save_results(save_path, ideal_results, tracked_results, untracked_results, scenario1, scenario_config)
         
         except Exception as e:
             print(e, scenario1.scenario_id)

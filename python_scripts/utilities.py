@@ -397,7 +397,7 @@ def merge_config(global_config, scenario_config):
 
     return global_config
 
-def save_results(file_path, tracked_results, untracked_results, scenario, scenario_config):
+def save_results(file_path, ideal_results, tracked_results, untracked_results, scenario, scenario_config):
     scenario_name = str(scenario.scenario_id)
     data = {
         "simulation_length" : scenario_config["simulation_duration"],
@@ -417,6 +417,9 @@ def save_results(file_path, tracked_results, untracked_results, scenario, scenar
                                "emergency_brakes"   : untracked_results[4],
                                "computational_time" : {"update_step"    : untracked_results[5][0],
                                                        "prediction_step": untracked_results[5][1]}},
+        "ideal_method"      : {"ego_vehicle"        : ideal_results[0],
+                               "scenarios"          : ideal_results[1],
+                               "emergency_brakes"   : ideal_results[4]},
         "vehicle_type"      : scenario_config["vehicle_type"], 
         "ego_speed"         : scenario_config["reference_velocity"],
         "recorded_ego_speed": scenario_config["recorded_ego_velocity"],
@@ -446,24 +449,60 @@ def single_to_batch_results(single_results_folder, batch_results_path):
     dict_list = []
     for result in tqdm.tqdm(result_list):
         scenario_id = os.path.basename(result)
-        data = load_results(result)
+        try:
+            data = load_results(result)
+        except:
+            print("Could not load results for ", scenario_id)
+            continue
 
-        avg_vel_recorded = np.average(np.clip(data["recorded_ego_speed"][TIMESTEP_CUTIN-1:], a_min = 0, a_max = data["ego_speed"]))
-        avg_vel_novel = np.average([state.velocity for state in data["novel_method"]["ego_vehicle"].prediction.trajectory.state_list][TIMESTEP_CUTIN-1:])
-        avg_vel_baseline = np.average([state.velocity for state in data["baseline_method"]["ego_vehicle"].prediction.trajectory.state_list][TIMESTEP_CUTIN-1:])
+        number_of_traffic = len(data["scenario"].dynamic_obstacles)
+
+        vel_novel = [state.velocity for state in data["novel_method"]["ego_vehicle"].prediction.trajectory.state_list][TIMESTEP_CUTIN-1:]
+        vel_baseline = [state.velocity for state in data["baseline_method"]["ego_vehicle"].prediction.trajectory.state_list][TIMESTEP_CUTIN-1:]
+        vel_ideal = [state.velocity for state in data["ideal_method"]["ego_vehicle"].prediction.trajectory.state_list][TIMESTEP_CUTIN-1:]
+        vel_recorded = np.clip(data["recorded_ego_speed"][(TIMESTEP_CUTIN-1)*5::5], a_min = 0, a_max = data["ego_speed"])
+
+        avg_vel_novel = np.average(vel_novel)
+        avg_vel_baseline = np.average(vel_baseline)
+        avg_vel_ideal = np.average(vel_ideal)
+        avg_vel_recorded = np.average(vel_recorded)
+
+        integrated_vel_reduction_novel = np.sum((np.array(vel_novel) - data["ego_speed"])*0.2)
+        integrated_vel_reduction_baseline = np.sum((np.array(vel_baseline) - data["ego_speed"])*0.2)
+        integrated_vel_reduction_ideal = np.sum((np.array(vel_ideal) - data["ego_speed"])*0.2)
+        integrated_vel_reduction_recorded = np.sum((np.array(vel_recorded) - data["ego_speed"])*0.2)
+
+        min_vel_novel = np.min(vel_novel)
+        min_vel_baseline = np.min(vel_baseline)
+        min_vel_ideal = np.min(vel_ideal)
+        min_vel_recorded = np.min(vel_recorded)
 
         n_brakes_novel = np.sum(data["novel_method"]["emergency_brakes"])
         n_brakes_baseline = np.sum(data["baseline_method"]["emergency_brakes"])
+        n_brakes_ideal = np.sum(data["ideal_method"]["emergency_brakes"])
 
         entry_dict = {
             "scenario_id"       : scenario_id,
+            "number_of_traffic" : number_of_traffic,
 
             "avg_vel_novel"     : avg_vel_novel,
             "avg_vel_baseline"  : avg_vel_baseline,
+            "avg_vel_ideal"     : avg_vel_ideal,
             "avg_vel_recorded"  : avg_vel_recorded,
+
+            "integrated_vel_reduction_novel"    : integrated_vel_reduction_novel,
+            "integrated_vel_reduction_baseline" : integrated_vel_reduction_baseline,
+            "integrated_vel_reduction_ideal"    : integrated_vel_reduction_ideal,
+            "integrated_vel_reduction_recorded" :  integrated_vel_reduction_recorded,
+
+            "min_vel_novel"     : min_vel_novel,
+            "min_vel_baseline"  : min_vel_baseline,
+            "min_vel_ideal"     : min_vel_ideal,
+            "min_vel_recorded"  : min_vel_recorded,
             
             "n_brakes_novel"    : n_brakes_novel,
             "n_brakes_baseline" : n_brakes_baseline,
+            "n_brakes_ideal"    : n_brakes_ideal,
             
             "comp_time_update"  : data["novel_method"]["computational_time"]["update_step"],
             "comp_time_predict" : data["novel_method"]["computational_time"]["prediction_step"],
