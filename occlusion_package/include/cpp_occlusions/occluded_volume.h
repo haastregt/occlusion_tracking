@@ -48,6 +48,7 @@ class OccludedVolume
     /// @param polyhedron the set to analyze
     /// @return the minimal x of the set
     double GetMinX(Polyhedron polyhedron);
+    double GetMinX(Polygon polygon);
 
   public:
     const int _ID;
