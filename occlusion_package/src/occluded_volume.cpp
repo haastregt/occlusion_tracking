@@ -318,47 +318,47 @@ std::list<Polygon> OccludedVolume::ComputeFutureOccupancies()
             lane_polyhedron.delegate(extrude);
             Nef_polyhedron extruded_lane = Nef_polyhedron(lane_polyhedron);
 
-            std::list<Polygon_wh> intersections;
-            CGAL::intersection(inset_lane, shadow_xy_proj, std::back_inserter(intersections));
-
-            for (Polygon_wh intersection : intersections)
+            // std::list<Polygon_wh> intersections;
+            // CGAL::intersection(inset_lane, shadow_xy_proj, std::back_inserter(intersections));
+            if (!CGAL::do_intersect(inset_lane, shadow_xy_proj))
             {
-                Polyhedron extruded_intersection;
-                extrude.polygon = intersection.outer_boundary();
-                extruded_intersection.delegate(extrude);
+                continue;
+            }
+            Nef_polyhedron shadow_in_lane = extruded_lane*Nef_polyhedron(_shadow_polyhedron);
+            Polyhedron extruded_intersection;
+            shadow_in_lane.convert_to_polyhedron(extruded_intersection);
 
-                Nef_polyhedron occupancy(Nef_polyhedron::COMPLETE);
+            Nef_polyhedron occupancy(Nef_polyhedron::COMPLETE);
 
-                if (_params.velocity_tracking_enabled)
-                {
-                    Nef_polyhedron acceleration_abstraction = AccelerationAbstraction(interval, extruded_intersection);
-                    occupancy *= acceleration_abstraction;
-                }
+            if (_params.velocity_tracking_enabled)
+            {
+                Nef_polyhedron acceleration_abstraction = AccelerationAbstraction(interval, extruded_intersection);
+                occupancy *= acceleration_abstraction;
+            }
 
-                Nef_polyhedron velocity_abstraction = VelocityAbstraction(interval, extruded_intersection);
-                occupancy *= velocity_abstraction;
+            Nef_polyhedron velocity_abstraction = VelocityAbstraction(interval, extruded_intersection);
+            occupancy *= velocity_abstraction;
 
-                Nef_polyhedron no_reversing = ExplicitNoReversingAbstraction(min_x);
-                occupancy *= no_reversing;
+            Nef_polyhedron no_reversing = ExplicitNoReversingAbstraction(min_x);
+            occupancy *= no_reversing;
 
-                occupancy *= extruded_lane;
-                
-                if (occupancy == Nef_polyhedron::EMPTY)
-                {
-                    continue;
-                }
+            occupancy *= extruded_lane;
+            
+            if (occupancy == Nef_polyhedron::EMPTY)
+            {
+                continue;
+            }
 
-                Polyhedron P;
-                occupancy.convert_to_Polyhedron(P);
-                
-                if (complete_occupancy.outer_boundary().is_empty())
-                {
-                    complete_occupancy = Polygon_wh(ProjectXY(P));
-                }
-                else
-                {
-                    CGAL::join(ProjectXY(P), complete_occupancy.outer_boundary(), complete_occupancy);
-                }
+            Polyhedron P;
+            occupancy.convert_to_Polyhedron(P);
+            
+            if (complete_occupancy.outer_boundary().is_empty())
+            {
+                complete_occupancy = Polygon_wh(ProjectXY(P));
+            }
+            else
+            {
+                CGAL::join(ProjectXY(P), complete_occupancy.outer_boundary(), complete_occupancy);
             }
         }
 
