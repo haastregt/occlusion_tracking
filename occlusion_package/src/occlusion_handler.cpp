@@ -190,7 +190,7 @@ std::list<Polygon> OcclusionHandler::PropagateKnownObstacle(Polygon driving_corr
     std::shared_ptr<DrivingCorridor> driving_corridor(new DrivingCorridor(driving_corridor_poly, driving_corridor_poly,
                                                                           lanes_in_corridor, params.requires_mapping));
     Polyhedron obstacle;
-    ExtrudeZ<HalfedgeDS> extrude(initial_set, std::pair<float, float>{velocity - 0.001, velocity + 0.001});
+    ExtrudeZ<HalfedgeDS> extrude(initial_set, std::pair<float, float>{velocity - 0.01, velocity + 0.01});
     obstacle.delegate(extrude);
     OccludedVolume temp = OccludedVolume(obstacle, driving_corridor, params, 0);
     return temp.ComputeFutureOccupancies();

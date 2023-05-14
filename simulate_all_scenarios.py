@@ -24,6 +24,7 @@ if __name__ == "__main__":
     for xml_file, yaml_file in tqdm.tqdm(zip(xml_list, yaml_list), total=len(xml_list), desc="Iterating over simulations", position=0):
         scenario1, _ = CommonRoadFileReader(xml_file).open()
         scenario2, _ = CommonRoadFileReader(xml_file).open()
+        scenario3, _ = CommonRoadFileReader(xml_file).open()
         with open(yaml_file) as file:
             scenario_config = yaml.load(file, Loader=yaml.FullLoader)
         config = merge_config(global_config, scenario_config)
@@ -33,14 +34,16 @@ if __name__ == "__main__":
 
         try:
             config['occlusion_params']['ideal_tracking_enabled'] = False
+            config['occlusion_params']['velocity_tracking_enabled'] = True
+            tracked_results = step_simulation(scenario1, config)
+            
+            config['occlusion_params']['ideal_tracking_enabled'] = False
             config['occlusion_params']['velocity_tracking_enabled'] = False
             untracked_results = step_simulation(scenario2, config)
 
-            config['occlusion_params']['velocity_tracking_enabled'] = True
-            tracked_results = step_simulation(scenario1, config)
-
             config['occlusion_params']['ideal_tracking_enabled'] = True
-            ideal_results = step_simulation(scenario1, config)
+            config['occlusion_params']['velocity_tracking_enabled'] = True
+            ideal_results = step_simulation(scenario3, config)
 
             save_path = os.path.join(results_path, str(scenario1.scenario_id))
             save_results(save_path, ideal_results, tracked_results, untracked_results, scenario1, scenario_config)

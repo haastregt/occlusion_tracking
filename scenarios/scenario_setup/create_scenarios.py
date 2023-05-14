@@ -18,7 +18,7 @@ scenario_path = sys.argv[2]
 
 pd.options.mode.chained_assignment = None
 
-REMOVE_ALL_OTHER_TRAFFIC = True
+REMOVE_ALL_OTHER_TRAFFIC = False
 
 ROAD_LENGTH = 420  # For all scenarios
 ROAD_OFFSET = 20  # To add before and after, avoiding traffic outside of lane
@@ -121,11 +121,15 @@ def find_valid_scenarios(tracks_meta_df, tracks_df, video_meta_df):
             remove_id.remove(ego_id)
             remove_id.remove(vehicle_id)
         else:
-            # Remove anything behind the ego vehicle
             remove_id = []
             all_ids = tracks_df[tracks_df.frame == first_frame]["id"].unique()
             for traffic_id in all_ids:
+                # Remove anything behind the ego vehicle
                 if tracks_df[(tracks_df.frame == first_frame) & (tracks_df.id == traffic_id)]["x"].values[0] < tracks_df[(tracks_df.frame == first_frame) & (tracks_df.id == ego_id)]["x"].values[0]:
+                    remove_id.append(traffic_id)
+                    continue
+                # Removing anything violating our artificial speed limit + 12,5%
+                if tracks_meta_df[tracks_meta_df.id == traffic_id]["maxXVelocity"].values[0] > speed_limit:
                     remove_id.append(traffic_id)
 
             # Sometimes the merging vehicle starts behind, but we want to keep this one
