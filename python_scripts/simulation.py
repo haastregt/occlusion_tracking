@@ -33,7 +33,7 @@ def step_vehicle(vehicle):
                            TrajectoryPrediction(trajectory, vehicle.obstacle_shape))
 
 
-def step_simulation(scenario, configuration):
+def step_simulation(scenario, configuration, occlusion_aware= True):
     driven_state_list = []
     percieved_scenarios = []
     sensor_views = []
@@ -80,7 +80,7 @@ def step_simulation(scenario, configuration):
 
     simulation_steps = configuration.get('simulation_duration')
     for step in tqdm(range(simulation_steps+1), desc=str(scenario.scenario_id),position=1,leave=False):
-        if ideal_tracking:
+        if ideal_tracking and occlusion_aware:
             percieved_scenario = copy.deepcopy(scenario)
             sensor.update(ego_vehicle)
             sensor_view = sensor.get_sensor_view(scenario)

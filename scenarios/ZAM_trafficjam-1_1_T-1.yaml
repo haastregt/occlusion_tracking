@@ -1,0 +1,47 @@
+# ~ means that the scenario specific yaml file with set the value
+
+#GENERAL
+simulation_duration : 95
+scenario_name : "ZAM_trafficjam-1_1_T-1"
+
+#EGO_VEHICLE
+initial_state_x : 1
+initial_state_y : 3
+initial_state_orientation: 0
+initial_state_velocity: 30
+
+vehicle_type : "car"
+vehicle_length : 4.5
+vehicle_width : 2
+goal_point_x : 300
+goal_point_y : 3
+
+#PLANNER
+reference_speed : 35
+max_acceleration : 3
+max_deceleration : 5
+planning_horizon : 61
+
+#SENSOR
+field_of_view_degrees : 360
+min_resolution : 1
+view_range : 250
+
+#OCCLUSION_TRACKER
+occlusion_params:
+  vmin : 0
+  vmax : 37.5
+  amin : -5
+  amax : 3
+  phi : 10
+  dt : 0.2
+  prediction_interval : 10
+  prediction_horizon : 60
+  min_shadow_volume : 1.0
+  mapping_quality : 1
+  simplification_precision: 0.1
+  requires_mapping: False
+
+  velocity_tracking_enabled : True
+  ideal_tracking_enabled : False
+  save_shadows : False

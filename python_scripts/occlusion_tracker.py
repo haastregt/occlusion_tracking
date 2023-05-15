@@ -7,7 +7,7 @@ from commonroad.prediction.prediction import SetBasedPrediction, Occupancy
 
 from shapely import Polygon
 
-from .utilities import ShapelyPolygon2Polygon, ShapelyRemoveDoublePoints, create_dc_shapes
+from .utilities import ShapelyPolygon2Polygon, ShapelyRemoveDoublePoints, create_dc_shapes, plot_polygon
 
 from py_occlusions import ReachabilityParams, OcclusionHandler
 
