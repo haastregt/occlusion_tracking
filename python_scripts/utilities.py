@@ -441,8 +441,6 @@ def load_results(file_path):
     return data
 
 def single_to_batch_results(single_results_folder, batch_results_path):
-    TIMESTEP_CUTIN = int(3.6/0.2) # Used to find average velocities after cut-in has happened
-    
     single_result_paths = os.path.join(single_results_folder, "*")
     result_list = glob.glob(single_result_paths)
 
@@ -457,10 +455,10 @@ def single_to_batch_results(single_results_folder, batch_results_path):
 
         number_of_traffic = len(data["scenario"].dynamic_obstacles)
 
-        vel_novel = [state.velocity for state in data["novel_method"]["ego_vehicle"].prediction.trajectory.state_list][TIMESTEP_CUTIN-1:]
-        vel_baseline = [state.velocity for state in data["baseline_method"]["ego_vehicle"].prediction.trajectory.state_list][TIMESTEP_CUTIN-1:]
-        vel_ideal = [state.velocity for state in data["ideal_method"]["ego_vehicle"].prediction.trajectory.state_list][TIMESTEP_CUTIN-1:]
-        vel_recorded = np.clip(data["recorded_ego_speed"][(TIMESTEP_CUTIN-1)*5::5], a_min = 0, a_max = data["ego_speed"])
+        vel_novel = [state.velocity for state in data["novel_method"]["ego_vehicle"].prediction.trajectory.state_list]
+        vel_baseline = [state.velocity for state in data["baseline_method"]["ego_vehicle"].prediction.trajectory.state_list]
+        vel_ideal = [state.velocity for state in data["ideal_method"]["ego_vehicle"].prediction.trajectory.state_list]
+        vel_recorded = np.clip(data["recorded_ego_speed"][::5], a_min = 0, a_max = data["ego_speed"])
 
         avg_vel_novel = np.average(vel_novel)
         avg_vel_baseline = np.average(vel_baseline)
