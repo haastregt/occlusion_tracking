@@ -120,21 +120,11 @@ class Visualizer:
 
         rnd.render()
 
-    def plot_polyhedron_hull(self, polyhedron, color, figure):
-        hull = ConvexHull(polyhedron)
-        for s in hull.simplices:
-            tri = Poly3DCollection([polyhedron[s]])
-            tri.set_color(color)
-            tri.set_alpha(0.5)
-            figure.add_collection3d(tri)
-
     def plot_3D_shadows(self, shadow, sim_length, timesteps):
         ID = shadow[0]
         polyhedra = shadow[1]
 
-        figure = plt.figure(111, figsize=(12,12))
-        figure.subplots_adjust(left=0, right=1, bottom=0, top=1)
-        ax = figure.add_subplot(111, projection="3d")
+        plt.figure(figsize=(10,4))
         R = int(255)
         G = int(0)
         B = int(0)
@@ -148,19 +138,16 @@ class Visualizer:
             Bi = int(B + 255 * tint_factor)
             color = rgb2hex(Ri, G, Bi)
 
-            hull = ConvexHull(poly)
-            for s in hull.simplices:
-                tri = Poly3DCollection([poly[s]])
-                tri.set_color(color)
-                tri.set_alpha(0.5)
-                ax.add_collection3d(tri)
-        ax.axes.set_xlim3d(left=0, right=420)
-        ax.axes.set_ylim3d(bottom=-45, top=-15)
-        ax.axes.set_zlim3d(bottom=0, top=50)
-        ax.azim = -90
-        ax.dist = 10
-        ax.elev = 45
-        ax.set_box_aspect((420, 80, 160))
+            points = poly[:,::2]
+            hull = ConvexHull(points)
+            for simplex in hull.simplices:
+                plt.plot(points[simplex, 0], points[simplex, 1], color=color)
+
+        plt.title('Evolution of the set of potential hidden traffic',fontsize=16)
+        plt.xlabel('x [m]', fontsize=12)
+        plt.ylabel('Velocity [m/s]',fontsize=12)
+        plt.ylim([-1,40])
+        plt.grid()
         plt.show()
 
     def plot_unsimulated(self, scenario, configuration, timestep):
