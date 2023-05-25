@@ -472,7 +472,7 @@ lanelet_network:
     colormap_tangent: false
     show_label: false
     draw_linewidth: 0.5
-    fill_lanelet: false
+    fill_lanelet: true
     facecolor: '#c7c7c7'
   intersection:
     time_begin: 0
