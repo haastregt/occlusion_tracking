@@ -3,6 +3,8 @@ Tracking the position and velocity of hidden traffic by reasoning about previous
 
 This project uses the python commonroad library and the c++ library CGAL for the reachability computations. In order for the code to run, a custom python library called py_occlusions is used to interface the python simulation code with the reachability computations in c++.
 
+The jupyter notebook `highd_scenarios.ipynb` presents the results of all scenarios. The jupyter notebook `single_scenario.ipynb` can be used to animate results and show some additional plots specifically for a single result. 
+
 ## INSTALL AND DEPENDENCIES
 First, install commonroad and pandas:
 - `$ pip install commonroad-all`
