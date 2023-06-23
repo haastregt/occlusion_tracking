@@ -1,12 +1,12 @@
 # ~ means that the scenario specific yaml file with set the value
 
 #GENERAL
-simulation_duration : 95
+simulation_duration : 90
 scenario_name : "ZAM_trafficjam-1_1_T-1"
 
 #EGO_VEHICLE
 initial_state_x : 1
-initial_state_y : 3
+initial_state_y : 0
 initial_state_orientation: 0
 initial_state_velocity: 30
 
@@ -14,13 +14,13 @@ vehicle_type : "car"
 vehicle_length : 4.5
 vehicle_width : 2
 goal_point_x : 300
-goal_point_y : 3
+goal_point_y : 0
 
 #PLANNER
-reference_speed : 35
+reference_velocity : 35
 max_acceleration : 3
 max_deceleration : 5
-planning_horizon : 61
+planning_horizon : 71
 
 #SENSOR
 field_of_view_degrees : 360
@@ -45,3 +45,13 @@ occlusion_params:
   velocity_tracking_enabled : True
   ideal_tracking_enabled : False
   save_shadows : False
+
+
+is_overtake: true
+legal_merge: true
+merge_dhw: 17.56
+merge_ttc: -3.82
+recorded_ego_velocity: ~
+
+v_other: 35
+vmax: 37.5

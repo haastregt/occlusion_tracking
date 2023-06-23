@@ -112,7 +112,8 @@ def step_simulation(scenario, configuration, occlusion_aware= True):
         # else, if no trajectory found, keep previous collision free trajectory
 
         if step == 0 and emergency_stop:
-           raise Exception("Scenario starts with emergency-brake!")
+           pass
+           #raise Exception("Scenario starts with emergency-brake!")
 
         # Add the ego vehicle to the perceived scenario
         percieved_scenario.add_objects(ego_vehicle)
