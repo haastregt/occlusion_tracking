@@ -1,3 +1,5 @@
+This work was published by ICRA 2024: [IEEE Xplore](https://ieeexplore.ieee.org/document/10610904)
+
 # OCCLUSION TRACKING WITH VELOCITY BOUNDS
 Tracking the position and velocity of hidden traffic by reasoning about previous observations, in order to allow for less conservative trajectory planning in autonomous driving while maintaining safety guarantees
 
